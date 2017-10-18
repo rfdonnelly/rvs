@@ -1,0 +1,35 @@
+use std::str::FromStr;
+
+pub id -> &'input str
+    = $([a-zA-Z_] [a-zA-Z0-9_:]*)
+
+pub number -> u32
+    = s:$([0-9] [0-9_]*) {
+        let stripped = &str::replace(s, "_", "");
+        u32::from_str(stripped).unwrap()
+    }
+
+pub hex_number -> u32
+    = "0" [xX] s:$([0-9a-fA-F_]+) {
+        let stripped = &str::replace(s, "_", "");
+        u32::from_str_radix(stripped, 16).unwrap()
+    }
+
+pub atom -> u32
+    = "(" v:infix_arith ")" { v }
+    / hex_number
+    / number
+
+pub infix_arith -> u32
+    = #infix<atom> {
+        #L  x "|" y { x | y }
+        #L  x "^" y { x ^ y }
+        #L  x "&" y { x & y }
+        #L  x "<<" y { x << y }
+            x ">>" y { x >> y }
+        #L  x "+" y { x + y }
+            x "-" y { x - y }
+        #L  x "*" y { x * y }
+            x "/" y { x / y }
+    }
+
