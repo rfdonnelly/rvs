@@ -1,3 +1,5 @@
+mod ast;
+
 mod grammar {
     include!(concat!(env!("OUT_DIR"), "/grammar.rs"));
 }
@@ -5,16 +7,20 @@ mod grammar {
 fn main() {
 }
 
+use grammar::*;
+use ast::Node;
+use ast::Opcode;
+
 mod tests {
     mod atom {
-        use grammar::*;
+        use super::super::*;
 
         #[test]
         fn good() {
-            assert_eq!(atom("(5)"), Ok(5));
-            assert_eq!(atom("5"), Ok(5));
-            assert_eq!(atom("0xa"), Ok(10));
-            assert_eq!(atom("0xaf"), Ok(0xaf));
+            assert_eq!(atom("(5)"), Ok(Box::new(Node::Number(5))));
+            assert_eq!(atom("5"), Ok(Box::new(Node::Number(5))));
+            assert_eq!(atom("0xa"), Ok(Box::new(Node::Number(10))));
+            assert_eq!(atom("0xaf"), Ok(Box::new(Node::Number(0xaf))));
         }
 
         #[test]
@@ -25,11 +31,20 @@ mod tests {
     }
 
     mod infix_arith {
-        use grammar::*;
+        use super::super::*;
 
         #[test]
         fn good() {
-            assert_eq!(infix_arith("1+2*3"), Ok(7));
+            assert_eq!(infix_arith("1+2"), Ok(
+                Box::new(Node::Operation(
+                    Box::new(Node::Number(1)),
+                    Opcode::Add,
+                    Box::new(Node::Number(2))
+                ))
+            ));
+
+            assert_eq!(format!("{:?}", infix_arith("1+2*3")),
+            "Ok(Operation(Number(1), Add, Operation(Number(2), Multiply, Number(3))))");
         }
     }
 
