@@ -4,14 +4,47 @@ mod grammar {
     include!(concat!(env!("OUT_DIR"), "/grammar.rs"));
 }
 
+use ast::Node;
+use ast::Opcode;
+use grammar::*;
+
 fn main() {
 }
 
-use grammar::*;
-use ast::Node;
-use ast::Opcode;
+fn eval(expr: &str) -> u32 {
+    match infix_arith(expr) {
+        Ok(ast) => eval_walk(&ast),
+        Err(_) => panic!("Could not parse: '{}'", expr),
+    }
+}
+
+fn eval_walk(node: &Box<ast::Node>) -> u32 {
+    match **node {
+        Node::Number(x) => x,
+        Node::Operation(ref bx, ref op, ref by) => {
+            let x = eval_walk(bx);
+            let y = eval_walk(by);
+
+            match *op {
+                Opcode::Add => x + y,
+                Opcode::Subtract => x - y,
+                Opcode::Multiply => x * y,
+                Opcode::Divide => x / y,
+            }
+        }
+    }
+}
 
 mod tests {
+    mod eval {
+        use super::super::*;
+
+        #[test]
+        fn basic() {
+            assert_eq!(eval("1+2*3"), 7);
+        }
+    }
+
     mod atom {
         use super::super::*;
 

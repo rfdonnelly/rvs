@@ -4,12 +4,6 @@ pub enum Opcode {
     Subtract,
     Multiply,
     Divide,
-    ShiftLeft,
-    ShiftRight,
-    Modulo,
-    BitwiseOr,
-    BitwiseXor,
-    BitwiseAnd,
 }
 
 #[derive(PartialEq, Debug)]
