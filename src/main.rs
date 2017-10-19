@@ -6,32 +6,18 @@ mod grammar {
 
 use ast::Node;
 use ast::Opcode;
+use ast::eval_walk;
 use grammar::*;
+
+use std::ops::Deref;
 
 fn main() {
 }
 
 fn eval(expr: &str) -> u32 {
     match infix_arith(expr) {
-        Ok(ast) => eval_walk(&ast),
+        Ok(ast) => eval_walk(ast.deref()),
         Err(_) => panic!("Could not parse: '{}'", expr),
-    }
-}
-
-fn eval_walk(node: &Box<ast::Node>) -> u32 {
-    match **node {
-        Node::Number(x) => x,
-        Node::Operation(ref bx, ref op, ref by) => {
-            let x = eval_walk(bx);
-            let y = eval_walk(by);
-
-            match *op {
-                Opcode::Add => x + y,
-                Opcode::Subtract => x - y,
-                Opcode::Multiply => x * y,
-                Opcode::Divide => x / y,
-            }
-        }
     }
 }
 
