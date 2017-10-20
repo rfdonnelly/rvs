@@ -6,17 +6,14 @@ mod grammar {
 
 use ast::Node;
 use ast::Opcode;
-use ast::eval_walk;
 use grammar::*;
-
-use std::ops::Deref;
 
 fn main() {
 }
 
 fn eval(expr: &str) -> u32 {
     match infix_arith(expr) {
-        Ok(ast) => eval_walk(ast.deref()),
+        Ok(ast) => ast.eval(),
         Err(_) => panic!("Could not parse: '{}'", expr),
     }
 }

@@ -12,27 +12,28 @@ pub enum Node {
     Operation(Box<Node>, Opcode, Box<Node>),
 }
 
-pub fn eval_walk(node: &Node) -> u32 {
-    match *node {
-        Node::Number(x) => x,
-        Node::Operation(ref bx, ref op, ref by) => {
-            let x = eval_walk(bx);
-            let y = eval_walk(by);
+impl Node {
+    pub fn eval(&self) -> u32 {
+        match *self {
+            Node::Number(x) => x,
+            Node::Operation(ref bx, ref op, ref by) => {
+                let x = bx.eval();
+                let y = by.eval();
 
-            match *op {
-                Opcode::Add => x + y,
-                Opcode::Subtract => x - y,
-                Opcode::Multiply => x * y,
-                Opcode::Divide => x / y,
+                match *op {
+                    Opcode::Add => x + y,
+                    Opcode::Subtract => x - y,
+                    Opcode::Multiply => x * y,
+                    Opcode::Divide => x / y,
+                }
             }
         }
     }
 }
 
 mod tests {
-    mod eval_walk {
+    mod eval {
         use super::super::*;
-        use std::ops::Deref;
 
         #[test]
         fn add() {
@@ -43,7 +44,7 @@ mod tests {
                     Box::new(Node::Number(2))
                 ));
 
-            assert_eq!(eval_walk(expr.deref()), 3);
+            assert_eq!(expr.eval(), 3);
         }
 
         #[test]
@@ -59,7 +60,7 @@ mod tests {
                     ))
                 ));
 
-            assert_eq!(eval_walk(expr.deref()), 7);
+            assert_eq!(expr.eval(), 7);
         }
     }
 }
