@@ -65,23 +65,23 @@ mod tests {
         }
     }
 
-    mod id {
+    mod identifier {
         use grammar::*;
 
         #[test]
         fn good() {
-            assert!(id("a").is_ok());
-            assert!(id("a_").is_ok());
-            assert!(id("__").is_ok());
-            assert!(id("_0").is_ok());
-            assert!(id("a::B").is_ok());
+            assert!(identifier("a").is_ok());
+            assert!(identifier("a_").is_ok());
+            assert!(identifier("__").is_ok());
+            assert!(identifier("_0").is_ok());
+            assert!(identifier("a::B").is_ok());
         }
 
         #[test]
         fn bad() {
-            assert!(id("a-b").is_err());
-            assert!(id("0b").is_err());
-            assert!(id("1_").is_err());
+            assert!(identifier("a-b").is_err());
+            assert!(identifier("0b").is_err());
+            assert!(identifier("1_").is_err());
         }
     }
 
