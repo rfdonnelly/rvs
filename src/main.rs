@@ -148,4 +148,27 @@ mod tests {
             assert!(assignment("a=5").is_err());
         }
     }
+
+    mod assignments {
+        use super::super::*;
+
+        #[test]
+        fn good() {
+            assert!(assignments("a=5;\nb=6;").is_ok());
+        }
+
+        #[test]
+        fn ast() {
+            assert_eq!(assignments("a=5;\nb=6;"), Ok(vec![
+                Box::new(Node::Assignment(
+                    Box::new(Node::Identifier("a".into())),
+                    Box::new(Node::Number(5))
+                )),
+                Box::new(Node::Assignment(
+                    Box::new(Node::Identifier("b".into())),
+                    Box::new(Node::Number(6))
+                )),
+            ]));
+        }
+    }
 }
