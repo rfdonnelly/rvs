@@ -31,3 +31,8 @@ pub infix_arith -> Box<Node>
             x "/" y { Box::new(Node::Operation(x, Opcode::Divide, y)) }
     }
 
+pub assignment -> Box<Node>
+    = lhs:identifier "=" rhs:atom ";" {
+        Box::new(Node::Assignment(
+            Box::new(Node::Identifier(lhs.into())), rhs))
+    }

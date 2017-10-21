@@ -121,4 +121,31 @@ mod tests {
             assert!(hex_number("0xg5").is_err());
         }
     }
+
+    mod assignment {
+        use super::super::*;
+
+        #[test]
+        fn good() {
+            assert!(assignment("a=5;").is_ok());
+        }
+
+        #[test]
+        fn ast() {
+            assert_eq!(assignment("a=5;"), Ok(
+                    Box::new(
+                        Node::Assignment(
+                            Box::new(Node::Identifier("a".into())),
+                            Box::new(Node::Number(5))
+                        )
+                    )
+                )
+            );
+        }
+
+        #[test]
+        fn bad() {
+            assert!(assignment("a=5").is_err());
+        }
+    }
 }

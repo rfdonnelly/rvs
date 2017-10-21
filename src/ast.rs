@@ -8,13 +8,17 @@ pub enum Opcode {
 
 #[derive(PartialEq, Debug)]
 pub enum Node {
+    Identifier(String),
     Number(u32),
     Operation(Box<Node>, Opcode, Box<Node>),
+    Assignment(Box<Node>, Box<Node>),
 }
 
 impl Node {
     pub fn eval(&self) -> u32 {
         match *self {
+            Node::Identifier(_) => panic!("Indentifiers not supported in this context"),
+            Node::Assignment(_, _) => panic!("Assignments not supported in this context"),
             Node::Number(x) => x,
             Node::Operation(ref bx, ref op, ref by) => {
                 let x = bx.eval();
