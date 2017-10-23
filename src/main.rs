@@ -1,3 +1,5 @@
+extern crate rand;
+
 mod ast;
 mod sequence;
 
@@ -171,4 +173,21 @@ mod tests {
             ]));
         }
     }
+
+    mod range {
+        use super::super::*;
+
+        #[test]
+        fn ast() {
+            assert_eq!(range("[1,2]"), Ok(
+                    Box::new(
+                        Node::Range(
+                            Box::new(Node::Number(1)),
+                            Box::new(Node::Number(2))
+                        )
+                    )
+                ));
+        }
+    }
+
 }

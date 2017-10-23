@@ -40,6 +40,11 @@ pub assignment -> Box<Node>
 pub assignments -> Vec<Box<Node>>
     = a:assignment ** eol { a }
 
+pub range -> Box<Node>
+    = "[" a:atom "," b:atom "]" {
+        Box::new(Node::Range(a, b))
+    }
+
 // From: https://github.com/kevinmehall/rust-peg/blob/cc6a3cdebfafc670a9dffb0422709ff6d85d1207/src/grammar.rustpeg
 // Modeled after ECMA-262, 5th ed., 7.3.
 eol
