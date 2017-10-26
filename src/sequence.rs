@@ -5,6 +5,7 @@ use rand::Rng;
 use rand::SeedableRng;
 use rand::chacha::ChaChaRng;
 use rand::distributions::Range;
+use rand::distributions::Sample;
 use rand::distributions::IndependentSample;
 
 pub trait Sequence {
@@ -51,9 +52,88 @@ pub struct Expr {
 pub struct RangeSequence {
     last: u32,
     rng: ChaChaRng,
+    range: RangeInclusive
+}
+
+pub struct RangeInclusive {
+    range: Range<u32>,
     use_range: bool,
     offset: bool,
-    range: Range<u32>,
+}
+
+impl RangeInclusive {
+    fn new(low: u32, high: u32) -> RangeInclusive {
+        let mut low = low;
+        let mut high = high;
+        let mut use_range = true;
+        let mut offset = false;
+
+        // Implement the inclusive range [x, y] using the exlusive range [x, y + 1) by handling
+        // three different cases:
+        //
+        // * The range [::std::u32::MIN, ::std::u32::MAX]
+        //
+        //   Cannot use rand::distributions::Range.  Use RNG directly.
+        //
+        //   [x, y] => [x, y]
+        //
+        // * The range [x, ::std::u32::MAX]
+        //
+        //   Can use rand::distributions::Range but must adjust the range down artifically, then
+        //   re-adjust up after sampling.
+        //
+        //   [x, y] => [x - 1, y) + 1
+        //
+        // * All other ranges
+        //
+        //   Use rand::distributions::Range normally.
+        //
+        //   [x, y] => [x, y + 1)
+        if high == ::std::u32::MAX {
+            if low == ::std::u32::MIN {
+                // Sample directly from RNG w/o Range
+                use_range = false;
+                high -= 1; // Prevent panic on Range::new
+            } else {
+                // Sample with Range + offset
+                offset = true;
+                low -= 1;
+                high -= 1;
+            }
+        }
+
+        RangeInclusive {
+            offset: offset,
+            use_range: use_range,
+            range: Range::new(low, high + 1),
+        }
+    }
+}
+
+impl IndependentSample<u32> for RangeInclusive {
+    fn ind_sample<R: Rng>(&self, rng: &mut R) -> u32 {
+        // Should never see this case.  Could cause a panic due to overflow.
+        assert!(!(self.use_range == false && self.offset == true));
+
+        let sample =
+            if self.use_range {
+                self.range.ind_sample(rng)
+            } else {
+                rng.gen()
+            };
+
+        if self.offset {
+            sample + 1
+        } else {
+            sample
+        }
+    }
+}
+
+impl Sample<u32> for RangeInclusive {
+    fn sample<R: Rng>(&mut self, rng: &mut R) -> u32 {
+        self.ind_sample(rng)
+    }
 }
 
 impl Value {
@@ -106,63 +186,17 @@ impl<'a> RangeSequence {
     pub fn new(l: &mut Box<Sequence>, r: &mut Box<Sequence>) -> RangeSequence {
         // FIXME: Range::new may panic.
         // FIXME: Allow non-const seed
-        let mut r = r.next();
-        let mut l = l.next();
-        let mut use_range = true;
-        let mut offset = false;
-
-        // RangeSequence is [x, y] but Range is from [x, y). Compensate for this by handling 3
-        // cases:
-        //
-        // * The range [::std::u32::MIN, ::std::u32::MAX]
-        //
-        //   Cannot use rand::distributions::Range.  Use RNG directly.
-        //
-        // * The range [x, ::std::u32::MAX]
-        //
-        //   Can use rand::distributions::Range but must adjust the range down artifically, then
-        //   re-adjust up after sampling.
-        //
-        // * All other ranges
-        //
-        //   Use rand::distributions::Range normally.
-        if r == ::std::u32::MAX {
-            if l == ::std::u32::MIN {
-                // Sample directly from RNG w/o Range
-                use_range = false;
-                r -= 1; // Prevent panic on Range::new
-            } else {
-                // Sample with Range + offset
-                offset = true;
-                l -= 1;
-                r -= 1;
-            }
-        }
-
         RangeSequence {
             last: 0,
             rng: ChaChaRng::from_seed(&[0x0000_0000]),
-            offset: offset,
-            use_range: use_range,
-            range: Range::new(l, r + 1),
+            range: RangeInclusive::new(l.next(), r.next()),
         }
     }
 }
 
 impl<'a> Sequence for RangeSequence {
     fn next(&mut self) -> u32 {
-        // Should never see this case.  Could cause a panic due to overflow.
-        assert!(!(self.use_range == false && self.offset == true));
-
-        if self.use_range {
-            self.last = self.range.ind_sample(&mut self.rng);
-        } else {
-            self.last = self.rng.gen();
-        }
-
-        if self.offset {
-            self.last += 1
-        }
+        self.last = self.range.ind_sample(&mut self.rng);
 
         self.last
     }
