@@ -63,11 +63,6 @@ pub struct RangeInclusive {
 
 impl RangeInclusive {
     fn new(low: u32, high: u32) -> RangeInclusive {
-        let mut low = low;
-        let mut high = high;
-        let mut use_range = true;
-        let mut offset = false;
-
         // Implement the inclusive range [x, y] using the exlusive range [x, y + 1) by handling
         // three different cases:
         //
@@ -89,23 +84,19 @@ impl RangeInclusive {
         //   Use rand::distributions::Range normally.
         //
         //   [x, y] => [x, y + 1)
-        if high == ::std::u32::MAX {
-            if low == ::std::u32::MIN {
-                // Sample directly from RNG w/o Range
-                use_range = false;
-                high -= 1; // Prevent panic on Range::new
-            } else {
-                // Sample with Range + offset
-                offset = true;
-                low -= 1;
-                high -= 1;
-            }
-        }
+        let (x, y, use_range, offset) = match (low, high) {
+            // Sample directly from RNG w/o Range
+            (::std::u32::MIN, ::std::u32::MAX) => (::std::u32::MIN, ::std::u32::MAX, false, false),
+            // Sample with Range + offset
+            (x, ::std::u32::MAX) => (x - 1, ::std::u32::MAX, true, true),
+            // Sample with Range normally
+            (x, y) => (x, y + 1, true, false)
+        };
 
         RangeInclusive {
             offset: offset,
             use_range: use_range,
-            range: Range::new(low, high + 1),
+            range: Range::new(x, y),
         }
     }
 }
