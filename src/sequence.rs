@@ -6,7 +6,6 @@ use rand::chacha::ChaChaRng;
 use rand::distributions::Range;
 use rand::distributions::IndependentSample;
 
-
 pub trait Sequence {
     fn next(&mut self) -> u32;
     fn last(&self) -> u32;
