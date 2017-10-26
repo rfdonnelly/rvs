@@ -6,6 +6,7 @@ mod grammar;
 
 use grammar::*;
 use sequence::sequence_from_ast;
+use sequence::Sequence;
 
 fn main() {
 }
@@ -17,11 +18,10 @@ fn eval_by_ast(s: &str) -> u32 {
     }
 }
 
-fn eval_by_sequence(s: &str) -> u32 {
+fn parse(s: &str) -> Box<Sequence> {
     match expr(s) {
-        Ok(ast) =>  {
-            let mut sequence = sequence_from_ast(&ast);
-            sequence.next()
+        Ok(ast) => {
+            sequence_from_ast(&ast)
         },
         Err(_) => panic!("Could not parse: '{}'", s),
     }
@@ -42,7 +42,26 @@ mod tests {
 
         #[test]
         fn basic() {
-            assert_eq!(eval_by_sequence("1+2*3"), 7);
+            let mut sequence = parse("1+2*3");
+            assert_eq!(sequence.next(), 7);
+        }
+
+        #[test]
+        fn range() {
+            use std::collections::HashMap;
+
+            let mut sequence = parse("1+[0,1]");
+
+            let mut values = HashMap::new();
+            for _ in 0..100 {
+                let value = sequence.next();
+                let entry = values.entry(value).or_insert(0);
+                *entry += 1;
+                assert!(value == 1 || value == 2);
+            }
+
+            assert!(values[&1] > 0);
+            assert!(values[&2] > 0);
         }
     }
 }
