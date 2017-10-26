@@ -11,7 +11,7 @@ pub trait Sequence {
     fn last(&self) -> u32;
 }
 
-fn sequence_from_ast(node: &Node) -> Box<Sequence> {
+pub fn sequence_from_ast(node: &Node) -> Box<Sequence> {
     match *node {
         Node::Identifier(_) => panic!("Not supported"),
         Node::Assignment(_, _) => panic!("Not supported"),
