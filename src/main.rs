@@ -1,12 +1,12 @@
 extern crate rand;
 
 mod ast;
-mod sequence;
 mod grammar;
+mod sequences;
 
 use grammar::*;
-use sequence::sequence_from_ast;
-use sequence::Sequence;
+use sequences::sequence_from_ast;
+use sequences::Sequence;
 
 fn main() {
 }
