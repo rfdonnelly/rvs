@@ -19,11 +19,11 @@ pub hex_number -> u32
     }
 
 pub atom -> Box<Node>
-    = "(" v:infix_arith ")" { v }
+    = "(" v:expr ")" { v }
     / u:hex_number { Box::new(Node::Number(u)) }
     / u:number { Box::new(Node::Number(u)) }
 
-pub infix_arith -> Box<Node>
+pub expr -> Box<Node>
     = #infix<atom> {
         #L  x "+" y { Box::new(Node::Operation(x, Opcode::Add, y)) }
             x "-" y { Box::new(Node::Operation(x, Opcode::Subtract, y)) }

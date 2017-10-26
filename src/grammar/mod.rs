@@ -19,12 +19,12 @@ mod tests {
         }
     }
 
-    mod infix_arith {
+    mod expr {
         use super::super::*;
 
         #[test]
         fn good() {
-            assert_eq!(infix_arith("1+2"), Ok(
+            assert_eq!(expr("1+2"), Ok(
                 Box::new(Node::Operation(
                     Box::new(Node::Number(1)),
                     Opcode::Add,
@@ -32,7 +32,7 @@ mod tests {
                 ))
             ));
 
-            assert_eq!(format!("{:?}", infix_arith("1+2*3")),
+            assert_eq!(format!("{:?}", expr("1+2*3")),
             "Ok(Operation(Number(1), Add, Operation(Number(2), Multiply, Number(3))))");
         }
     }
