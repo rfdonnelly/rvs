@@ -22,6 +22,7 @@ pub atom -> Box<Node>
     = "(" v:expr ")" { v }
     / u:hex_number { Box::new(Node::Number(u)) }
     / u:number { Box::new(Node::Number(u)) }
+    / range
 
 pub expr -> Box<Node>
     = #infix<atom> {
