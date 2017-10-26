@@ -32,7 +32,7 @@ pub expr -> Box<Node>
     }
 
 pub assignment -> Box<Node>
-    = lhs:identifier "=" rhs:atom ";" {
+    = lhs:identifier "=" rhs:expr ";" {
         Box::new(Node::Assignment(
             Box::new(Node::Identifier(lhs.into())), rhs))
     }
@@ -41,7 +41,7 @@ pub assignments -> Vec<Box<Node>>
     = a:assignment ** eol { a }
 
 pub range -> Box<Node>
-    = "[" a:atom "," b:atom "]" {
+    = "[" a:expr "," b:expr "]" {
         Box::new(Node::Range(a, b))
     }
 
