@@ -18,7 +18,7 @@ fn eval_by_ast(s: &str) -> u32 {
     }
 }
 
-fn parse(s: &str) -> Box<Sequence> {
+fn parse_expression(s: &str) -> Box<Sequence> {
     match expr(s) {
         Ok(ast) => {
             sequence_from_ast(&ast)
@@ -37,12 +37,12 @@ mod tests {
         }
     }
 
-    mod eval_by_sequence {
+    mod parse_expression {
         use super::super::*;
 
         #[test]
         fn basic() {
-            let mut sequence = parse("1+2*3");
+            let mut sequence = parse_expression("1+2*3");
             assert_eq!(sequence.next(), 7);
         }
 
@@ -50,7 +50,7 @@ mod tests {
         fn range() {
             use std::collections::HashMap;
 
-            let mut sequence = parse("1+[0,1]");
+            let mut sequence = parse_expression("1+[0,1]");
 
             let mut values = HashMap::new();
             for _ in 0..100 {
