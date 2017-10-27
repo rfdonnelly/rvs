@@ -4,7 +4,6 @@ mod ast;
 mod grammar;
 mod sequences;
 
-use grammar::*;
 use sequences::sequence_from_ast;
 use sequences::Sequence;
 
@@ -12,14 +11,14 @@ fn main() {
 }
 
 fn eval_by_ast(s: &str) -> u32 {
-    match expr(s) {
+    match grammar::expr(s) {
         Ok(ast) => ast.eval(),
         Err(_) => panic!("Could not parse: '{}'", s),
     }
 }
 
 fn parse_expression(s: &str) -> Box<Sequence> {
-    match expr(s) {
+    match grammar::expr(s) {
         Ok(ast) => {
             sequence_from_ast(&ast)
         },
