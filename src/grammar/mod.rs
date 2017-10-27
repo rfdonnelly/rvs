@@ -1,5 +1,6 @@
 include!(concat!(env!("OUT_DIR"), "/grammar.rs"));
 
+#[cfg(test)]
 mod tests {
     mod atom {
         use super::super::*;

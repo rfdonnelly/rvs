@@ -38,6 +38,7 @@ impl<'a> Sequence for Expr {
     }
 }
 
+#[cfg(test)]
 mod tests {
     use super::*;
 

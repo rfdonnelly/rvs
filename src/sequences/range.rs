@@ -110,6 +110,7 @@ impl<'a> Sequence for RangeSequence {
     }
 }
 
+#[cfg(test)]
 mod tests {
     mod range {
         use super::super::*;

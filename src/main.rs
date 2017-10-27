@@ -38,6 +38,7 @@ fn parse_assignments(s: &str) -> HashMap<String, Box<Sequence>> {
     }
 }
 
+#[cfg(test)]
 mod tests {
     mod eval_by_ast {
         use super::super::*;

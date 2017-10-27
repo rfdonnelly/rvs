@@ -57,6 +57,7 @@ pub fn sequence_from_ast(node: &Node) -> Box<Sequence> {
     }
 }
 
+#[cfg(test)]
 mod tests {
     mod sequence_from_ast {
         use super::super::*;
