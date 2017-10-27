@@ -10,9 +10,6 @@ use sequences::sequence_from_ast;
 use sequences::sequences_from_ast;
 use sequences::Sequence;
 
-fn main() {
-}
-
 fn eval_by_ast(s: &str) -> u32 {
     match grammar::expr(s) {
         Ok(ast) => ast.eval(),
