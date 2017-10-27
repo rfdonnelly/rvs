@@ -85,9 +85,11 @@ A possible series of evaluations of `b` could yield the following:
     * Misc Sequences
       * [ ] Pattern
       * [ ] Loop
-    * Logic operators
+    * Arithmetic operators
       * [x] +, -
       * [x] *, /
+      * [ ] %
+    * Logic operators
       * [ ] &, |, ^
       * [ ] <<, >>
   * [ ] Whitespace
