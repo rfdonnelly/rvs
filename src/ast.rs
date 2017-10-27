@@ -18,9 +18,6 @@ pub enum Node {
 impl Node {
     pub fn eval(&self) -> u32 {
         match *self {
-            Node::Identifier(_) => panic!("Indentifiers not supported in this context"),
-            Node::Assignment(_, _) => panic!("Assignments not supported in this context"),
-            Node::Range(_, _) => panic!("Ranges not supported in this context"),
             Node::Number(x) => x,
             Node::Operation(ref bx, ref op, ref by) => {
                 let x = bx.eval();
@@ -33,6 +30,7 @@ impl Node {
                     Opcode::Divide => x / y,
                 }
             }
+            _ => panic!("Not supported in this context"),
         }
     }
 }

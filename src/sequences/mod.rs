@@ -15,8 +15,6 @@ pub trait Sequence {
 
 pub fn sequence_from_ast(node: &Node) -> Box<Sequence> {
     match *node {
-        Node::Identifier(_) => panic!("Not supported"),
-        Node::Assignment(_, _) => panic!("Not supported"),
         Node::Range(ref bx, ref by) => {
             Box::new(
                 RangeSequence::new(
@@ -34,7 +32,8 @@ pub fn sequence_from_ast(node: &Node) -> Box<Sequence> {
                     sequence_from_ast(by)
                 )
             )
-        }
+        },
+        _ => panic!("Not supported"),
     }
 }
 
