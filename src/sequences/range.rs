@@ -87,7 +87,7 @@ impl Sample<u32> for RangeInclusive {
 }
 
 impl<'a> RangeSequence {
-    pub fn new(l: &mut Box<Sequence>, r: &mut Box<Sequence>) -> RangeSequence {
+    pub fn new(l: &mut Sequence, r: &mut Sequence) -> RangeSequence {
         // FIXME: Range::new may panic.
         // FIXME: Allow non-const seed
         RangeSequence {
@@ -118,13 +118,10 @@ mod tests {
         fn basic() {
             use std::collections::HashMap;
 
-            let mut v0: Box<Sequence> = Box::new(Value::new(0));
-            let mut v1: Box<Sequence> = Box::new(Value::new(1));
-
             let mut range = RangeSequence::new(
-                &mut v0,
-                &mut v1
-                );
+                &mut Value::new(0),
+                &mut Value::new(1)
+            );
 
             let mut values = HashMap::new();
 
@@ -146,11 +143,9 @@ mod tests {
         fn max_max() {
             use std::collections::HashMap;
 
-            let mut v0: Box<Sequence> = Box::new(Value::new(::std::u32::MAX - 1));
-            let mut v1: Box<Sequence> = Box::new(Value::new(::std::u32::MAX));
             let mut sequence = RangeSequence::new(
-                &mut v0,
-                &mut v1
+                &mut Value::new(::std::u32::MAX - 1),
+                &mut Value::new(::std::u32::MAX)
             );
 
             let mut values = HashMap::new();
@@ -170,11 +165,9 @@ mod tests {
         fn full_range() {
             use std::collections::HashMap;
 
-            let mut v0: Box<Sequence> = Box::new(Value::new(::std::u32::MIN));
-            let mut v1: Box<Sequence> = Box::new(Value::new(::std::u32::MAX));
             let mut sequence = RangeSequence::new(
-                &mut v0,
-                &mut v1
+                &mut Value::new(::std::u32::MIN),
+                &mut Value::new(::std::u32::MAX)
             );
 
             let mut values = HashMap::new();

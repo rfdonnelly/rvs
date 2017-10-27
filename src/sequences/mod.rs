@@ -20,8 +20,8 @@ pub fn sequence_from_ast(node: &Node) -> Box<Sequence> {
         Node::Range(ref bx, ref by) => {
             Box::new(
                 RangeSequence::new(
-                    &mut sequence_from_ast(bx),
-                    &mut sequence_from_ast(by)
+                    &mut *sequence_from_ast(bx),
+                    &mut *sequence_from_ast(by)
                 )
             )
         }
