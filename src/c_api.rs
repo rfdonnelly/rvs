@@ -29,12 +29,15 @@ pub extern fn parse(s: &str) -> SequenceErrorCode {
 
 #[no_mangle]
 pub fn lookup(name: &str, handle_ptr: *mut SequenceHandle) -> SequenceErrorCode {
+    if handle_ptr.is_null() {
+        return 2
+    }
+
     let mut ids = IDSBYNAME.lock().unwrap();
 
     if let Occupied(entry) = ids.entry(name.into()) {
         let id = *entry.get() as SequenceHandle;
 
-        assert!(!handle_ptr.is_null());
         unsafe {
             *handle_ptr = id;
         };
@@ -47,7 +50,9 @@ pub fn lookup(name: &str, handle_ptr: *mut SequenceHandle) -> SequenceErrorCode 
 
 #[no_mangle]
 pub fn next(handle: SequenceHandle, result_ptr: *mut u32) -> SequenceErrorCode {
-    assert!(!result_ptr.is_null());
+    if result_ptr.is_null() {
+        return 2
+    }
 
     let mut sequences = SEQSBYID.lock().unwrap();
 
@@ -113,6 +118,7 @@ mod tests {
 
     mod lookup {
         use super::super::*;
+        use std::ptr;
 
         #[test]
         fn not_found() {
@@ -139,10 +145,18 @@ mod tests {
             IDSBYNAME.lock().unwrap().clear();
             SEQSBYID.lock().unwrap().clear();
         }
+
+        #[test]
+        fn null_handle() {
+            let handle_ptr: *mut SequenceHandle = ptr::null_mut();
+            let error = lookup("a", handle_ptr);
+            assert_eq!(error, 2);
+        }
     }
 
     mod next {
         use super::super::*;
+        use std::ptr;
 
         #[test]
         fn found() {
@@ -178,6 +192,14 @@ mod tests {
             let error = next(handle, result_ptr);
             assert_eq!(error, 1);
             assert_eq!(result, 0);
+        }
+
+        #[test]
+        fn null_result() {
+            let handle = 0;
+            let result_ptr: *mut u32 = ptr::null_mut();
+            let error = next(handle, result_ptr);
+            assert_eq!(error, 2);
         }
     }
 }
