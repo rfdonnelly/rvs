@@ -102,7 +102,7 @@ mod tests {
         use super::super::*;
 
         #[test]
-        fn notfound() {
+        fn not_found() {
             assert!(IDSBYNAME.lock().unwrap().is_empty());
             assert!(SEQSBYID.lock().unwrap().is_empty());
 
