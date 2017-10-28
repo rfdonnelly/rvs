@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::collections::hash_map::Entry::Occupied;
 use std::panic::catch_unwind;
 use std::sync::Mutex;
 
@@ -26,58 +27,106 @@ pub extern fn parse(s: &str) -> SequenceErrorCode {
     0
 }
 
-// #[no_mangle]
-// pub fn lookup(name: &str, handle: &mut SequenceHandle) -> SequenceErrorCode {
-// }
+#[no_mangle]
+pub fn lookup(name: &str, handle_ptr: *mut SequenceHandle) -> SequenceErrorCode {
+    let mut ids = IDSBYNAME.lock().unwrap();
+
+    if let Occupied(entry) = ids.entry(name.into()) {
+        let id = *entry.get() as SequenceHandle;
+
+        assert!(!handle_ptr.is_null());
+        unsafe {
+            *handle_ptr = id;
+        };
+
+        0
+    } else {
+        1
+    }
+}
 
 // #[no_mangle]
 // pub fn next(handle: SequenceHandle, result: &u32) -> SequenceErrorCode {
 // }
 
+#[cfg(test)]
 mod tests {
-    use super::*;
+    mod parse {
+        use super::super::*;
+        use std::collections::hash_map::Entry::Occupied;
 
-    use std::collections::hash_map::Entry::Occupied;
+        #[test]
+        fn basic() {
+            assert!(IDSBYNAME.lock().unwrap().is_empty());
+            assert!(SEQSBYID.lock().unwrap().is_empty());
 
-    #[test]
-    fn parse_basic() {
-        assert!(IDSBYNAME.lock().unwrap().is_empty());
-        assert!(SEQSBYID.lock().unwrap().is_empty());
+            let error = parse("a=5;");
+            assert_eq!(error, 0);
 
-        let error = parse("a=5;");
-        assert_eq!(error, 0);
+            let mut ids = IDSBYNAME.lock().unwrap();
+            let mut sequences = SEQSBYID.lock().unwrap();
+            assert!(ids.contains_key("a"));
+            if let Occupied(entry) = ids.entry("a".into()) {
+                let id = entry.get();
+                let value = sequences[*id].next();
+                assert_eq!(value, 5);
+            }
 
-        let mut ids = IDSBYNAME.lock().unwrap();
-        let mut sequences = SEQSBYID.lock().unwrap();
-        assert!(ids.contains_key("a"));
-        if let Occupied(entry) = ids.entry("a".into()) {
-            let id = entry.get();
-            let value = sequences[*id].next();
-            assert_eq!(value, 5);
+            ids.clear();
+            sequences.clear();
         }
 
-        ids.clear();
-        sequences.clear();
+        #[test]
+        fn range() {
+            assert!(IDSBYNAME.lock().unwrap().is_empty());
+            assert!(SEQSBYID.lock().unwrap().is_empty());
+
+            let error = parse("a=[0,1];");
+            assert_eq!(error, 0);
+
+            let mut ids = IDSBYNAME.lock().unwrap();
+            let mut sequences = SEQSBYID.lock().unwrap();
+            assert!(ids.contains_key("a"));
+            if let Occupied(entry) = ids.entry("a".into()) {
+                let id = entry.get();
+                let value = sequences[*id].next();
+                assert!(value == 0 || value == 1);
+            }
+
+            ids.clear();
+            sequences.clear();
+        }
     }
 
-    #[test]
-    fn parse_range() {
-        assert!(IDSBYNAME.lock().unwrap().is_empty());
-        assert!(SEQSBYID.lock().unwrap().is_empty());
+    mod lookup {
+        use super::super::*;
 
-        let error = parse("a=[0,1];");
-        assert_eq!(error, 0);
+        #[test]
+        fn notfound() {
+            assert!(IDSBYNAME.lock().unwrap().is_empty());
+            assert!(SEQSBYID.lock().unwrap().is_empty());
 
-        let mut ids = IDSBYNAME.lock().unwrap();
-        let mut sequences = SEQSBYID.lock().unwrap();
-        assert!(ids.contains_key("a"));
-        if let Occupied(entry) = ids.entry("a".into()) {
-            let id = entry.get();
-            let value = sequences[*id].next();
-            assert!(value == 0 || value == 1);
+            let mut handle: SequenceHandle = 0;
+            let handle_ptr: *mut SequenceHandle = &mut handle;
+            assert_eq!(lookup("a", handle_ptr), 1);
         }
 
-        ids.clear();
-        sequences.clear();
+        #[test]
+        fn found() {
+            assert!(IDSBYNAME.lock().unwrap().is_empty());
+            assert!(SEQSBYID.lock().unwrap().is_empty());
+
+            let error = parse("a=5;");
+            assert_eq!(error, 0);
+
+            let mut handle: SequenceHandle = 0;
+            let handle_ptr: *mut SequenceHandle = &mut handle;
+            assert_eq!(lookup("a", handle_ptr), 0);
+
+            let mut ids = IDSBYNAME.lock().unwrap();
+            let mut sequences = SEQSBYID.lock().unwrap();
+            ids.clear();
+            sequences.clear();
+        }
     }
 }
