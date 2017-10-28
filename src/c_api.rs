@@ -45,9 +45,22 @@ pub fn lookup(name: &str, handle_ptr: *mut SequenceHandle) -> SequenceErrorCode 
     }
 }
 
-// #[no_mangle]
-// pub fn next(handle: SequenceHandle, result: &u32) -> SequenceErrorCode {
-// }
+#[no_mangle]
+pub fn next(handle: SequenceHandle, result_ptr: *mut u32) -> SequenceErrorCode {
+    assert!(!result_ptr.is_null());
+
+    let mut sequences = SEQSBYID.lock().unwrap();
+
+    let idx = handle as usize;
+    if sequences.is_empty() || idx > sequences.len() - 1 {
+        1
+    } else {
+        let value = sequences[idx].next();
+        unsafe { *result_ptr = value; };
+
+        0
+    }
+}
 
 #[cfg(test)]
 mod tests {
@@ -123,10 +136,48 @@ mod tests {
             let handle_ptr: *mut SequenceHandle = &mut handle;
             assert_eq!(lookup("a", handle_ptr), 0);
 
-            let mut ids = IDSBYNAME.lock().unwrap();
-            let mut sequences = SEQSBYID.lock().unwrap();
-            ids.clear();
-            sequences.clear();
+            IDSBYNAME.lock().unwrap().clear();
+            SEQSBYID.lock().unwrap().clear();
+        }
+    }
+
+    mod next {
+        use super::super::*;
+
+        #[test]
+        fn found() {
+            assert!(IDSBYNAME.lock().unwrap().is_empty());
+            assert!(SEQSBYID.lock().unwrap().is_empty());
+
+            let error = parse("a=5;");
+            assert_eq!(error, 0);
+
+            let mut handle: SequenceHandle = 0;
+            let handle_ptr: *mut SequenceHandle = &mut handle;
+            let error = lookup("a", handle_ptr);
+            assert_eq!(error, 0);
+
+            let mut result: u32 = 0;
+            let result_ptr: *mut u32 = &mut result;
+            let error = next(handle, result_ptr);
+            assert_eq!(error, 0);
+            assert_eq!(result, 5);
+
+            IDSBYNAME.lock().unwrap().clear();
+            SEQSBYID.lock().unwrap().clear();
+        }
+
+        #[test]
+        fn not_found() {
+            assert!(IDSBYNAME.lock().unwrap().is_empty());
+            assert!(SEQSBYID.lock().unwrap().is_empty());
+
+            let handle = 0;
+            let mut result: u32 = 0;
+            let result_ptr: *mut u32 = &mut result;
+            let error = next(handle, result_ptr);
+            assert_eq!(error, 1);
+            assert_eq!(result, 0);
         }
     }
 }
