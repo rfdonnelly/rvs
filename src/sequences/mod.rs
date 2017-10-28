@@ -10,12 +10,12 @@ pub use self::value::Value;
 pub use self::expr::Expr;
 pub use self::range::RangeSequence;
 
-pub trait Sequence {
+pub trait Sequence : Send + Sync {
     fn next(&mut self) -> u32;
     fn last(&self) -> u32;
 }
 
-pub fn sequences_from_ast(assignments: Vec<Box<Node>>, sequences: &mut HashMap<String, Box<Sequence>>) {
+pub fn sequences_from_ast(assignments: Vec<Box<Node>>, ids: &mut HashMap<String, usize>, sequences: &mut Vec<Box<Sequence>>) {
     for assignment in assignments {
         if let Node::Assignment(ref lhs, ref rhs) = *assignment {
             let mut identifier: String = "".into();
@@ -24,7 +24,8 @@ pub fn sequences_from_ast(assignments: Vec<Box<Node>>, sequences: &mut HashMap<S
                 identifier = x.clone();
             }
 
-            sequences.insert(identifier, sequence_from_ast(&rhs));
+            sequences.push(sequence_from_ast(&rhs));
+            ids.insert(identifier, sequences.len() - 1);
         }
     }
 }
@@ -108,16 +109,21 @@ mod tests {
                 )),
             ];
 
-            let mut sequences = HashMap::new();
-            sequences_from_ast(assignments, &mut sequences);
+            let mut ids = HashMap::new();
+            let mut sequences = Vec::new();
+            sequences_from_ast(assignments, &mut ids, &mut sequences);
 
-            assert!(sequences.contains_key("a"));
-            if let Occupied(mut entry) = sequences.entry("a".into()) {
-                assert_eq!(entry.get_mut().next(), 5);
+            assert!(ids.contains_key("a"));
+            if let Occupied(entry) = ids.entry("a".into()) {
+                let id = entry.get();
+                let value = sequences[*id].next();
+                assert_eq!(value, 5);
             }
-            assert!(sequences.contains_key("b"));
-            if let Occupied(mut entry) = sequences.entry("b".into()) {
-                assert_eq!(entry.get_mut().next(), 6);
+            assert!(ids.contains_key("b"));
+            if let Occupied(entry) = ids.entry("b".into()) {
+                let id = entry.get();
+                let value = sequences[*id].next();
+                assert_eq!(value, 6);
             }
         }
     }

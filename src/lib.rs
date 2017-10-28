@@ -1,8 +1,11 @@
+#[macro_use]
+extern crate lazy_static;
 extern crate rand;
 
 mod ast;
 mod grammar;
 mod sequences;
+pub mod c_api;
 
 use std::collections::HashMap;
 
@@ -26,10 +29,10 @@ fn parse_expression(s: &str) -> Box<Sequence> {
     }
 }
 
-fn parse_assignments(s: &str, sequences: &mut HashMap<String, Box<Sequence>>) {
+fn parse_assignments(s: &str, ids: &mut HashMap<String, usize>, sequences: &mut Vec<Box<Sequence>>) {
     match grammar::assignments(s) {
         Ok(assignments) => {
-            sequences_from_ast(assignments, sequences)
+            sequences_from_ast(assignments, ids, sequences)
         },
         Err(_) => panic!("Could not parse: '{}'", s),
     }
@@ -81,18 +84,22 @@ mod tests {
 
         #[test]
         fn basic() {
-            let mut sequences = HashMap::new();
-            parse_assignments("a=[0,1];\nb=2;", &mut sequences);
+            let mut ids = HashMap::new();
+            let mut sequences = Vec::new();
+            parse_assignments("a=[0,1];\nb=2;", &mut ids, &mut sequences);
 
-            assert!(sequences.contains_key("a"));
-            assert!(sequences.contains_key("b"));
+            assert!(ids.contains_key("a"));
+            assert!(ids.contains_key("b"));
 
-            if let Occupied(mut entry) = sequences.entry("a".into()) {
-                let value = entry.get_mut().next();
+            if let Occupied(entry) = ids.entry("a".into()) {
+                let id = entry.get();
+                let value = sequences[*id].next();
                 assert!(value == 0 || value == 1);
             }
-            if let Occupied(mut entry) = sequences.entry("b".into()) {
-                assert_eq!(entry.get_mut().next(), 2);
+            if let Occupied(entry) = ids.entry("b".into()) {
+                let id = entry.get();
+                let value = sequences[*id].next();
+                assert_eq!(value, 2);
             }
         }
     }

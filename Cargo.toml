@@ -9,3 +9,4 @@ peg = { version = "0.5" }
 
 [dependencies]
 rand = "0.3"
+lazy_static = "0.2"
