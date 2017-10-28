@@ -26,10 +26,10 @@ fn parse_expression(s: &str) -> Box<Sequence> {
     }
 }
 
-fn parse_assignments(s: &str) -> HashMap<String, Box<Sequence>> {
+fn parse_assignments(s: &str, sequences: &mut HashMap<String, Box<Sequence>>) {
     match grammar::assignments(s) {
         Ok(assignments) => {
-            sequences_from_ast(assignments)
+            sequences_from_ast(assignments, sequences)
         },
         Err(_) => panic!("Could not parse: '{}'", s),
     }
@@ -81,7 +81,8 @@ mod tests {
 
         #[test]
         fn basic() {
-            let mut sequences = parse_assignments("a=[0,1];\nb=2;");
+            let mut sequences = HashMap::new();
+            parse_assignments("a=[0,1];\nb=2;", &mut sequences);
 
             assert!(sequences.contains_key("a"));
             assert!(sequences.contains_key("b"));

@@ -15,9 +15,7 @@ pub trait Sequence {
     fn last(&self) -> u32;
 }
 
-pub fn sequences_from_ast(assignments: Vec<Box<Node>>) -> HashMap<String, Box<Sequence>> {
-    let mut sequences = HashMap::new();
-
+pub fn sequences_from_ast(assignments: Vec<Box<Node>>, sequences: &mut HashMap<String, Box<Sequence>>) {
     for assignment in assignments {
         if let Node::Assignment(ref lhs, ref rhs) = *assignment {
             let mut identifier: String = "".into();
@@ -29,8 +27,6 @@ pub fn sequences_from_ast(assignments: Vec<Box<Node>>) -> HashMap<String, Box<Se
             sequences.insert(identifier, sequence_from_ast(&rhs));
         }
     }
-
-    sequences
 }
 
 pub fn sequence_from_ast(node: &Node) -> Box<Sequence> {
@@ -112,7 +108,8 @@ mod tests {
                 )),
             ];
 
-            let mut sequences = sequences_from_ast(assignments);
+            let mut sequences = HashMap::new();
+            sequences_from_ast(assignments, &mut sequences);
 
             assert!(sequences.contains_key("a"));
             if let Occupied(mut entry) = sequences.entry("a".into()) {
