@@ -63,10 +63,13 @@ A possible series of evaluations of `b` could yield the following:
   * [ ] Parse from command line
 
 * C API
-  * [ ] static HashMap of sequences
-  * [ ] C API for parse
-  * [ ] C API for lookup
-  * [ ] C API for next
+  * [x] static HashMap of sequences
+  * [x] `parse()`
+  * [x] `lookup()`
+  * [x] `next()`
+  * [ ] `done()`
+  * [ ] `exists()`
+  * [ ] `last()`
 
 * Grammar
   * Types
