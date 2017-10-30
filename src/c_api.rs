@@ -6,7 +6,23 @@ use std::sync::Mutex;
 use sequences::Sequence;
 
 type SequenceHandle = u32;
-type SequenceErrorCode = u8;
+type ResultCodeRaw = u8;
+
+enum ResultCode {
+    Success,
+    NotFound,
+    NullPointer,
+}
+
+impl ResultCode {
+    fn value(&self) -> ResultCodeRaw {
+        match *self {
+            ResultCode::Success => 0,
+            ResultCode::NotFound => 1,
+            ResultCode::NullPointer => 2,
+        }
+    }
+}
 
 lazy_static! {
     static ref IDSBYNAME: Mutex<HashMap<String, usize>> = {
@@ -19,18 +35,18 @@ lazy_static! {
 }
 
 #[no_mangle]
-pub extern fn parse(s: &str) -> SequenceErrorCode {
+pub extern fn parse(s: &str) -> ResultCodeRaw {
     let mut ids = IDSBYNAME.lock().unwrap();
     let mut sequences = SEQSBYID.lock().unwrap();
     ::parse_assignments(s, &mut *ids, &mut *sequences);
 
-    0
+    ResultCode::Success.value()
 }
 
 #[no_mangle]
-pub fn lookup(name: &str, handle_ptr: *mut SequenceHandle) -> SequenceErrorCode {
+pub fn lookup(name: &str, handle_ptr: *mut SequenceHandle) -> ResultCodeRaw {
     if handle_ptr.is_null() {
-        return 2
+        return ResultCode::NullPointer.value()
     }
 
     let mut ids = IDSBYNAME.lock().unwrap();
@@ -42,28 +58,28 @@ pub fn lookup(name: &str, handle_ptr: *mut SequenceHandle) -> SequenceErrorCode 
             *handle_ptr = id;
         };
 
-        0
+        ResultCode::Success.value()
     } else {
-        1
+        ResultCode::NotFound.value()
     }
 }
 
 #[no_mangle]
-pub fn next(handle: SequenceHandle, result_ptr: *mut u32) -> SequenceErrorCode {
+pub fn next(handle: SequenceHandle, result_ptr: *mut u32) -> ResultCodeRaw {
     if result_ptr.is_null() {
-        return 2
+        return ResultCode::NullPointer.value()
     }
 
     let mut sequences = SEQSBYID.lock().unwrap();
 
     let idx = handle as usize;
     if sequences.is_empty() || idx > sequences.len() - 1 {
-        1
+        ResultCode::NotFound.value()
     } else {
         let value = sequences[idx].next();
         unsafe { *result_ptr = value; };
 
-        0
+        ResultCode::Success.value()
     }
 }
 
@@ -78,8 +94,8 @@ mod tests {
             assert!(IDSBYNAME.lock().unwrap().is_empty());
             assert!(SEQSBYID.lock().unwrap().is_empty());
 
-            let error = parse("a=5;");
-            assert_eq!(error, 0);
+            let result_code = parse("a=5;");
+            assert_eq!(result_code, ResultCode::Success.value());
 
             let mut ids = IDSBYNAME.lock().unwrap();
             let mut sequences = SEQSBYID.lock().unwrap();
@@ -99,8 +115,8 @@ mod tests {
             assert!(IDSBYNAME.lock().unwrap().is_empty());
             assert!(SEQSBYID.lock().unwrap().is_empty());
 
-            let error = parse("a=[0,1];");
-            assert_eq!(error, 0);
+            let result_code = parse("a=[0,1];");
+            assert_eq!(result_code, ResultCode::Success.value());
 
             let mut ids = IDSBYNAME.lock().unwrap();
             let mut sequences = SEQSBYID.lock().unwrap();
@@ -127,7 +143,7 @@ mod tests {
 
             let mut handle: SequenceHandle = 0;
             let handle_ptr: *mut SequenceHandle = &mut handle;
-            assert_eq!(lookup("a", handle_ptr), 1);
+            assert_eq!(lookup("a", handle_ptr), ResultCode::NotFound.value());
         }
 
         #[test]
@@ -135,12 +151,12 @@ mod tests {
             assert!(IDSBYNAME.lock().unwrap().is_empty());
             assert!(SEQSBYID.lock().unwrap().is_empty());
 
-            let error = parse("a=5;");
-            assert_eq!(error, 0);
+            let result_code = parse("a=5;");
+            assert_eq!(result_code, 0);
 
             let mut handle: SequenceHandle = 0;
             let handle_ptr: *mut SequenceHandle = &mut handle;
-            assert_eq!(lookup("a", handle_ptr), 0);
+            assert_eq!(lookup("a", handle_ptr), ResultCode::Success.value());
 
             IDSBYNAME.lock().unwrap().clear();
             SEQSBYID.lock().unwrap().clear();
@@ -149,8 +165,8 @@ mod tests {
         #[test]
         fn null_handle() {
             let handle_ptr: *mut SequenceHandle = ptr::null_mut();
-            let error = lookup("a", handle_ptr);
-            assert_eq!(error, 2);
+            let result_code = lookup("a", handle_ptr);
+            assert_eq!(result_code, ResultCode::NullPointer.value());
         }
     }
 
@@ -163,19 +179,19 @@ mod tests {
             assert!(IDSBYNAME.lock().unwrap().is_empty());
             assert!(SEQSBYID.lock().unwrap().is_empty());
 
-            let error = parse("a=5;");
-            assert_eq!(error, 0);
+            let result_code = parse("a=5;");
+            assert_eq!(result_code, ResultCode::Success.value());
 
             let mut handle: SequenceHandle = 0;
             let handle_ptr: *mut SequenceHandle = &mut handle;
-            let error = lookup("a", handle_ptr);
-            assert_eq!(error, 0);
+            let result_code = lookup("a", handle_ptr);
+            assert_eq!(result_code, ResultCode::Success.value());
 
-            let mut result: u32 = 0;
-            let result_ptr: *mut u32 = &mut result;
-            let error = next(handle, result_ptr);
-            assert_eq!(error, 0);
-            assert_eq!(result, 5);
+            let mut value: u32 = 0;
+            let value_ptr: *mut u32 = &mut value;
+            let result_code = next(handle, value_ptr);
+            assert_eq!(result_code, ResultCode::Success.value());
+            assert_eq!(value, 5);
 
             IDSBYNAME.lock().unwrap().clear();
             SEQSBYID.lock().unwrap().clear();
@@ -187,19 +203,19 @@ mod tests {
             assert!(SEQSBYID.lock().unwrap().is_empty());
 
             let handle = 0;
-            let mut result: u32 = 0;
-            let result_ptr: *mut u32 = &mut result;
-            let error = next(handle, result_ptr);
-            assert_eq!(error, 1);
-            assert_eq!(result, 0);
+            let mut value: u32 = 0;
+            let value_ptr: *mut u32 = &mut value;
+            let result_code = next(handle, value_ptr);
+            assert_eq!(result_code, ResultCode::NotFound.value());
+            assert_eq!(value, 0);
         }
 
         #[test]
         fn null_result() {
             let handle = 0;
-            let result_ptr: *mut u32 = ptr::null_mut();
-            let error = next(handle, result_ptr);
-            assert_eq!(error, 2);
+            let value_ptr: *mut u32 = ptr::null_mut();
+            let result_code = next(handle, value_ptr);
+            assert_eq!(result_code, ResultCode::NullPointer.value());
         }
     }
 }
