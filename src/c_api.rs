@@ -44,7 +44,7 @@ pub extern fn parse(s: &str) -> ResultCodeRaw {
 }
 
 #[no_mangle]
-pub fn lookup(name: &str, handle_ptr: *mut SequenceHandle) -> ResultCodeRaw {
+pub extern fn lookup(name: &str, handle_ptr: *mut SequenceHandle) -> ResultCodeRaw {
     if handle_ptr.is_null() {
         return ResultCode::NullPointer.value()
     }
@@ -65,7 +65,7 @@ pub fn lookup(name: &str, handle_ptr: *mut SequenceHandle) -> ResultCodeRaw {
 }
 
 #[no_mangle]
-pub fn next(handle: SequenceHandle, result_ptr: *mut u32) -> ResultCodeRaw {
+pub extern fn next(handle: SequenceHandle, result_ptr: *mut u32) -> ResultCodeRaw {
     if result_ptr.is_null() {
         return ResultCode::NullPointer.value()
     }
