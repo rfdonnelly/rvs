@@ -5,8 +5,13 @@ use std::sync::Mutex;
 
 use sequences::Sequence;
 
-type SequenceHandle = u32;
-type ResultCodeRaw = u8;
+use libc::uint32_t;
+use libc::c_char;
+
+use std::ffi::CStr;
+
+type SequenceHandle = uint32_t;
+type ResultCodeRaw = uint32_t;
 
 enum ResultCode {
     Success,
@@ -35,23 +40,37 @@ lazy_static! {
 }
 
 #[no_mangle]
-pub extern fn parse(s: &str) -> ResultCodeRaw {
+pub extern fn parse(s: *const c_char) -> ResultCodeRaw {
+    if s.is_null() {
+        return ResultCode::NullPointer.value()
+    }
+
+    let c_str = unsafe { CStr::from_ptr(s) };
+    let r_str = c_str.to_str().unwrap();
+
     let mut ids = IDSBYNAME.lock().unwrap();
     let mut sequences = SEQSBYID.lock().unwrap();
-    ::parse_assignments(s, &mut *ids, &mut *sequences);
+    ::parse_assignments(r_str, &mut *ids, &mut *sequences);
 
     ResultCode::Success.value()
 }
 
 #[no_mangle]
-pub extern fn lookup(name: &str, handle_ptr: *mut SequenceHandle) -> ResultCodeRaw {
+pub extern fn lookup(name: *const c_char, handle_ptr: *mut SequenceHandle) -> ResultCodeRaw {
+    if name.is_null() {
+        return ResultCode::NullPointer.value()
+    }
+
     if handle_ptr.is_null() {
         return ResultCode::NullPointer.value()
     }
 
+    let c_str = unsafe { CStr::from_ptr(name) };
+    let r_str = c_str.to_str().unwrap();
+
     let mut ids = IDSBYNAME.lock().unwrap();
 
-    if let Occupied(entry) = ids.entry(name.into()) {
+    if let Occupied(entry) = ids.entry(r_str.into()) {
         let id = *entry.get() as SequenceHandle;
 
         unsafe {
@@ -87,6 +106,8 @@ pub extern fn next(handle: SequenceHandle, result_ptr: *mut u32) -> ResultCodeRa
 mod tests {
     mod parse {
         use super::super::*;
+
+        use std::ffi::CString;
         use std::collections::hash_map::Entry::Occupied;
 
         #[test]
@@ -94,7 +115,7 @@ mod tests {
             assert!(IDSBYNAME.lock().unwrap().is_empty());
             assert!(SEQSBYID.lock().unwrap().is_empty());
 
-            let result_code = parse("a=5;");
+            let result_code = parse(CString::new("a=5;").unwrap().as_ptr());
             assert_eq!(result_code, ResultCode::Success.value());
 
             let mut ids = IDSBYNAME.lock().unwrap();
@@ -115,7 +136,7 @@ mod tests {
             assert!(IDSBYNAME.lock().unwrap().is_empty());
             assert!(SEQSBYID.lock().unwrap().is_empty());
 
-            let result_code = parse("a=[0,1];");
+            let result_code = parse(CString::new("a=[0,1];").unwrap().as_ptr());
             assert_eq!(result_code, ResultCode::Success.value());
 
             let mut ids = IDSBYNAME.lock().unwrap();
@@ -134,7 +155,9 @@ mod tests {
 
     mod lookup {
         use super::super::*;
+
         use std::ptr;
+        use std::ffi::CString;
 
         #[test]
         fn not_found() {
@@ -143,7 +166,7 @@ mod tests {
 
             let mut handle: SequenceHandle = 0;
             let handle_ptr: *mut SequenceHandle = &mut handle;
-            assert_eq!(lookup("a", handle_ptr), ResultCode::NotFound.value());
+            assert_eq!(lookup(CString::new("a").unwrap().as_ptr(), handle_ptr), ResultCode::NotFound.value());
         }
 
         #[test]
@@ -151,12 +174,12 @@ mod tests {
             assert!(IDSBYNAME.lock().unwrap().is_empty());
             assert!(SEQSBYID.lock().unwrap().is_empty());
 
-            let result_code = parse("a=5;");
+            let result_code = parse(CString::new("a=5;").unwrap().as_ptr());
             assert_eq!(result_code, 0);
 
             let mut handle: SequenceHandle = 0;
             let handle_ptr: *mut SequenceHandle = &mut handle;
-            assert_eq!(lookup("a", handle_ptr), ResultCode::Success.value());
+            assert_eq!(lookup(CString::new("a").unwrap().as_ptr(), handle_ptr), ResultCode::Success.value());
 
             IDSBYNAME.lock().unwrap().clear();
             SEQSBYID.lock().unwrap().clear();
@@ -165,26 +188,28 @@ mod tests {
         #[test]
         fn null_handle() {
             let handle_ptr: *mut SequenceHandle = ptr::null_mut();
-            let result_code = lookup("a", handle_ptr);
+            let result_code = lookup(CString::new("a").unwrap().as_ptr(), handle_ptr);
             assert_eq!(result_code, ResultCode::NullPointer.value());
         }
     }
 
     mod next {
         use super::super::*;
+
         use std::ptr;
+        use std::ffi::CString;
 
         #[test]
         fn found() {
             assert!(IDSBYNAME.lock().unwrap().is_empty());
             assert!(SEQSBYID.lock().unwrap().is_empty());
 
-            let result_code = parse("a=5;");
+            let result_code = parse(CString::new("a=5;").unwrap().as_ptr());
             assert_eq!(result_code, ResultCode::Success.value());
 
             let mut handle: SequenceHandle = 0;
             let handle_ptr: *mut SequenceHandle = &mut handle;
-            let result_code = lookup("a", handle_ptr);
+            let result_code = lookup(CString::new("a").unwrap().as_ptr(), handle_ptr);
             assert_eq!(result_code, ResultCode::Success.value());
 
             let mut value: u32 = 0;
