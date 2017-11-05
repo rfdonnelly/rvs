@@ -9,7 +9,7 @@ use super::Sequence;
 
 pub struct RangeSequence {
     prev: u32,
-    rng: ChaChaRng,
+    rng: Box<Rng>,
     range: RangeInclusive
 }
 
@@ -91,7 +91,7 @@ impl RangeSequence {
         // FIXME: Allow non-const seed
         RangeSequence {
             prev: 0,
-            rng: ChaChaRng::from_seed(&[0x0000_0000]),
+            rng: Box::new(ChaChaRng::from_seed(&[0x0000_0000])),
             range: RangeInclusive::new(l.next(), r.next()),
         }
     }
