@@ -92,7 +92,7 @@ A possible series of evaluations of `b` could yield the following:
     * Arithmetic operators
       * [x] +, -
       * [x] *, /
-      * [ ] %
+      * [x] %
     * Logic operators
       * [ ] &, |, ^
       * [ ] <<, >>

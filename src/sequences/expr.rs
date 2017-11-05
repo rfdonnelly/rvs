@@ -34,6 +34,7 @@ impl<'a> Sequence for Expr {
             Opcode::Subtract => l - r,
             Opcode::Multiply => l * r,
             Opcode::Divide => l / r,
+            Opcode::Modulo => l % r,
         };
 
         self.prev

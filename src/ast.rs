@@ -4,6 +4,7 @@ pub enum Opcode {
     Subtract,
     Multiply,
     Divide,
+    Modulo,
 }
 
 #[derive(PartialEq, Debug)]
@@ -28,6 +29,7 @@ impl Node {
                     Opcode::Subtract => x - y,
                     Opcode::Multiply => x * y,
                     Opcode::Divide => x / y,
+                    Opcode::Modulo => x % y,
                 }
             }
             _ => panic!("Not supported in this context"),

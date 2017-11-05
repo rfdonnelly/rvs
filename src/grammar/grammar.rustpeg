@@ -30,6 +30,7 @@ pub expr -> Box<Node>
             x "-" y { Box::new(Node::Operation(x, Opcode::Subtract, y)) }
         #L  x "*" y { Box::new(Node::Operation(x, Opcode::Multiply, y)) }
             x "/" y { Box::new(Node::Operation(x, Opcode::Divide, y)) }
+            x "%" y { Box::new(Node::Operation(x, Opcode::Modulo, y)) }
     }
 
 pub assignment -> Box<Node>
