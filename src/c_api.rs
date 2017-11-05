@@ -225,8 +225,8 @@ mod tests {
             assert_empty();
 
             let mut handle: SequenceHandle = 0;
-            let handle_ptr: *mut SequenceHandle = &mut handle;
-            assert_eq!(sequence_find(CString::new("a").unwrap().as_ptr(), handle_ptr), ResultCode::NotFound.value());
+            let result_code = sequence_find(CString::new("a").unwrap().as_ptr(), &mut handle);
+            assert_eq!(result_code, ResultCode::NotFound.value());
         }
 
         #[test]
@@ -237,8 +237,7 @@ mod tests {
             assert_eq!(result_code, 0);
 
             let mut handle: SequenceHandle = 0;
-            let handle_ptr: *mut SequenceHandle = &mut handle;
-            let result_code = sequence_find(CString::new("a").unwrap().as_ptr(), handle_ptr);
+            let result_code = sequence_find(CString::new("a").unwrap().as_ptr(), &mut handle);
             assert_eq!(handle, 1);
             assert_eq!(result_code, ResultCode::Success.value());
 
@@ -267,13 +266,11 @@ mod tests {
             assert_eq!(result_code, ResultCode::Success.value());
 
             let mut handle: SequenceHandle = 0;
-            let handle_ptr: *mut SequenceHandle = &mut handle;
-            let result_code = sequence_find(CString::new("a").unwrap().as_ptr(), handle_ptr);
+            let result_code = sequence_find(CString::new("a").unwrap().as_ptr(), &mut handle);
             assert_eq!(result_code, ResultCode::Success.value());
 
             let mut value: u32 = 0;
-            let value_ptr: *mut u32 = &mut value;
-            let result_code = sequence_next(handle, value_ptr);
+            let result_code = sequence_next(handle, &mut value);
             assert_eq!(result_code, ResultCode::Success.value());
             assert_eq!(value, 5);
 
@@ -286,8 +283,7 @@ mod tests {
 
             let handle = 1;
             let mut value: u32 = 0;
-            let value_ptr: *mut u32 = &mut value;
-            let result_code = sequence_next(handle, value_ptr);
+            let result_code = sequence_next(handle, &mut value);
             assert_eq!(result_code, ResultCode::NotFound.value());
             assert_eq!(value, 0);
         }
