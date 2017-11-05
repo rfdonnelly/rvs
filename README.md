@@ -59,6 +59,7 @@ A possible series of evaluations of `b` could yield the following:
   * [x] `next()`
   * [x] `prev()`
   * [x] `done()`
+  * [ ] `reset()`
 
 * [x] Parse from string
   * [ ] Parse from file
@@ -71,6 +72,8 @@ A possible series of evaluations of `b` could yield the following:
   * [x] `sequence_next()`
   * [x] `sequence_done()`
   * [x] `sequence_prev()`
+  * [ ] `sequence_reset()`
+  * [ ] `sequence_clear()`
 
 * Grammar
   * Types
