@@ -1,3 +1,30 @@
+//! Sequence C API
+//!
+//! Provides a C API for parsing and evaluating sequences.
+//!
+//! # Examples
+//!
+//! ```
+//! // Define a sequence "a" as a constant value 5.
+//! let char_str = CString::new("a=5;").unwrap().as_ptr();
+//! let result_code = sequence_parse(char_str);
+//! assert_eq!(result_code, 0);
+//!
+//! // Find the sequence "a"
+//! let char_str = CString::new("a").unwrap().as_ptr();
+//! let handle = 0;
+//! let result_code = sequence_find(char_str, &mut handle);
+//! assert_eq!(result_code, 0);
+//!
+//! // Evaluate the sequence "a"
+//! let result = 0;
+//! let result_code = sequence_next(handle, &mut result);
+//! assert_eq!(result_code, 0);
+//! assert_eq!(result, 5);
+//!
+//! sequence_clear();
+//! ```
+
 use std::collections::HashMap;
 use std::collections::hash_map::Entry::Occupied;
 use std::panic::catch_unwind;
@@ -40,6 +67,17 @@ lazy_static! {
     };
 }
 
+/// Passes a string to the sequence parser.
+///
+/// The string is expected to be valid Sequence DSL.
+///
+/// Returns ResultCode::Success on success.
+///
+/// # Errors
+///
+/// * Returns ResultCode::Success on success
+/// * Returns ResultCode::NullPointer if the string is null.
+/// * **[FIXME]** Retunrs ??? if string is not valid Sequence DSL.
 #[no_mangle]
 pub extern fn sequence_parse(s: *const c_char) -> ResultCodeRaw {
     if s.is_null() {
@@ -56,6 +94,18 @@ pub extern fn sequence_parse(s: *const c_char) -> ResultCodeRaw {
     ResultCode::Success.value()
 }
 
+/// Returns the handle of a sequence via the handle pointer
+///
+/// The callee owns the handle.  The handle is valid until one of the following occurs:
+///
+/// * `sequence_clear()` is called
+/// * The process terminates
+///
+/// # Errors
+///
+/// * Returns ResultCode::Success on success
+/// * Returns ResultCode::NullPointer if the name string or the handle pointer are null.
+/// * Returns ResultCode::NotFound if the sequence name is not found.
 #[no_mangle]
 pub extern fn sequence_find(name: *const c_char, handle_ptr: *mut SequenceHandle) -> ResultCodeRaw {
     if name.is_null() {
@@ -84,6 +134,13 @@ pub extern fn sequence_find(name: *const c_char, handle_ptr: *mut SequenceHandle
     }
 }
 
+/// Returns the next value of a sequence via the result pointer
+///
+/// # Errors
+///
+/// * Returns ResultCode::Success on success
+/// * Returns ResultCode::NullPointer if the result pointer is null
+/// * Returns ResultCode::NotFound if the handle is not valid
 #[no_mangle]
 pub extern fn sequence_next(handle: SequenceHandle, result_ptr: *mut u32) -> ResultCodeRaw {
     if result_ptr.is_null() {
@@ -103,6 +160,16 @@ pub extern fn sequence_next(handle: SequenceHandle, result_ptr: *mut u32) -> Res
     ResultCode::Success.value()
 }
 
+/// Returns the previous value of a sequence via the result pointer
+///
+/// If `sequence_next()` has not been called on the same sequence handle previously, the result
+/// with be `0`.
+///
+/// # Errors
+///
+/// * Returns ResultCode::Success on success
+/// * Returns ResultCode::NullPointer if the result pointer is null
+/// * Returns ResultCode::NotFound if the handle is not valid
 #[no_mangle]
 pub extern fn sequence_prev(handle: SequenceHandle, result_ptr: *mut u32) -> ResultCodeRaw {
     if result_ptr.is_null() {
@@ -122,6 +189,16 @@ pub extern fn sequence_prev(handle: SequenceHandle, result_ptr: *mut u32) -> Res
     ResultCode::Success.value()
 }
 
+/// Returns the done value of a sequence via the result pointer
+///
+/// If `sequence_next()` has not been called on the same sequence handle previously, the result
+/// with be `0`.
+///
+/// # Errors
+///
+/// * Returns ResultCode::Success on success
+/// * Returns ResultCode::NullPointer if the result pointer is null
+/// * Returns ResultCode::NotFound if the handle is not valid
 #[no_mangle]
 pub extern fn sequence_done(handle: SequenceHandle, result_ptr: *mut bool) -> ResultCodeRaw {
     if result_ptr.is_null() {
@@ -141,6 +218,7 @@ pub extern fn sequence_done(handle: SequenceHandle, result_ptr: *mut bool) -> Re
     ResultCode::Success.value()
 }
 
+/// Clears all state and all parsed sequences.
 #[no_mangle]
 pub extern fn sequence_clear() {
     IDSBYNAME.lock().unwrap().clear();
