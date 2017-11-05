@@ -30,11 +30,11 @@ Evaluations of `a` yields the following:
 | Iteration |  0  |  1  |  2  |  3  |  4  |  5  | ... |
 | --------- | --- | --- | --- | --- | --- | --- | --- |
 | `next()`  |  0  |  0  |  0  |  0  |  0  |  0  | ... |
-| `last()`  |  0  |  0  |  0  |  0  |  0  |  0  | ... |
+| `prev()`  |  0  |  0  |  0  |  0  |  0  |  0  | ... |
 | `done()`  |  0  |  1  |  1  |  1  |  1  |  1  | ... |
 
 NOTE: Calling `next()` advances the sequence to the next iteration.  Calling
-`last()` or `done()` does not.
+`prev()` or `done()` does not.
 
 #### Random Range Sequence
 
@@ -50,14 +50,14 @@ A possible series of evaluations of `b` could yield the following:
 | Iteration |  0  |  1  |  2  |  3  |  4  |  5  | ... |
 | --------- | --- | --- | --- | --- | --- | --- | --- |
 | `next()`  |  1  |  0  |  0  |  1  |  1  |  0  | ... |
-| `last()`  |  0  |  1  |  0  |  0  |  1  |  1  | ... |
+| `prev()`  |  0  |  1  |  0  |  0  |  1  |  1  | ... |
 | `done()`  |  0  |  0  |  0  |  0  |  0  |  0  | ... |
 
 ## Feature Status
 
 * [ ] Sequence features
   * [x] `next()`
-  * [x] `last()`
+  * [x] `prev()`
   * [x] `done()`
 
 * [x] Parse from string
@@ -71,7 +71,7 @@ A possible series of evaluations of `b` could yield the following:
   * [x] `sequence_next()`
   * [x] `sequence_done()`
   * [ ] `sequence_exists()`
-  * [ ] `sequence_last()`
+  * [ ] `sequence_prev()`
 
 * Grammar
   * Types

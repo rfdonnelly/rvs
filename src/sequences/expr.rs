@@ -4,7 +4,7 @@ use super::Sequence;
 use super::Value;
 
 pub struct Expr {
-    last: u32,
+    prev: u32,
     done: bool,
     operation: Opcode,
     l: Box<Sequence>,
@@ -14,7 +14,7 @@ pub struct Expr {
 impl<'a> Expr {
     pub fn new(l: Box<Sequence>, operation: Opcode, r: Box<Sequence>) -> Expr {
         Expr {
-            last: 0,
+            prev: 0,
             done: false,
             operation: operation,
             l: l,
@@ -29,18 +29,18 @@ impl<'a> Sequence for Expr {
 
         self.done = self.l.done() || self.r.done();
 
-        self.last = match self.operation {
+        self.prev = match self.operation {
             Opcode::Add => l + r,
             Opcode::Subtract => l - r,
             Opcode::Multiply => l * r,
             Opcode::Divide => l / r,
         };
 
-        self.last
+        self.prev
     }
 
-    fn last(&self) -> u32 {
-        self.last
+    fn prev(&self) -> u32 {
+        self.prev
     }
 
     fn done(&self) -> bool {

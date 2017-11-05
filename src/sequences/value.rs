@@ -1,14 +1,14 @@
 use super::Sequence;
 
 pub struct Value {
-    last: u32,
+    prev: u32,
     done: bool,
 }
 
 impl Value {
     pub fn new(value: u32) -> Value {
         Value {
-            last: value,
+            prev: value,
             done: false,
         }
     }
@@ -18,11 +18,11 @@ impl Sequence for Value {
     fn next(&mut self) -> u32 {
         self.done = true;
 
-        self.last
+        self.prev
     }
 
-    fn last(&self) -> u32 {
-        self.last
+    fn prev(&self) -> u32 {
+        self.prev
     }
 
     fn done(&self) -> bool {

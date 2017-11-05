@@ -9,7 +9,7 @@ use super::Sequence;
 use super::Value;
 
 pub struct RangeSequence {
-    last: u32,
+    prev: u32,
     rng: ChaChaRng,
     range: RangeInclusive
 }
@@ -91,7 +91,7 @@ impl<'a> RangeSequence {
         // FIXME: Range::new may panic.
         // FIXME: Allow non-const seed
         RangeSequence {
-            last: 0,
+            prev: 0,
             rng: ChaChaRng::from_seed(&[0x0000_0000]),
             range: RangeInclusive::new(l.next(), r.next()),
         }
@@ -100,13 +100,13 @@ impl<'a> RangeSequence {
 
 impl<'a> Sequence for RangeSequence {
     fn next(&mut self) -> u32 {
-        self.last = self.range.ind_sample(&mut self.rng);
+        self.prev = self.range.ind_sample(&mut self.rng);
 
-        self.last
+        self.prev
     }
 
-    fn last(&self) -> u32 {
-        self.last
+    fn prev(&self) -> u32 {
+        self.prev
     }
 
     fn done(&self) -> bool {
