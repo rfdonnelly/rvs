@@ -141,6 +141,12 @@ pub extern fn sequence_done(handle: SequenceHandle, result_ptr: *mut bool) -> Re
     ResultCode::Success.value()
 }
 
+#[no_mangle]
+pub extern fn sequence_clear() {
+    IDSBYNAME.lock().unwrap().clear();
+    SEQSBYID.lock().unwrap().clear();
+}
+
 fn handle_to_idx(sequences: &Vec<Box<Sequence>>, handle: SequenceHandle) -> Option<usize> {
     let handle = handle as usize;
     if sequences.is_empty() || handle == 0 || handle > sequences.len() {
@@ -152,65 +158,71 @@ fn handle_to_idx(sequences: &Vec<Box<Sequence>>, handle: SequenceHandle) -> Opti
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+
+    fn assert_empty() {
+        assert!(IDSBYNAME.lock().unwrap().is_empty());
+        assert!(SEQSBYID.lock().unwrap().is_empty());
+    }
+
     mod sequence_parse {
-        use super::super::*;
+        use super::*;
 
         use std::ffi::CString;
         use std::collections::hash_map::Entry::Occupied;
 
         #[test]
         fn basic() {
-            assert!(IDSBYNAME.lock().unwrap().is_empty());
-            assert!(SEQSBYID.lock().unwrap().is_empty());
+            assert_empty();
 
             let result_code = sequence_parse(CString::new("a=5;").unwrap().as_ptr());
             assert_eq!(result_code, ResultCode::Success.value());
 
-            let mut ids = IDSBYNAME.lock().unwrap();
-            let mut sequences = SEQSBYID.lock().unwrap();
-            assert!(ids.contains_key("a"));
-            if let Occupied(entry) = ids.entry("a".into()) {
-                let id = entry.get();
-                let value = sequences[*id].next();
-                assert_eq!(value, 5);
+            {
+                let mut ids = IDSBYNAME.lock().unwrap();
+                assert!(ids.contains_key("a"));
+                if let Occupied(entry) = ids.entry("a".into()) {
+                    let id = entry.get();
+                    let mut sequences = SEQSBYID.lock().unwrap();
+                    let value = sequences[*id].next();
+                    assert_eq!(value, 5);
+                }
             }
 
-            ids.clear();
-            sequences.clear();
+            sequence_clear();
         }
 
         #[test]
         fn range() {
-            assert!(IDSBYNAME.lock().unwrap().is_empty());
-            assert!(SEQSBYID.lock().unwrap().is_empty());
+            assert_empty();
 
             let result_code = sequence_parse(CString::new("a=[0,1];").unwrap().as_ptr());
             assert_eq!(result_code, ResultCode::Success.value());
 
-            let mut ids = IDSBYNAME.lock().unwrap();
-            let mut sequences = SEQSBYID.lock().unwrap();
-            assert!(ids.contains_key("a"));
-            if let Occupied(entry) = ids.entry("a".into()) {
-                let id = entry.get();
-                let value = sequences[*id].next();
-                assert!(value == 0 || value == 1);
+            {
+                let mut ids = IDSBYNAME.lock().unwrap();
+                assert!(ids.contains_key("a"));
+                if let Occupied(entry) = ids.entry("a".into()) {
+                    let id = entry.get();
+                    let mut sequences = SEQSBYID.lock().unwrap();
+                    let value = sequences[*id].next();
+                    assert!(value == 0 || value == 1);
+                }
             }
 
-            ids.clear();
-            sequences.clear();
+            sequence_clear();
         }
     }
 
     mod sequence_find {
-        use super::super::*;
+        use super::*;
 
         use std::ptr;
         use std::ffi::CString;
 
         #[test]
         fn not_found() {
-            assert!(IDSBYNAME.lock().unwrap().is_empty());
-            assert!(SEQSBYID.lock().unwrap().is_empty());
+            assert_empty();
 
             let mut handle: SequenceHandle = 0;
             let handle_ptr: *mut SequenceHandle = &mut handle;
@@ -219,8 +231,7 @@ mod tests {
 
         #[test]
         fn found() {
-            assert!(IDSBYNAME.lock().unwrap().is_empty());
-            assert!(SEQSBYID.lock().unwrap().is_empty());
+            assert_empty();
 
             let result_code = sequence_parse(CString::new("a=5;").unwrap().as_ptr());
             assert_eq!(result_code, 0);
@@ -231,8 +242,7 @@ mod tests {
             assert_eq!(handle, 1);
             assert_eq!(result_code, ResultCode::Success.value());
 
-            IDSBYNAME.lock().unwrap().clear();
-            SEQSBYID.lock().unwrap().clear();
+            sequence_clear();
         }
 
         #[test]
@@ -244,15 +254,14 @@ mod tests {
     }
 
     mod sequence_next {
-        use super::super::*;
+        use super::*;
 
         use std::ptr;
         use std::ffi::CString;
 
         #[test]
         fn found() {
-            assert!(IDSBYNAME.lock().unwrap().is_empty());
-            assert!(SEQSBYID.lock().unwrap().is_empty());
+            assert_empty();
 
             let result_code = sequence_parse(CString::new("a=5;").unwrap().as_ptr());
             assert_eq!(result_code, ResultCode::Success.value());
@@ -268,14 +277,12 @@ mod tests {
             assert_eq!(result_code, ResultCode::Success.value());
             assert_eq!(value, 5);
 
-            IDSBYNAME.lock().unwrap().clear();
-            SEQSBYID.lock().unwrap().clear();
+            sequence_clear();
         }
 
         #[test]
         fn not_found() {
-            assert!(IDSBYNAME.lock().unwrap().is_empty());
-            assert!(SEQSBYID.lock().unwrap().is_empty());
+            assert_empty();
 
             let handle = 1;
             let mut value: u32 = 0;
