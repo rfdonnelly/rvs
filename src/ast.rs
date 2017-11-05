@@ -1,5 +1,10 @@
 #[derive(PartialEq, Debug, Clone)]
 pub enum Opcode {
+    Or,
+    Xor,
+    And,
+    Shl,
+    Shr,
     Add,
     Sub,
     Mul,
@@ -25,6 +30,11 @@ impl Node {
                 let y = by.eval();
 
                 match *op {
+                    Opcode::Or => x | y,
+                    Opcode::Xor => x ^ y,
+                    Opcode::And => x & y,
+                    Opcode::Shl => x << y,
+                    Opcode::Shr => x >> y,
                     Opcode::Add => x + y,
                     Opcode::Sub => x - y,
                     Opcode::Mul => x * y,

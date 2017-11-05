@@ -30,6 +30,11 @@ impl<'a> Sequence for Expr {
         self.done = self.l.done() || self.r.done();
 
         self.prev = match self.operation {
+            Opcode::Or => l | r,
+            Opcode::Xor => l ^ r,
+            Opcode::And => l & r,
+            Opcode::Shl => l << r,
+            Opcode::Shr => l >> r,
             Opcode::Add => l + r,
             Opcode::Sub => l - r,
             Opcode::Mul => l * r,
