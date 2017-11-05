@@ -66,12 +66,12 @@ A possible series of evaluations of `b` could yield the following:
 
 * C API
   * [x] static HashMap of sequences
-  * [x] `parse()`
-  * [x] `lookup()`
-  * [x] `next()`
-  * [x] `done()`
-  * [ ] `exists()`
-  * [ ] `last()`
+  * [x] `sequence_parse()`
+  * [x] `sequence_find()`
+  * [x] `sequence_next()`
+  * [x] `sequence_done()`
+  * [ ] `sequence_exists()`
+  * [ ] `sequence_last()`
 
 * Grammar
   * Types

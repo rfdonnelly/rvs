@@ -41,7 +41,7 @@ lazy_static! {
 }
 
 #[no_mangle]
-pub extern fn parse(s: *const c_char) -> ResultCodeRaw {
+pub extern fn sequence_parse(s: *const c_char) -> ResultCodeRaw {
     if s.is_null() {
         return ResultCode::NullPointer.value()
     }
@@ -57,7 +57,7 @@ pub extern fn parse(s: *const c_char) -> ResultCodeRaw {
 }
 
 #[no_mangle]
-pub extern fn lookup(name: *const c_char, handle_ptr: *mut SequenceHandle) -> ResultCodeRaw {
+pub extern fn sequence_find(name: *const c_char, handle_ptr: *mut SequenceHandle) -> ResultCodeRaw {
     if name.is_null() {
         return ResultCode::NullPointer.value()
     }
@@ -85,7 +85,7 @@ pub extern fn lookup(name: *const c_char, handle_ptr: *mut SequenceHandle) -> Re
 }
 
 #[no_mangle]
-pub extern fn next(handle: SequenceHandle, result_ptr: *mut u32) -> ResultCodeRaw {
+pub extern fn sequence_next(handle: SequenceHandle, result_ptr: *mut u32) -> ResultCodeRaw {
     if result_ptr.is_null() {
         return ResultCode::NullPointer.value()
     }
@@ -104,7 +104,7 @@ pub extern fn next(handle: SequenceHandle, result_ptr: *mut u32) -> ResultCodeRa
 }
 
 #[no_mangle]
-pub extern fn done(handle: SequenceHandle, result_ptr: *mut bool) -> ResultCodeRaw {
+pub extern fn sequence_done(handle: SequenceHandle, result_ptr: *mut bool) -> ResultCodeRaw {
     if result_ptr.is_null() {
         return ResultCode::NullPointer.value()
     }
@@ -133,7 +133,7 @@ fn handle_to_idx(sequences: &Vec<Box<Sequence>>, handle: SequenceHandle) -> Opti
 
 #[cfg(test)]
 mod tests {
-    mod parse {
+    mod sequence_parse {
         use super::super::*;
 
         use std::ffi::CString;
@@ -144,7 +144,7 @@ mod tests {
             assert!(IDSBYNAME.lock().unwrap().is_empty());
             assert!(SEQSBYID.lock().unwrap().is_empty());
 
-            let result_code = parse(CString::new("a=5;").unwrap().as_ptr());
+            let result_code = sequence_parse(CString::new("a=5;").unwrap().as_ptr());
             assert_eq!(result_code, ResultCode::Success.value());
 
             let mut ids = IDSBYNAME.lock().unwrap();
@@ -165,7 +165,7 @@ mod tests {
             assert!(IDSBYNAME.lock().unwrap().is_empty());
             assert!(SEQSBYID.lock().unwrap().is_empty());
 
-            let result_code = parse(CString::new("a=[0,1];").unwrap().as_ptr());
+            let result_code = sequence_parse(CString::new("a=[0,1];").unwrap().as_ptr());
             assert_eq!(result_code, ResultCode::Success.value());
 
             let mut ids = IDSBYNAME.lock().unwrap();
@@ -182,7 +182,7 @@ mod tests {
         }
     }
 
-    mod lookup {
+    mod sequence_find {
         use super::super::*;
 
         use std::ptr;
@@ -195,7 +195,7 @@ mod tests {
 
             let mut handle: SequenceHandle = 0;
             let handle_ptr: *mut SequenceHandle = &mut handle;
-            assert_eq!(lookup(CString::new("a").unwrap().as_ptr(), handle_ptr), ResultCode::NotFound.value());
+            assert_eq!(sequence_find(CString::new("a").unwrap().as_ptr(), handle_ptr), ResultCode::NotFound.value());
         }
 
         #[test]
@@ -203,12 +203,12 @@ mod tests {
             assert!(IDSBYNAME.lock().unwrap().is_empty());
             assert!(SEQSBYID.lock().unwrap().is_empty());
 
-            let result_code = parse(CString::new("a=5;").unwrap().as_ptr());
+            let result_code = sequence_parse(CString::new("a=5;").unwrap().as_ptr());
             assert_eq!(result_code, 0);
 
             let mut handle: SequenceHandle = 0;
             let handle_ptr: *mut SequenceHandle = &mut handle;
-            let result_code = lookup(CString::new("a").unwrap().as_ptr(), handle_ptr);
+            let result_code = sequence_find(CString::new("a").unwrap().as_ptr(), handle_ptr);
             assert_eq!(handle, 1);
             assert_eq!(result_code, ResultCode::Success.value());
 
@@ -219,12 +219,12 @@ mod tests {
         #[test]
         fn null_handle() {
             let handle_ptr: *mut SequenceHandle = ptr::null_mut();
-            let result_code = lookup(CString::new("a").unwrap().as_ptr(), handle_ptr);
+            let result_code = sequence_find(CString::new("a").unwrap().as_ptr(), handle_ptr);
             assert_eq!(result_code, ResultCode::NullPointer.value());
         }
     }
 
-    mod next {
+    mod sequence_next {
         use super::super::*;
 
         use std::ptr;
@@ -235,17 +235,17 @@ mod tests {
             assert!(IDSBYNAME.lock().unwrap().is_empty());
             assert!(SEQSBYID.lock().unwrap().is_empty());
 
-            let result_code = parse(CString::new("a=5;").unwrap().as_ptr());
+            let result_code = sequence_parse(CString::new("a=5;").unwrap().as_ptr());
             assert_eq!(result_code, ResultCode::Success.value());
 
             let mut handle: SequenceHandle = 0;
             let handle_ptr: *mut SequenceHandle = &mut handle;
-            let result_code = lookup(CString::new("a").unwrap().as_ptr(), handle_ptr);
+            let result_code = sequence_find(CString::new("a").unwrap().as_ptr(), handle_ptr);
             assert_eq!(result_code, ResultCode::Success.value());
 
             let mut value: u32 = 0;
             let value_ptr: *mut u32 = &mut value;
-            let result_code = next(handle, value_ptr);
+            let result_code = sequence_next(handle, value_ptr);
             assert_eq!(result_code, ResultCode::Success.value());
             assert_eq!(value, 5);
 
@@ -261,7 +261,7 @@ mod tests {
             let handle = 1;
             let mut value: u32 = 0;
             let value_ptr: *mut u32 = &mut value;
-            let result_code = next(handle, value_ptr);
+            let result_code = sequence_next(handle, value_ptr);
             assert_eq!(result_code, ResultCode::NotFound.value());
             assert_eq!(value, 0);
         }
@@ -270,7 +270,7 @@ mod tests {
         fn null_result() {
             let handle = 1;
             let value_ptr: *mut u32 = ptr::null_mut();
-            let result_code = next(handle, value_ptr);
+            let result_code = sequence_next(handle, value_ptr);
             assert_eq!(result_code, ResultCode::NullPointer.value());
         }
     }
