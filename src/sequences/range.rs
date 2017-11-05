@@ -108,6 +108,10 @@ impl<'a> Sequence for RangeSequence {
     fn last(&self) -> u32 {
         self.last
     }
+
+    fn done(&self) -> bool {
+        false
+    }
 }
 
 #[cfg(test)]

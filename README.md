@@ -58,7 +58,7 @@ A possible series of evaluations of `b` could yield the following:
 * [ ] Sequence features
   * [x] `next()`
   * [x] `last()`
-  * [ ] `done()`
+  * [x] `done()`
 
 * [x] Parse from string
   * [ ] Parse from file

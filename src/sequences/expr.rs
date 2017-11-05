@@ -5,6 +5,7 @@ use super::Value;
 
 pub struct Expr {
     last: u32,
+    done: bool,
     operation: Opcode,
     l: Box<Sequence>,
     r: Box<Sequence>,
@@ -14,6 +15,7 @@ impl<'a> Expr {
     pub fn new(l: Box<Sequence>, operation: Opcode, r: Box<Sequence>) -> Expr {
         Expr {
             last: 0,
+            done: false,
             operation: operation,
             l: l,
             r: r,
@@ -24,6 +26,8 @@ impl<'a> Expr {
 impl<'a> Sequence for Expr {
     fn next(&mut self) -> u32 {
         let (l, r) = (self.l.next(), self.r.next());
+
+        self.done = self.l.done() || self.r.done();
 
         self.last = match self.operation {
             Opcode::Add => l + r,
@@ -37,6 +41,10 @@ impl<'a> Sequence for Expr {
 
     fn last(&self) -> u32 {
         self.last
+    }
+
+    fn done(&self) -> bool {
+        self.done
     }
 }
 

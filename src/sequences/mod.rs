@@ -13,6 +13,7 @@ pub use self::range::RangeSequence;
 pub trait Sequence : Send + Sync {
     fn next(&mut self) -> u32;
     fn last(&self) -> u32;
+    fn done(&self) -> bool;
 }
 
 pub fn sequences_from_ast(assignments: Vec<Box<Node>>, ids: &mut HashMap<String, usize>, sequences: &mut Vec<Box<Sequence>>) {
