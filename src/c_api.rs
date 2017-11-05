@@ -74,7 +74,7 @@ pub extern fn lookup(name: *const c_char, handle_ptr: *mut SequenceHandle) -> Re
         let id = *entry.get() as SequenceHandle;
 
         unsafe {
-            *handle_ptr = id;
+            *handle_ptr = id + 1;
         };
 
         ResultCode::Success.value()
@@ -91,10 +91,11 @@ pub extern fn next(handle: SequenceHandle, result_ptr: *mut u32) -> ResultCodeRa
 
     let mut sequences = SEQSBYID.lock().unwrap();
 
-    let idx = handle as usize;
-    if sequences.is_empty() || idx > sequences.len() - 1 {
+    let handle = handle as usize;
+    if sequences.is_empty() || handle == 0 || handle > sequences.len() {
         ResultCode::NotFound.value()
     } else {
+        let idx = (handle as usize) - 1;
         let value = sequences[idx].next();
         unsafe { *result_ptr = value; };
 
@@ -179,7 +180,9 @@ mod tests {
 
             let mut handle: SequenceHandle = 0;
             let handle_ptr: *mut SequenceHandle = &mut handle;
-            assert_eq!(lookup(CString::new("a").unwrap().as_ptr(), handle_ptr), ResultCode::Success.value());
+            let result_code = lookup(CString::new("a").unwrap().as_ptr(), handle_ptr);
+            assert_eq!(handle, 1);
+            assert_eq!(result_code, ResultCode::Success.value());
 
             IDSBYNAME.lock().unwrap().clear();
             SEQSBYID.lock().unwrap().clear();
@@ -227,7 +230,7 @@ mod tests {
             assert!(IDSBYNAME.lock().unwrap().is_empty());
             assert!(SEQSBYID.lock().unwrap().is_empty());
 
-            let handle = 0;
+            let handle = 1;
             let mut value: u32 = 0;
             let value_ptr: *mut u32 = &mut value;
             let result_code = next(handle, value_ptr);
@@ -237,7 +240,7 @@ mod tests {
 
         #[test]
         fn null_result() {
-            let handle = 0;
+            let handle = 1;
             let value_ptr: *mut u32 = ptr::null_mut();
             let result_code = next(handle, value_ptr);
             assert_eq!(result_code, ResultCode::NullPointer.value());
