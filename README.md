@@ -69,7 +69,7 @@ A possible series of evaluations of `b` could yield the following:
   * [x] `parse()`
   * [x] `lookup()`
   * [x] `next()`
-  * [ ] `done()`
+  * [x] `done()`
   * [ ] `exists()`
   * [ ] `last()`
 

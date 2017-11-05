@@ -2,6 +2,7 @@ use std::collections::HashMap;
 use std::collections::hash_map::Entry::Occupied;
 use std::panic::catch_unwind;
 use std::sync::Mutex;
+use std::ops::Deref;
 
 use sequences::Sequence;
 
@@ -91,15 +92,42 @@ pub extern fn next(handle: SequenceHandle, result_ptr: *mut u32) -> ResultCodeRa
 
     let mut sequences = SEQSBYID.lock().unwrap();
 
+    let idx = match handle_to_idx(sequences.deref(), handle) {
+        Some(x) => x,
+        None => { return ResultCode::NotFound.value(); },
+    };
+
+    let value = sequences[idx].next();
+    unsafe { *result_ptr = value; };
+
+    ResultCode::Success.value()
+}
+
+#[no_mangle]
+pub extern fn done(handle: SequenceHandle, result_ptr: *mut bool) -> ResultCodeRaw {
+    if result_ptr.is_null() {
+        return ResultCode::NullPointer.value()
+    }
+
+    let sequences = SEQSBYID.lock().unwrap();
+
+    let idx = match handle_to_idx(sequences.deref(), handle) {
+        Some(x) => x,
+        None => { return ResultCode::NotFound.value(); },
+    };
+
+    let value = sequences[idx].done();
+    unsafe { *result_ptr = value; };
+
+    ResultCode::Success.value()
+}
+
+fn handle_to_idx(sequences: &Vec<Box<Sequence>>, handle: SequenceHandle) -> Option<usize> {
     let handle = handle as usize;
     if sequences.is_empty() || handle == 0 || handle > sequences.len() {
-        ResultCode::NotFound.value()
+        Option::None
     } else {
-        let idx = (handle as usize) - 1;
-        let value = sequences[idx].next();
-        unsafe { *result_ptr = value; };
-
-        ResultCode::Success.value()
+        Some(handle - 1)
     }
 }
 
