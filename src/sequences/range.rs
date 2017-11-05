@@ -6,7 +6,6 @@ use rand::distributions::Sample;
 use rand::distributions::IndependentSample;
 
 use super::Sequence;
-use super::Value;
 
 pub struct RangeSequence {
     prev: u32,
@@ -118,6 +117,7 @@ impl Sequence for RangeSequence {
 mod tests {
     mod range {
         use super::super::*;
+        use sequences::Value;
 
         #[test]
         fn basic() {

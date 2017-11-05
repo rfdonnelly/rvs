@@ -1,7 +1,6 @@
 use ast::Opcode;
 
 use super::Sequence;
-use super::Value;
 
 pub struct Expr {
     prev: u32,
@@ -57,6 +56,7 @@ impl<'a> Sequence for Expr {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use sequences::Value;
 
     #[test]
     fn expr() {
