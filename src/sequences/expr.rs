@@ -23,11 +23,13 @@ impl<'a> Expr {
 
 impl<'a> Sequence for Expr {
     fn next(&mut self) -> u32 {
+        let (l, r) = (self.l.next(), self.r.next());
+
         self.last = match self.operation {
-            Opcode::Add => self.l.next() + self.r.next(),
-            Opcode::Subtract => self.l.next() - self.r.next(),
-            Opcode::Multiply => self.l.next() * self.r.next(),
-            Opcode::Divide => self.l.next() / self.r.next(),
+            Opcode::Add => l + r,
+            Opcode::Subtract => l - r,
+            Opcode::Multiply => l * r,
+            Opcode::Divide => l / r,
         };
 
         self.last
