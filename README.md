@@ -64,6 +64,8 @@ A possible series of evaluations of `b` could yield the following:
 * [x] Parse from string
   * [ ] Parse from file
   * [ ] Parse from command line
+  * [ ] Parsing error reporting
+  * [ ] Overriding existing sequence definitions
 
 * C API
   * [x] static HashMap of sequences
