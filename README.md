@@ -69,6 +69,7 @@ A possible series of evaluations of `b` could yield the following:
 
 * C API
   * [x] static HashMap of sequences
+  * [ ] `sequence_seed()`
   * [x] `sequence_parse()`
   * [x] `sequence_find()`
   * [x] `sequence_next()`
