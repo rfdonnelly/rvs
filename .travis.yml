@@ -1,2 +1,6 @@
 language: rust
 cache: cargo
+
+script:
+  - cargo test
+  - cd c-api && make
