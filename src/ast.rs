@@ -1,10 +1,10 @@
 #[derive(PartialEq, Debug, Clone)]
 pub enum Opcode {
     Add,
-    Subtract,
-    Multiply,
-    Divide,
-    Modulo,
+    Sub,
+    Mul,
+    Div,
+    Mod,
 }
 
 #[derive(PartialEq, Debug)]
@@ -26,10 +26,10 @@ impl Node {
 
                 match *op {
                     Opcode::Add => x + y,
-                    Opcode::Subtract => x - y,
-                    Opcode::Multiply => x * y,
-                    Opcode::Divide => x / y,
-                    Opcode::Modulo => x % y,
+                    Opcode::Sub => x - y,
+                    Opcode::Mul => x * y,
+                    Opcode::Div => x / y,
+                    Opcode::Mod => x % y,
                 }
             }
             _ => panic!("Not supported in this context"),
@@ -62,7 +62,7 @@ mod tests {
                     Opcode::Add,
                     Box::new(Node::Operation(
                         Box::new(Node::Number(2)),
-                        Opcode::Multiply,
+                        Opcode::Mul,
                         Box::new(Node::Number(3))
                     ))
                 ));

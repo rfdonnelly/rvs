@@ -34,7 +34,7 @@ mod tests {
             ));
 
             assert_eq!(format!("{:?}", expr("1+2*3")),
-            "Ok(Operation(Number(1), Add, Operation(Number(2), Multiply, Number(3))))");
+            "Ok(Operation(Number(1), Add, Operation(Number(2), Mul, Number(3))))");
         }
     }
 

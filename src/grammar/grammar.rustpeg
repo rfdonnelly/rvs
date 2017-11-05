@@ -26,11 +26,11 @@ pub atom -> Box<Node>
 
 pub expr -> Box<Node>
     = #infix<atom> {
-        #L  x "+" y { Box::new(Node::Operation(x, Opcode::Add, y)) }
-            x "-" y { Box::new(Node::Operation(x, Opcode::Subtract, y)) }
-        #L  x "*" y { Box::new(Node::Operation(x, Opcode::Multiply, y)) }
-            x "/" y { Box::new(Node::Operation(x, Opcode::Divide, y)) }
-            x "%" y { Box::new(Node::Operation(x, Opcode::Modulo, y)) }
+        #L  x "+" y  { Box::new(Node::Operation(x, Opcode::Add, y)) }
+            x "-" y  { Box::new(Node::Operation(x, Opcode::Sub, y)) }
+        #L  x "*" y  { Box::new(Node::Operation(x, Opcode::Mul, y)) }
+            x "/" y  { Box::new(Node::Operation(x, Opcode::Div, y)) }
+            x "%" y  { Box::new(Node::Operation(x, Opcode::Mod, y)) }
     }
 
 pub assignment -> Box<Node>

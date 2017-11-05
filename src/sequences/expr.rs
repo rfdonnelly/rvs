@@ -31,10 +31,10 @@ impl<'a> Sequence for Expr {
 
         self.prev = match self.operation {
             Opcode::Add => l + r,
-            Opcode::Subtract => l - r,
-            Opcode::Multiply => l * r,
-            Opcode::Divide => l / r,
-            Opcode::Modulo => l % r,
+            Opcode::Sub => l - r,
+            Opcode::Mul => l * r,
+            Opcode::Div => l / r,
+            Opcode::Mod => l % r,
         };
 
         self.prev
