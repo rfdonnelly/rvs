@@ -5,31 +5,33 @@
 //! # Examples
 //!
 //! ```
+//! // Create a new context
+//! let context = sequence_context_new();
+//!
 //! // Define a sequence "a" as a constant value 5.
 //! let char_str = CString::new("a=5;").unwrap().as_ptr();
-//! let result_code = sequence_parse(char_str);
+//! let result_code = sequence_parse(context, char_str);
 //! assert_eq!(result_code, 0);
 //!
 //! // Find the sequence "a"
 //! let char_str = CString::new("a").unwrap().as_ptr();
 //! let handle = 0;
-//! let result_code = sequence_find(char_str, &mut handle);
+//! let result_code = sequence_find(context, char_str, &mut handle);
 //! assert_eq!(result_code, 0);
 //!
 //! // Evaluate the sequence "a"
 //! let result = 0;
-//! let result_code = sequence_next(handle, &mut result);
+//! let result_code = sequence_next(context, handle, &mut result);
 //! assert_eq!(result_code, 0);
 //! assert_eq!(result, 5);
 //!
-//! sequence_clear();
+//! // Free the context
+//! sequence_context_free(context);
 //! ```
 
 use std::collections::HashMap;
 use std::collections::hash_map::Entry::Occupied;
 use std::panic::catch_unwind;
-use std::sync::Mutex;
-use std::ops::Deref;
 
 use sequences::Sequence;
 
@@ -57,14 +59,29 @@ impl ResultCode {
     }
 }
 
-lazy_static! {
-    static ref IDSBYNAME: Mutex<HashMap<String, usize>> = {
-        Mutex::new(HashMap::new())
-    };
+pub struct Context {
+    sequences: Vec<Box<Sequence>>,
+    ids: HashMap<String, usize>,
+}
 
-    static ref SEQSBYID: Mutex<Vec<Box<Sequence>>> = {
-        Mutex::new(Vec::new())
-    };
+/// Allocates and returns a new context.
+///
+/// The caller owns the context and must call `sequence_context_free()` to free the context.
+#[no_mangle]
+pub extern fn sequence_context_new() -> *mut Context {
+    Box::into_raw(Box::new(
+        Context {
+            sequences: Vec::new(),
+            ids: HashMap::new(),
+        }
+    ))
+}
+
+/// Frees a context.
+#[no_mangle]
+pub extern fn sequence_context_free(context: *mut Context) {
+    if context.is_null() { return }
+    unsafe { Box::from_raw(context); }
 }
 
 /// Passes a string to the sequence parser.
@@ -79,7 +96,7 @@ lazy_static! {
 /// * Returns ResultCode::NullPointer if the string is null.
 /// * **[FIXME]** Retunrs ??? if string is not valid Sequence DSL.
 #[no_mangle]
-pub extern fn sequence_parse(s: *const c_char) -> ResultCodeRaw {
+pub extern fn sequence_parse(context: *mut Context, s: *const c_char) -> ResultCodeRaw {
     if s.is_null() {
         return ResultCode::NullPointer.value()
     }
@@ -87,9 +104,8 @@ pub extern fn sequence_parse(s: *const c_char) -> ResultCodeRaw {
     let c_str = unsafe { CStr::from_ptr(s) };
     let r_str = c_str.to_str().unwrap();
 
-    let mut ids = IDSBYNAME.lock().unwrap();
-    let mut sequences = SEQSBYID.lock().unwrap();
-    ::parse_assignments(r_str, &mut *ids, &mut *sequences);
+    let mut context = unsafe { &mut *context };
+    ::parse_assignments(r_str, &mut context.ids, &mut context.sequences);
 
     ResultCode::Success.value()
 }
@@ -107,7 +123,7 @@ pub extern fn sequence_parse(s: *const c_char) -> ResultCodeRaw {
 /// * Returns ResultCode::NullPointer if the name string or the handle pointer are null.
 /// * Returns ResultCode::NotFound if the sequence name is not found.
 #[no_mangle]
-pub extern fn sequence_find(name: *const c_char, handle_ptr: *mut SequenceHandle) -> ResultCodeRaw {
+pub extern fn sequence_find(context: *mut Context, name: *const c_char, handle_ptr: *mut SequenceHandle) -> ResultCodeRaw {
     if name.is_null() {
         return ResultCode::NullPointer.value()
     }
@@ -119,9 +135,8 @@ pub extern fn sequence_find(name: *const c_char, handle_ptr: *mut SequenceHandle
     let c_str = unsafe { CStr::from_ptr(name) };
     let r_str = c_str.to_str().unwrap();
 
-    let mut ids = IDSBYNAME.lock().unwrap();
-
-    if let Occupied(entry) = ids.entry(r_str.into()) {
+    let mut context = unsafe { &mut *context };
+    if let Occupied(entry) = context.ids.entry(r_str.into()) {
         let id = *entry.get() as SequenceHandle;
 
         unsafe {
@@ -142,19 +157,18 @@ pub extern fn sequence_find(name: *const c_char, handle_ptr: *mut SequenceHandle
 /// * Returns ResultCode::NullPointer if the result pointer is null
 /// * Returns ResultCode::NotFound if the handle is not valid
 #[no_mangle]
-pub extern fn sequence_next(handle: SequenceHandle, result_ptr: *mut u32) -> ResultCodeRaw {
+pub extern fn sequence_next(context: *mut Context, handle: SequenceHandle, result_ptr: *mut u32) -> ResultCodeRaw {
     if result_ptr.is_null() {
         return ResultCode::NullPointer.value()
     }
 
-    let mut sequences = SEQSBYID.lock().unwrap();
-
-    let idx = match handle_to_idx(sequences.deref(), handle) {
+    let mut context = unsafe { &mut *context };
+    let idx = match handle_to_idx(&context.sequences, handle) {
         Some(x) => x,
         None => { return ResultCode::NotFound.value(); },
     };
 
-    let value = sequences[idx].next();
+    let value = context.sequences[idx].next();
     unsafe { *result_ptr = value; };
 
     ResultCode::Success.value()
@@ -171,19 +185,18 @@ pub extern fn sequence_next(handle: SequenceHandle, result_ptr: *mut u32) -> Res
 /// * Returns ResultCode::NullPointer if the result pointer is null
 /// * Returns ResultCode::NotFound if the handle is not valid
 #[no_mangle]
-pub extern fn sequence_prev(handle: SequenceHandle, result_ptr: *mut u32) -> ResultCodeRaw {
+pub extern fn sequence_prev(context: *mut Context, handle: SequenceHandle, result_ptr: *mut u32) -> ResultCodeRaw {
     if result_ptr.is_null() {
         return ResultCode::NullPointer.value()
     }
 
-    let sequences = SEQSBYID.lock().unwrap();
-
-    let idx = match handle_to_idx(sequences.deref(), handle) {
+    let context = unsafe { &mut *context };
+    let idx = match handle_to_idx(&context.sequences, handle) {
         Some(x) => x,
         None => { return ResultCode::NotFound.value(); },
     };
 
-    let value = sequences[idx].prev();
+    let value = context.sequences[idx].prev();
     unsafe { *result_ptr = value; };
 
     ResultCode::Success.value()
@@ -200,19 +213,18 @@ pub extern fn sequence_prev(handle: SequenceHandle, result_ptr: *mut u32) -> Res
 /// * Returns ResultCode::NullPointer if the result pointer is null
 /// * Returns ResultCode::NotFound if the handle is not valid
 #[no_mangle]
-pub extern fn sequence_done(handle: SequenceHandle, result_ptr: *mut bool) -> ResultCodeRaw {
+pub extern fn sequence_done(context: *mut Context, handle: SequenceHandle, result_ptr: *mut bool) -> ResultCodeRaw {
     if result_ptr.is_null() {
         return ResultCode::NullPointer.value()
     }
 
-    let sequences = SEQSBYID.lock().unwrap();
-
-    let idx = match handle_to_idx(sequences.deref(), handle) {
+    let context = unsafe { &mut *context };
+    let idx = match handle_to_idx(&context.sequences, handle) {
         Some(x) => x,
         None => { return ResultCode::NotFound.value(); },
     };
 
-    let value = sequences[idx].done();
+    let value = context.sequences[idx].done();
     unsafe { *result_ptr = value; };
 
     ResultCode::Success.value()
@@ -220,9 +232,10 @@ pub extern fn sequence_done(handle: SequenceHandle, result_ptr: *mut bool) -> Re
 
 /// Clears all state and all parsed sequences.
 #[no_mangle]
-pub extern fn sequence_clear() {
-    IDSBYNAME.lock().unwrap().clear();
-    SEQSBYID.lock().unwrap().clear();
+pub extern fn sequence_clear(context: *mut Context) {
+    let mut context = unsafe { &mut *context };
+    context.ids.clear();
+    context.sequences.clear();
 }
 
 fn handle_to_idx(sequences: &Vec<Box<Sequence>>, handle: SequenceHandle) -> Option<usize> {
@@ -238,11 +251,6 @@ fn handle_to_idx(sequences: &Vec<Box<Sequence>>, handle: SequenceHandle) -> Opti
 mod tests {
     use super::*;
 
-    fn assert_empty() {
-        assert!(IDSBYNAME.lock().unwrap().is_empty());
-        assert!(SEQSBYID.lock().unwrap().is_empty());
-    }
-
     mod sequence_parse {
         use super::*;
 
@@ -251,44 +259,40 @@ mod tests {
 
         #[test]
         fn basic() {
-            assert_empty();
+            let context = sequence_context_new();
 
-            let result_code = sequence_parse(CString::new("a=5;").unwrap().as_ptr());
+            let result_code = sequence_parse(context, CString::new("a=5;").unwrap().as_ptr());
             assert_eq!(result_code, ResultCode::Success.value());
 
-            {
-                let mut ids = IDSBYNAME.lock().unwrap();
-                assert!(ids.contains_key("a"));
-                if let Occupied(entry) = ids.entry("a".into()) {
-                    let id = entry.get();
-                    let mut sequences = SEQSBYID.lock().unwrap();
-                    let value = sequences[*id].next();
-                    assert_eq!(value, 5);
-                }
+            let mut ids = unsafe { &mut (*context).ids };
+            let mut sequences = unsafe { &mut (*context).sequences };
+            assert!(ids.contains_key("a"));
+            if let Occupied(entry) = ids.entry("a".into()) {
+                let id = entry.get();
+                let value = sequences[*id].next();
+                assert_eq!(value, 5);
             }
 
-            sequence_clear();
+            sequence_context_free(context);
         }
 
         #[test]
         fn range() {
-            assert_empty();
+            let context = sequence_context_new();
 
-            let result_code = sequence_parse(CString::new("a=[0,1];").unwrap().as_ptr());
+            let result_code = sequence_parse(context, CString::new("a=[0,1];").unwrap().as_ptr());
             assert_eq!(result_code, ResultCode::Success.value());
 
-            {
-                let mut ids = IDSBYNAME.lock().unwrap();
-                assert!(ids.contains_key("a"));
-                if let Occupied(entry) = ids.entry("a".into()) {
-                    let id = entry.get();
-                    let mut sequences = SEQSBYID.lock().unwrap();
-                    let value = sequences[*id].next();
-                    assert!(value == 0 || value == 1);
-                }
+            let mut ids = unsafe { &mut (*context).ids };
+            let mut sequences = unsafe { &mut (*context).sequences };
+            assert!(ids.contains_key("a"));
+            if let Occupied(entry) = ids.entry("a".into()) {
+                let id = entry.get();
+                let value = sequences[*id].next();
+                assert!(value == 0 || value == 1);
             }
 
-            sequence_clear();
+            sequence_context_free(context);
         }
     }
 
@@ -300,33 +304,39 @@ mod tests {
 
         #[test]
         fn not_found() {
-            assert_empty();
+            let context = sequence_context_new();
 
             let mut handle: SequenceHandle = 0;
-            let result_code = sequence_find(CString::new("a").unwrap().as_ptr(), &mut handle);
+            let result_code = sequence_find(context, CString::new("a").unwrap().as_ptr(), &mut handle);
             assert_eq!(result_code, ResultCode::NotFound.value());
+
+            sequence_context_free(context);
         }
 
         #[test]
         fn found() {
-            assert_empty();
+            let context = sequence_context_new();
 
-            let result_code = sequence_parse(CString::new("a=5;").unwrap().as_ptr());
+            let result_code = sequence_parse(context, CString::new("a=5;").unwrap().as_ptr());
             assert_eq!(result_code, 0);
 
             let mut handle: SequenceHandle = 0;
-            let result_code = sequence_find(CString::new("a").unwrap().as_ptr(), &mut handle);
+            let result_code = sequence_find(context, CString::new("a").unwrap().as_ptr(), &mut handle);
             assert_eq!(handle, 1);
             assert_eq!(result_code, ResultCode::Success.value());
 
-            sequence_clear();
+            sequence_context_free(context);
         }
 
         #[test]
         fn null_handle() {
+            let context = sequence_context_new();
+
             let handle_ptr: *mut SequenceHandle = ptr::null_mut();
-            let result_code = sequence_find(CString::new("a").unwrap().as_ptr(), handle_ptr);
+            let result_code = sequence_find(context, CString::new("a").unwrap().as_ptr(), handle_ptr);
             assert_eq!(result_code, ResultCode::NullPointer.value());
+
+            sequence_context_free(context);
         }
     }
 
@@ -338,40 +348,46 @@ mod tests {
 
         #[test]
         fn found() {
-            assert_empty();
+            let context = sequence_context_new();
 
-            let result_code = sequence_parse(CString::new("a=5;").unwrap().as_ptr());
+            let result_code = sequence_parse(context, CString::new("a=5;").unwrap().as_ptr());
             assert_eq!(result_code, ResultCode::Success.value());
 
             let mut handle: SequenceHandle = 0;
-            let result_code = sequence_find(CString::new("a").unwrap().as_ptr(), &mut handle);
+            let result_code = sequence_find(context, CString::new("a").unwrap().as_ptr(), &mut handle);
             assert_eq!(result_code, ResultCode::Success.value());
 
             let mut value: u32 = 0;
-            let result_code = sequence_next(handle, &mut value);
+            let result_code = sequence_next(context, handle, &mut value);
             assert_eq!(result_code, ResultCode::Success.value());
             assert_eq!(value, 5);
 
-            sequence_clear();
+            sequence_context_free(context);
         }
 
         #[test]
         fn not_found() {
-            assert_empty();
+            let context = sequence_context_new();
 
             let handle = 1;
             let mut value: u32 = 0;
-            let result_code = sequence_next(handle, &mut value);
+            let result_code = sequence_next(context, handle, &mut value);
             assert_eq!(result_code, ResultCode::NotFound.value());
             assert_eq!(value, 0);
+
+            sequence_context_free(context);
         }
 
         #[test]
         fn null_result() {
+            let context = sequence_context_new();
+
             let handle = 1;
             let value_ptr: *mut u32 = ptr::null_mut();
-            let result_code = sequence_next(handle, value_ptr);
+            let result_code = sequence_next(context, handle, value_ptr);
             assert_eq!(result_code, ResultCode::NullPointer.value());
+
+            sequence_context_free(context);
         }
     }
 }

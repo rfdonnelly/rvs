@@ -10,7 +10,7 @@ pub use self::value::Value;
 pub use self::expr::Expr;
 pub use self::range::RangeSequence;
 
-pub trait Sequence : Send + Sync {
+pub trait Sequence {
     fn next(&mut self) -> u32;
     fn prev(&self) -> u32;
     fn done(&self) -> bool;
