@@ -86,7 +86,7 @@ impl Sample<u32> for RangeInclusive {
     }
 }
 
-impl<'a> RangeSequence {
+impl RangeSequence {
     pub fn new(l: &mut Sequence, r: &mut Sequence) -> RangeSequence {
         // FIXME: Range::new may panic.
         // FIXME: Allow non-const seed
@@ -98,7 +98,7 @@ impl<'a> RangeSequence {
     }
 }
 
-impl<'a> Sequence for RangeSequence {
+impl Sequence for RangeSequence {
     fn next(&mut self) -> u32 {
         self.prev = self.range.ind_sample(&mut self.rng);
 
