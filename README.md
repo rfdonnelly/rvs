@@ -1,5 +1,7 @@
 # Sequences
 
+[![Build Status](https://travis-ci.org/rfdonnelly/sequence-rs.svg?branch=master)](https://travis-ci.org/rfdonnelly/sequence-rs)
+
 A library for generating sequences of values using a DSL (Domain Specific
 Language).
 
