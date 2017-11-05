@@ -104,6 +104,25 @@ pub extern fn sequence_next(handle: SequenceHandle, result_ptr: *mut u32) -> Res
 }
 
 #[no_mangle]
+pub extern fn sequence_prev(handle: SequenceHandle, result_ptr: *mut u32) -> ResultCodeRaw {
+    if result_ptr.is_null() {
+        return ResultCode::NullPointer.value()
+    }
+
+    let sequences = SEQSBYID.lock().unwrap();
+
+    let idx = match handle_to_idx(sequences.deref(), handle) {
+        Some(x) => x,
+        None => { return ResultCode::NotFound.value(); },
+    };
+
+    let value = sequences[idx].prev();
+    unsafe { *result_ptr = value; };
+
+    ResultCode::Success.value()
+}
+
+#[no_mangle]
 pub extern fn sequence_done(handle: SequenceHandle, result_ptr: *mut bool) -> ResultCodeRaw {
     if result_ptr.is_null() {
         return ResultCode::NullPointer.value()

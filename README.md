@@ -71,7 +71,7 @@ A possible series of evaluations of `b` could yield the following:
   * [x] `sequence_next()`
   * [x] `sequence_done()`
   * [ ] `sequence_exists()`
-  * [ ] `sequence_prev()`
+  * [x] `sequence_prev()`
 
 * Grammar
   * Types
