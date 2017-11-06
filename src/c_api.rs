@@ -47,7 +47,6 @@ type ResultCodeRaw = uint32_t;
 enum ResultCode {
     Success,
     NotFound,
-    NullPointer,
     ParseError,
 }
 
@@ -56,8 +55,7 @@ impl ResultCode {
         match *self {
             ResultCode::Success => 0,
             ResultCode::NotFound => 1,
-            ResultCode::NullPointer => 2,
-            ResultCode::ParseError => 3,
+            ResultCode::ParseError => 2,
         }
     }
 }
@@ -94,13 +92,15 @@ pub extern fn sequence_context_free(context: *mut Context) {
 /// # Errors
 ///
 /// * Returns ResultCode::Success on success
-/// * Returns ResultCode::NullPointer if the string is null.
 /// * Returns ResultCode::ParseError if string is not valid Sequence DSL.
+///
+/// # Panics
+///
+/// If any pointer arguments are null.
 #[no_mangle]
 pub extern fn sequence_parse(context: *mut Context, s: *const c_char) -> ResultCodeRaw {
-    if s.is_null() {
-        return ResultCode::NullPointer.value()
-    }
+    assert!(!context.is_null());
+    assert!(!s.is_null());
 
     let c_str = unsafe { CStr::from_ptr(s) };
     let r_str = c_str.to_str().unwrap();
@@ -129,17 +129,16 @@ pub extern fn sequence_parse(context: *mut Context, s: *const c_char) -> ResultC
 /// # Errors
 ///
 /// * Returns ResultCode::Success on success
-/// * Returns ResultCode::NullPointer if the name string or the handle pointer are null.
 /// * Returns ResultCode::NotFound if the sequence name is not found.
+///
+/// # Panics
+///
+/// If any pointer arguments are null.
 #[no_mangle]
 pub extern fn sequence_find(context: *mut Context, name: *const c_char, handle_ptr: *mut SequenceHandle) -> ResultCodeRaw {
-    if name.is_null() {
-        return ResultCode::NullPointer.value()
-    }
-
-    if handle_ptr.is_null() {
-        return ResultCode::NullPointer.value()
-    }
+    assert!(!context.is_null());
+    assert!(!name.is_null());
+    assert!(!handle_ptr.is_null());
 
     let c_str = unsafe { CStr::from_ptr(name) };
     let r_str = c_str.to_str().unwrap();
@@ -163,13 +162,15 @@ pub extern fn sequence_find(context: *mut Context, name: *const c_char, handle_p
 /// # Errors
 ///
 /// * Returns ResultCode::Success on success
-/// * Returns ResultCode::NullPointer if the result pointer is null
 /// * Returns ResultCode::NotFound if the handle is not valid
+///
+/// # Panics
+///
+/// If any pointer arguments are null.
 #[no_mangle]
 pub extern fn sequence_next(context: *mut Context, handle: SequenceHandle, result_ptr: *mut u32) -> ResultCodeRaw {
-    if result_ptr.is_null() {
-        return ResultCode::NullPointer.value()
-    }
+    assert!(!context.is_null());
+    assert!(!result_ptr.is_null());
 
     let mut context = unsafe { &mut *context };
     let idx = match handle_to_idx(&context.sequences, handle) {
@@ -191,13 +192,15 @@ pub extern fn sequence_next(context: *mut Context, handle: SequenceHandle, resul
 /// # Errors
 ///
 /// * Returns ResultCode::Success on success
-/// * Returns ResultCode::NullPointer if the result pointer is null
 /// * Returns ResultCode::NotFound if the handle is not valid
+///
+/// # Panics
+///
+/// If any pointer arguments are null.
 #[no_mangle]
 pub extern fn sequence_prev(context: *mut Context, handle: SequenceHandle, result_ptr: *mut u32) -> ResultCodeRaw {
-    if result_ptr.is_null() {
-        return ResultCode::NullPointer.value()
-    }
+    assert!(!context.is_null());
+    assert!(!result_ptr.is_null());
 
     let context = unsafe { &mut *context };
     let idx = match handle_to_idx(&context.sequences, handle) {
@@ -219,13 +222,15 @@ pub extern fn sequence_prev(context: *mut Context, handle: SequenceHandle, resul
 /// # Errors
 ///
 /// * Returns ResultCode::Success on success
-/// * Returns ResultCode::NullPointer if the result pointer is null
 /// * Returns ResultCode::NotFound if the handle is not valid
+///
+/// # Panics
+///
+/// If any pointer arguments are null.
 #[no_mangle]
 pub extern fn sequence_done(context: *mut Context, handle: SequenceHandle, result_ptr: *mut bool) -> ResultCodeRaw {
-    if result_ptr.is_null() {
-        return ResultCode::NullPointer.value()
-    }
+    assert!(!context.is_null());
+    assert!(!result_ptr.is_null());
 
     let context = unsafe { &mut *context };
     let idx = match handle_to_idx(&context.sequences, handle) {
@@ -318,7 +323,6 @@ mod tests {
     mod sequence_find {
         use super::*;
 
-        use std::ptr;
         use std::ffi::CString;
 
         #[test]
@@ -346,23 +350,11 @@ mod tests {
 
             sequence_context_free(context);
         }
-
-        #[test]
-        fn null_handle() {
-            let context = sequence_context_new();
-
-            let handle_ptr: *mut SequenceHandle = ptr::null_mut();
-            let result_code = sequence_find(context, CString::new("a").unwrap().as_ptr(), handle_ptr);
-            assert_eq!(result_code, ResultCode::NullPointer.value());
-
-            sequence_context_free(context);
-        }
     }
 
     mod sequence_next {
         use super::*;
 
-        use std::ptr;
         use std::ffi::CString;
 
         #[test]
@@ -393,18 +385,6 @@ mod tests {
             let result_code = sequence_next(context, handle, &mut value);
             assert_eq!(result_code, ResultCode::NotFound.value());
             assert_eq!(value, 0);
-
-            sequence_context_free(context);
-        }
-
-        #[test]
-        fn null_result() {
-            let context = sequence_context_new();
-
-            let handle = 1;
-            let value_ptr: *mut u32 = ptr::null_mut();
-            let result_code = sequence_next(context, handle, value_ptr);
-            assert_eq!(result_code, ResultCode::NullPointer.value());
 
             sequence_context_free(context);
         }
