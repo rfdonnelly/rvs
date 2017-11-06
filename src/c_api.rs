@@ -34,6 +34,7 @@ use std::collections::hash_map::Entry::Occupied;
 use std::panic::catch_unwind;
 
 use sequences::Sequence;
+use ::parse_assignments;
 
 use libc::uint32_t;
 use libc::c_char;
@@ -47,6 +48,7 @@ enum ResultCode {
     Success,
     NotFound,
     NullPointer,
+    ParseError,
 }
 
 impl ResultCode {
@@ -55,6 +57,7 @@ impl ResultCode {
             ResultCode::Success => 0,
             ResultCode::NotFound => 1,
             ResultCode::NullPointer => 2,
+            ResultCode::ParseError => 3,
         }
     }
 }
@@ -88,13 +91,11 @@ pub extern fn sequence_context_free(context: *mut Context) {
 ///
 /// The string is expected to be valid Sequence DSL.
 ///
-/// Returns ResultCode::Success on success.
-///
 /// # Errors
 ///
 /// * Returns ResultCode::Success on success
 /// * Returns ResultCode::NullPointer if the string is null.
-/// * **[FIXME]** Retunrs ??? if string is not valid Sequence DSL.
+/// * Returns ResultCode::ParseError if string is not valid Sequence DSL.
 #[no_mangle]
 pub extern fn sequence_parse(context: *mut Context, s: *const c_char) -> ResultCodeRaw {
     if s.is_null() {
@@ -105,9 +106,17 @@ pub extern fn sequence_parse(context: *mut Context, s: *const c_char) -> ResultC
     let r_str = c_str.to_str().unwrap();
 
     let mut context = unsafe { &mut *context };
-    ::parse_assignments(r_str, &mut context.ids, &mut context.sequences);
+    match parse_assignments(r_str, &mut context.ids, &mut context.sequences) {
+        Ok(_) => ResultCode::Success.value(),
+        Err(e) => {
+            println!("{}", e);
+            println!("{}", r_str.lines().nth(e.line - 1).unwrap());
+            for _ in 0..e.column-1 { print!(" "); }
+            println!("^");
 
-    ResultCode::Success.value()
+            ResultCode::ParseError.value()
+        },
+    }
 }
 
 /// Returns the handle of a sequence via the handle pointer
@@ -291,6 +300,16 @@ mod tests {
                 let value = sequences[*id].next();
                 assert!(value == 0 || value == 1);
             }
+
+            sequence_context_free(context);
+        }
+
+        #[test]
+        fn parse_error() {
+            let context = sequence_context_new();
+
+            let result_code = sequence_parse(context, CString::new("a = 1;\n1 = b;").unwrap().as_ptr());
+            assert_eq!(result_code, ResultCode::ParseError.value());
 
             sequence_context_free(context);
         }

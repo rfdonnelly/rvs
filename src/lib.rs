@@ -12,6 +12,8 @@ use sequences::sequence_from_ast;
 use sequences::sequences_from_ast;
 use sequences::Sequence;
 
+use grammar::ParseResult;
+
 fn eval_by_ast(s: &str) -> u32 {
     match grammar::expr(s) {
         Ok(ast) => ast.eval(),
@@ -28,12 +30,14 @@ fn parse_expression(s: &str) -> Box<Sequence> {
     }
 }
 
-fn parse_assignments(s: &str, ids: &mut HashMap<String, usize>, sequences: &mut Vec<Box<Sequence>>) {
+fn parse_assignments(s: &str, ids: &mut HashMap<String, usize>, sequences: &mut Vec<Box<Sequence>>) -> ParseResult<()> {
     match grammar::assignments(s) {
         Ok(assignments) => {
-            sequences_from_ast(assignments, ids, sequences)
+            sequences_from_ast(assignments, ids, sequences);
+
+            Ok(())
         },
-        Err(_) => panic!("Could not parse: '{}'", s),
+        Err(e) => Err(e),
     }
 }
 
@@ -85,7 +89,7 @@ mod tests {
         fn basic() {
             let mut ids = HashMap::new();
             let mut sequences = Vec::new();
-            parse_assignments("a=[0,1];\nb=2;", &mut ids, &mut sequences);
+            assert!(parse_assignments("a=[0,1];\nb=2;", &mut ids, &mut sequences).is_ok());
 
             assert!(ids.contains_key("a"));
             assert!(ids.contains_key("b"));

@@ -64,7 +64,7 @@ A possible series of evaluations of `b` could yield the following:
 * [x] Parse from string
   * [ ] Parse from file
   * [ ] Parse from command line
-  * [ ] Parsing error reporting
+  * [x] Parsing error reporting
   * [ ] Overriding existing sequence definitions
 
 * C API
@@ -106,7 +106,8 @@ A possible series of evaluations of `b` could yield the following:
   * [x] Whitespace
   * [x] Comments
   * [ ] Modules
-  * [ ] Filename and line numbers in errors
+  * [ ] Filename in errors
+  * [x] Line numbers in errors
 
 ### Extra
 
