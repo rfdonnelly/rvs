@@ -68,7 +68,8 @@ A possible series of evaluations of `b` could yield the following:
   * [ ] Overriding existing sequence definitions
 
 * C API
-  * [x] static HashMap of sequences
+  * [x] `sequence_context_new()`
+  * [x] `sequence_context_free()`
   * [ ] `sequence_seed()`
   * [x] `sequence_parse()`
   * [x] `sequence_find()`
