@@ -14,13 +14,6 @@ use sequences::Sequence;
 
 use grammar::ParseResult;
 
-fn eval_by_ast(s: &str) -> u32 {
-    match grammar::expr(s) {
-        Ok(ast) => ast.eval(),
-        Err(_) => panic!("Could not parse: '{}'", s),
-    }
-}
-
 fn parse_expression(s: &str) -> Box<Sequence> {
     match grammar::expr(s) {
         Ok(ast) => {
@@ -43,15 +36,6 @@ fn parse_assignments(s: &str, ids: &mut HashMap<String, usize>, sequences: &mut 
 
 #[cfg(test)]
 mod tests {
-    mod eval_by_ast {
-        use super::super::*;
-
-        #[test]
-        fn basic() {
-            assert_eq!(eval_by_ast("1+2*3"), 7);
-        }
-    }
-
     mod parse_expression {
         use super::super::*;
 
