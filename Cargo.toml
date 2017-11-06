@@ -1,5 +1,5 @@
 [package]
-name = "sequence-rs"
+name = "rvs"
 version = "0.1.0"
 authors = ["Rob Donnelly <rfdonnelly@gmail.com>"]
 build = "build.rs"
@@ -12,5 +12,5 @@ rand = "0.3"
 libc = "0.2"
 
 [lib]
-name = "sequence"
+name = "rvs"
 crate-type = ["cdylib"]

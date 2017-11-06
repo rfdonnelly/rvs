@@ -1,4 +1,4 @@
-use super::Sequence;
+use types::Rv;
 
 pub struct Value {
     prev: u32,
@@ -14,7 +14,7 @@ impl Value {
     }
 }
 
-impl Sequence for Value {
+impl Rv for Value {
     fn next(&mut self) -> u32 {
         self.done = true;
 

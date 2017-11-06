@@ -1,14 +1,13 @@
-# Sequences
+# Rvs
 
-[![Build Status](https://travis-ci.org/rfdonnelly/sequence-rs.svg?branch=master)](https://travis-ci.org/rfdonnelly/sequence-rs)
+[![Build Status](https://travis-ci.org/rfdonnelly/rvs.svg?branch=master)](https://travis-ci.org/rfdonnelly/rvs)
 
-A library for generating sequences of values using a DSL (Domain Specific
-Language).
+Rvs is a library for defining random variables using a simple DSL (Domain Specific Language).
 
 ## Syntax
 
-The syntax for the Sequence DSL is a series of C-like assignment
-statements.  These statements both declare and initialize a sequence.
+The syntax for the Rvs DSL is a series of C-like assignment statements.  These
+statements both declare and initialize a variable.
 
 ```C
 <indentifier> = <expression>;
@@ -16,10 +15,9 @@ statements.  These statements both declare and initialize a sequence.
 
 ### Examples
 
-#### Constant Value Sequence
+#### Constant Value Variable
 
-The following declares the sequence `a` and initializes it to the value of
-`0`
+The following declares the variable `a` and initializes it to the value of `0`
 
 ```C
 a = 0;
@@ -33,13 +31,13 @@ Evaluations of `a` yields the following:
 | `prev()`  |  0  |  0  |  0  |  0  |  0  |  0  | ... |
 | `done()`  |  0  |  1  |  1  |  1  |  1  |  1  | ... |
 
-NOTE: Calling `next()` advances the sequence to the next iteration.  Calling
+NOTE: Calling `next()` advances the variable to the next iteration.  Calling
 `prev()` or `done()` does not.
 
-#### Random Range Sequence
+#### Random Range Variable
 
-The following declares the sequence `b` and intializes it to the range
-`[0, 1]`.
+The following declares the variable `b` and intializes it to the range `[0,
+1]`.
 
 ```C
 b = [0, 1];
@@ -55,7 +53,7 @@ A possible series of evaluations of `b` could yield the following:
 
 ## Feature Status
 
-* [ ] Sequence features
+* [ ] Rv features
   * [x] `next()`
   * [x] `prev()`
   * [x] `done()`
@@ -66,35 +64,35 @@ A possible series of evaluations of `b` could yield the following:
   * [ ] Parse from file
   * [ ] Parse from command line
   * [x] Parsing error reporting
-  * [ ] Overriding existing sequence definitions
+  * [ ] Overriding existing variable definitions
 
 * C API
-  * [x] `sequence_context_new()`
-  * [x] `sequence_context_free()`
-  * [ ] `sequence_seed()`
-  * [x] `sequence_parse()`
-  * [x] `sequence_find()`
-  * [x] `sequence_next()`
-  * [x] `sequence_done()`
-  * [x] `sequence_prev()`
-  * [ ] `sequence_reset()`
-  * [x] `sequence_clear()`
+  * [x] `rvs_context_new()`
+  * [x] `rvs_context_free()`
+  * [ ] `rvs_seed()`
+  * [x] `rvs_parse()`
+  * [x] `rvs_find()`
+  * [x] `rvs_next()`
+  * [x] `rvs_done()`
+  * [x] `rvs_prev()`
+  * [ ] `rvs_reset()`
+  * [x] `rvs_clear()`
 
 * Grammar
   * Types
-    * Meta Sequences
-      * [ ] Next(id) - Returns the next value of a sequence
-      * [ ] Copy(id) - Returns a copy of a sequence
-      * [ ] Last(id) - Returns the last value of a sequence
-      * [ ] Done(expr) - Forces the sub sequence to indicate done on every next
-      * [ ] Once(expr) - Forces the sub sequence to be evaluated once
+    * Meta Types
+      * [ ] Next(id) - Returns the next value of a variable
+      * [ ] Copy(id) - Returns a copy of a variable
+      * [ ] Last(id) - Returns the last value of a variable
+      * [ ] Done(expr) - Forces the sub expression to indicate done on every next
+      * [ ] Once(expr) - Forces the sub expression to be evaluated once
       * [ ] Populate(expr) - Returns all evaluations of the expression until done
-    * Random Sequences
+    * Random Types
       * [x] Range
       * [ ] Sample
       * [ ] SampleNoRepeat
       * [ ] WeightedRandom
-    * Misc Sequences
+    * Misc Types
       * [ ] Pattern
       * [ ] Loop
     * Arithmetic operators
@@ -113,11 +111,11 @@ A possible series of evaluations of `b` could yield the following:
 ### Extra
 
 * Optimizations
-  * [ ] Convert `HashMap<String, Box<Sequence>>` to `HashMap<&str, Box<Sequence>>`
+  * [ ] Convert `HashMap<String, Box<Rv>>` to `HashMap<&str, Box<Rv>>`
   * [ ] Replace `RangeInclusive` with
     [`rand::distributions::Range::new_inclusive()`](https://github.com/rust-lang-nursery/rand/issues/188)
 * [ ] Separate into multiple crates
-  * [ ] Sequence Library
+  * [ ] Rvs Library
   * [ ] DSL (Grammar/Parser, AST)
   * [ ] Interactive binary
   * [ ] C-API

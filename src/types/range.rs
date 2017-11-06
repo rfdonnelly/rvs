@@ -5,7 +5,7 @@ use rand::distributions::Range;
 use rand::distributions::Sample;
 use rand::distributions::IndependentSample;
 
-use super::Sequence;
+use types::Rv;
 
 pub struct RangeSequence {
     prev: u32,
@@ -86,7 +86,7 @@ impl Sample<u32> for RangeInclusive {
 }
 
 impl RangeSequence {
-    pub fn new(l: &mut Sequence, r: &mut Sequence) -> RangeSequence {
+    pub fn new(l: &mut Rv, r: &mut Rv) -> RangeSequence {
         // FIXME: Range::new may panic.
         // FIXME: Allow non-const seed
         RangeSequence {
@@ -97,7 +97,7 @@ impl RangeSequence {
     }
 }
 
-impl Sequence for RangeSequence {
+impl Rv for RangeSequence {
     fn next(&mut self) -> u32 {
         self.prev = self.range.ind_sample(&mut self.rng);
 
@@ -117,7 +117,7 @@ impl Sequence for RangeSequence {
 mod tests {
     mod range {
         use super::super::*;
-        use sequences::Value;
+        use types::Value;
 
         #[test]
         fn basic() {
@@ -148,14 +148,14 @@ mod tests {
         fn max_max() {
             use std::collections::HashMap;
 
-            let mut sequence = RangeSequence::new(
+            let mut variable = RangeSequence::new(
                 &mut Value::new(::std::u32::MAX - 1),
                 &mut Value::new(::std::u32::MAX)
             );
 
             let mut values = HashMap::new();
             for _ in 0..100 {
-                let value = sequence.next();
+                let value = variable.next();
                 let entry = values.entry(value).or_insert(0);
                 *entry += 1;
                 assert!(value == ::std::u32::MAX - 1 || value == ::std::u32::MAX);
@@ -170,14 +170,14 @@ mod tests {
         fn full_range() {
             use std::collections::HashMap;
 
-            let mut sequence = RangeSequence::new(
+            let mut variable = RangeSequence::new(
                 &mut Value::new(::std::u32::MIN),
                 &mut Value::new(::std::u32::MAX)
             );
 
             let mut values = HashMap::new();
             for _ in 0u64..0x2_0000_0000u64 {
-                let value = sequence.next();
+                let value = variable.next();
                 if value == ::std::u32::MIN || value == ::std::u32::MAX {
                     let entry = values.entry(value).or_insert(0);
                     *entry += 1;

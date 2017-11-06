@@ -1,17 +1,17 @@
 use ast::Opcode;
 
-use super::Sequence;
+use types::Rv;
 
 pub struct Expr {
     prev: u32,
     done: bool,
     operation: Opcode,
-    l: Box<Sequence>,
-    r: Box<Sequence>,
+    l: Box<Rv>,
+    r: Box<Rv>,
 }
 
 impl<'a> Expr {
-    pub fn new(l: Box<Sequence>, operation: Opcode, r: Box<Sequence>) -> Expr {
+    pub fn new(l: Box<Rv>, operation: Opcode, r: Box<Rv>) -> Expr {
         Expr {
             prev: 0,
             done: false,
@@ -22,7 +22,7 @@ impl<'a> Expr {
     }
 }
 
-impl<'a> Sequence for Expr {
+impl<'a> Rv for Expr {
     fn next(&mut self) -> u32 {
         let (l, r) = (self.l.next(), self.r.next());
 
@@ -56,7 +56,7 @@ impl<'a> Sequence for Expr {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use sequences::Value;
+    use types::Value;
 
     #[test]
     fn expr() {

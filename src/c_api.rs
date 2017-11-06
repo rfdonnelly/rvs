@@ -1,39 +1,39 @@
-//! Sequence C API
+//! Rvs C API
 //!
-//! Provides a C API for parsing and evaluating sequences.
+//! Provides a C API for parsing and evaluating random variables.
 //!
 //! # Examples
 //!
 //! ```
 //! // Create a new context
-//! let context = sequence_context_new();
+//! let context = rvs_context_new();
 //!
-//! // Define a sequence "a" as a constant value 5.
+//! // Define a variable "a" as a constant value 5.
 //! let char_str = CString::new("a=5;").unwrap().as_ptr();
-//! let result_code = sequence_parse(context, char_str);
+//! let result_code = rvs_parse(context, char_str);
 //! assert_eq!(result_code, 0);
 //!
-//! // Find the sequence "a"
+//! // Find the variable "a"
 //! let char_str = CString::new("a").unwrap().as_ptr();
 //! let handle = 0;
-//! let result_code = sequence_find(context, char_str, &mut handle);
+//! let result_code = rvs_find(context, char_str, &mut handle);
 //! assert_eq!(result_code, 0);
 //!
-//! // Evaluate the sequence "a"
+//! // Evaluate the variable "a"
 //! let result = 0;
-//! let result_code = sequence_next(context, handle, &mut result);
+//! let result_code = rvs_next(context, handle, &mut result);
 //! assert_eq!(result_code, 0);
 //! assert_eq!(result, 5);
 //!
 //! // Free the context
-//! sequence_context_free(context);
+//! rvs_context_free(context);
 //! ```
 
 use std::collections::HashMap;
 use std::collections::hash_map::Entry::Occupied;
 use std::panic::catch_unwind;
 
-use sequences::Sequence;
+use types::Rv;
 use ::parse_assignments;
 
 use libc::uint32_t;
@@ -61,18 +61,18 @@ impl ResultCode {
 }
 
 pub struct Context {
-    sequences: Vec<Box<Sequence>>,
+    variables: Vec<Box<Rv>>,
     ids: HashMap<String, usize>,
 }
 
 /// Allocates and returns a new context.
 ///
-/// The caller owns the context and must call `sequence_context_free()` to free the context.
+/// The caller owns the context and must call `rvs_context_free()` to free the context.
 #[no_mangle]
-pub extern fn sequence_context_new() -> *mut Context {
+pub extern fn rvs_context_new() -> *mut Context {
     Box::into_raw(Box::new(
         Context {
-            sequences: Vec::new(),
+            variables: Vec::new(),
             ids: HashMap::new(),
         }
     ))
@@ -80,25 +80,25 @@ pub extern fn sequence_context_new() -> *mut Context {
 
 /// Frees a context.
 #[no_mangle]
-pub extern fn sequence_context_free(context: *mut Context) {
+pub extern fn rvs_context_free(context: *mut Context) {
     if context.is_null() { return }
     unsafe { Box::from_raw(context); }
 }
 
-/// Passes a string to the sequence parser.
+/// Passes a string to the Rvs parser.
 ///
-/// The string is expected to be valid Sequence DSL.
+/// The string is expected to be valid Rvs DSL.
 ///
 /// # Errors
 ///
 /// * Returns ResultCode::Success on success
-/// * Returns ResultCode::ParseError if string is not valid Sequence DSL.
+/// * Returns ResultCode::ParseError if string is not valid Rvs DSL.
 ///
 /// # Panics
 ///
 /// If any pointer arguments are null.
 #[no_mangle]
-pub extern fn sequence_parse(context: *mut Context, s: *const c_char) -> ResultCodeRaw {
+pub extern fn rvs_parse(context: *mut Context, s: *const c_char) -> ResultCodeRaw {
     assert!(!context.is_null());
     assert!(!s.is_null());
 
@@ -106,7 +106,7 @@ pub extern fn sequence_parse(context: *mut Context, s: *const c_char) -> ResultC
     let r_str = c_str.to_str().unwrap();
 
     let mut context = unsafe { &mut *context };
-    match parse_assignments(r_str, &mut context.ids, &mut context.sequences) {
+    match parse_assignments(r_str, &mut context.ids, &mut context.variables) {
         Ok(_) => ResultCode::Success.value(),
         Err(e) => {
             println!("{}", e);
@@ -119,23 +119,23 @@ pub extern fn sequence_parse(context: *mut Context, s: *const c_char) -> ResultC
     }
 }
 
-/// Returns the handle of a sequence via the handle pointer
+/// Returns the handle of a variable via the handle pointer
 ///
 /// The callee owns the handle.  The handle is valid until one of the following occurs:
 ///
-/// * `sequence_clear()` is called
+/// * `rvs_clear()` is called
 /// * The process terminates
 ///
 /// # Errors
 ///
 /// * Returns ResultCode::Success on success
-/// * Returns ResultCode::NotFound if the sequence name is not found.
+/// * Returns ResultCode::NotFound if the variable name is not found.
 ///
 /// # Panics
 ///
 /// If any pointer arguments are null.
 #[no_mangle]
-pub extern fn sequence_find(context: *mut Context, name: *const c_char, handle_ptr: *mut SequenceHandle) -> ResultCodeRaw {
+pub extern fn rvs_find(context: *mut Context, name: *const c_char, handle_ptr: *mut SequenceHandle) -> ResultCodeRaw {
     assert!(!context.is_null());
     assert!(!name.is_null());
     assert!(!handle_ptr.is_null());
@@ -157,7 +157,7 @@ pub extern fn sequence_find(context: *mut Context, name: *const c_char, handle_p
     }
 }
 
-/// Returns the next value of a sequence via the result pointer
+/// Returns the next value of a variable via the result pointer
 ///
 /// # Errors
 ///
@@ -168,25 +168,25 @@ pub extern fn sequence_find(context: *mut Context, name: *const c_char, handle_p
 ///
 /// If any pointer arguments are null.
 #[no_mangle]
-pub extern fn sequence_next(context: *mut Context, handle: SequenceHandle, result_ptr: *mut u32) -> ResultCodeRaw {
+pub extern fn rvs_next(context: *mut Context, handle: SequenceHandle, result_ptr: *mut u32) -> ResultCodeRaw {
     assert!(!context.is_null());
     assert!(!result_ptr.is_null());
 
     let mut context = unsafe { &mut *context };
-    let idx = match handle_to_idx(&context.sequences, handle) {
+    let idx = match handle_to_idx(&context.variables, handle) {
         Some(x) => x,
         None => { return ResultCode::NotFound.value(); },
     };
 
-    let value = context.sequences[idx].next();
+    let value = context.variables[idx].next();
     unsafe { *result_ptr = value; };
 
     ResultCode::Success.value()
 }
 
-/// Returns the previous value of a sequence via the result pointer
+/// Returns the previous value of a variable via the result pointer
 ///
-/// If `sequence_next()` has not been called on the same sequence handle previously, the result
+/// If `rvs_next()` has not been called on the same variable handle previously, the result
 /// with be `0`.
 ///
 /// # Errors
@@ -198,25 +198,25 @@ pub extern fn sequence_next(context: *mut Context, handle: SequenceHandle, resul
 ///
 /// If any pointer arguments are null.
 #[no_mangle]
-pub extern fn sequence_prev(context: *mut Context, handle: SequenceHandle, result_ptr: *mut u32) -> ResultCodeRaw {
+pub extern fn rvs_prev(context: *mut Context, handle: SequenceHandle, result_ptr: *mut u32) -> ResultCodeRaw {
     assert!(!context.is_null());
     assert!(!result_ptr.is_null());
 
     let context = unsafe { &mut *context };
-    let idx = match handle_to_idx(&context.sequences, handle) {
+    let idx = match handle_to_idx(&context.variables, handle) {
         Some(x) => x,
         None => { return ResultCode::NotFound.value(); },
     };
 
-    let value = context.sequences[idx].prev();
+    let value = context.variables[idx].prev();
     unsafe { *result_ptr = value; };
 
     ResultCode::Success.value()
 }
 
-/// Returns the done value of a sequence via the result pointer
+/// Returns the done value of a variable via the result pointer
 ///
-/// If `sequence_next()` has not been called on the same sequence handle previously, the result
+/// If `rvs_next()` has not been called on the same variable handle previously, the result
 /// with be `0`.
 ///
 /// # Errors
@@ -228,33 +228,33 @@ pub extern fn sequence_prev(context: *mut Context, handle: SequenceHandle, resul
 ///
 /// If any pointer arguments are null.
 #[no_mangle]
-pub extern fn sequence_done(context: *mut Context, handle: SequenceHandle, result_ptr: *mut bool) -> ResultCodeRaw {
+pub extern fn rvs_done(context: *mut Context, handle: SequenceHandle, result_ptr: *mut bool) -> ResultCodeRaw {
     assert!(!context.is_null());
     assert!(!result_ptr.is_null());
 
     let context = unsafe { &mut *context };
-    let idx = match handle_to_idx(&context.sequences, handle) {
+    let idx = match handle_to_idx(&context.variables, handle) {
         Some(x) => x,
         None => { return ResultCode::NotFound.value(); },
     };
 
-    let value = context.sequences[idx].done();
+    let value = context.variables[idx].done();
     unsafe { *result_ptr = value; };
 
     ResultCode::Success.value()
 }
 
-/// Clears all state and all parsed sequences.
+/// Clears all state and all parsed variables.
 #[no_mangle]
-pub extern fn sequence_clear(context: *mut Context) {
+pub extern fn rvs_clear(context: *mut Context) {
     let mut context = unsafe { &mut *context };
     context.ids.clear();
-    context.sequences.clear();
+    context.variables.clear();
 }
 
-fn handle_to_idx(sequences: &Vec<Box<Sequence>>, handle: SequenceHandle) -> Option<usize> {
+fn handle_to_idx(variables: &Vec<Box<Rv>>, handle: SequenceHandle) -> Option<usize> {
     let handle = handle as usize;
-    if sequences.is_empty() || handle == 0 || handle > sequences.len() {
+    if variables.is_empty() || handle == 0 || handle > variables.len() {
         Option::None
     } else {
         Some(handle - 1)
@@ -265,7 +265,7 @@ fn handle_to_idx(sequences: &Vec<Box<Sequence>>, handle: SequenceHandle) -> Opti
 mod tests {
     use super::*;
 
-    mod sequence_parse {
+    mod rvs_parse {
         use super::*;
 
         use std::ffi::CString;
@@ -273,120 +273,120 @@ mod tests {
 
         #[test]
         fn basic() {
-            let context = sequence_context_new();
+            let context = rvs_context_new();
 
-            let result_code = sequence_parse(context, CString::new("a=5;").unwrap().as_ptr());
+            let result_code = rvs_parse(context, CString::new("a=5;").unwrap().as_ptr());
             assert_eq!(result_code, ResultCode::Success.value());
 
             let mut ids = unsafe { &mut (*context).ids };
-            let mut sequences = unsafe { &mut (*context).sequences };
+            let mut variables = unsafe { &mut (*context).variables };
             assert!(ids.contains_key("a"));
             if let Occupied(entry) = ids.entry("a".into()) {
                 let id = entry.get();
-                let value = sequences[*id].next();
+                let value = variables[*id].next();
                 assert_eq!(value, 5);
             }
 
-            sequence_context_free(context);
+            rvs_context_free(context);
         }
 
         #[test]
         fn range() {
-            let context = sequence_context_new();
+            let context = rvs_context_new();
 
-            let result_code = sequence_parse(context, CString::new("a=[0,1];").unwrap().as_ptr());
+            let result_code = rvs_parse(context, CString::new("a=[0,1];").unwrap().as_ptr());
             assert_eq!(result_code, ResultCode::Success.value());
 
             let mut ids = unsafe { &mut (*context).ids };
-            let mut sequences = unsafe { &mut (*context).sequences };
+            let mut variables = unsafe { &mut (*context).variables };
             assert!(ids.contains_key("a"));
             if let Occupied(entry) = ids.entry("a".into()) {
                 let id = entry.get();
-                let value = sequences[*id].next();
+                let value = variables[*id].next();
                 assert!(value == 0 || value == 1);
             }
 
-            sequence_context_free(context);
+            rvs_context_free(context);
         }
 
         #[test]
         fn parse_error() {
-            let context = sequence_context_new();
+            let context = rvs_context_new();
 
-            let result_code = sequence_parse(context, CString::new("a = 1;\n1 = b;").unwrap().as_ptr());
+            let result_code = rvs_parse(context, CString::new("a = 1;\n1 = b;").unwrap().as_ptr());
             assert_eq!(result_code, ResultCode::ParseError.value());
 
-            sequence_context_free(context);
+            rvs_context_free(context);
         }
     }
 
-    mod sequence_find {
+    mod rvs_find {
         use super::*;
 
         use std::ffi::CString;
 
         #[test]
         fn not_found() {
-            let context = sequence_context_new();
+            let context = rvs_context_new();
 
             let mut handle: SequenceHandle = 0;
-            let result_code = sequence_find(context, CString::new("a").unwrap().as_ptr(), &mut handle);
+            let result_code = rvs_find(context, CString::new("a").unwrap().as_ptr(), &mut handle);
             assert_eq!(result_code, ResultCode::NotFound.value());
 
-            sequence_context_free(context);
+            rvs_context_free(context);
         }
 
         #[test]
         fn found() {
-            let context = sequence_context_new();
+            let context = rvs_context_new();
 
-            let result_code = sequence_parse(context, CString::new("a=5;").unwrap().as_ptr());
+            let result_code = rvs_parse(context, CString::new("a=5;").unwrap().as_ptr());
             assert_eq!(result_code, 0);
 
             let mut handle: SequenceHandle = 0;
-            let result_code = sequence_find(context, CString::new("a").unwrap().as_ptr(), &mut handle);
+            let result_code = rvs_find(context, CString::new("a").unwrap().as_ptr(), &mut handle);
             assert_eq!(handle, 1);
             assert_eq!(result_code, ResultCode::Success.value());
 
-            sequence_context_free(context);
+            rvs_context_free(context);
         }
     }
 
-    mod sequence_next {
+    mod rvs_next {
         use super::*;
 
         use std::ffi::CString;
 
         #[test]
         fn found() {
-            let context = sequence_context_new();
+            let context = rvs_context_new();
 
-            let result_code = sequence_parse(context, CString::new("a=5;").unwrap().as_ptr());
+            let result_code = rvs_parse(context, CString::new("a=5;").unwrap().as_ptr());
             assert_eq!(result_code, ResultCode::Success.value());
 
             let mut handle: SequenceHandle = 0;
-            let result_code = sequence_find(context, CString::new("a").unwrap().as_ptr(), &mut handle);
+            let result_code = rvs_find(context, CString::new("a").unwrap().as_ptr(), &mut handle);
             assert_eq!(result_code, ResultCode::Success.value());
 
             let mut value: u32 = 0;
-            let result_code = sequence_next(context, handle, &mut value);
+            let result_code = rvs_next(context, handle, &mut value);
             assert_eq!(result_code, ResultCode::Success.value());
             assert_eq!(value, 5);
 
-            sequence_context_free(context);
+            rvs_context_free(context);
         }
 
         #[test]
         fn not_found() {
-            let context = sequence_context_new();
+            let context = rvs_context_new();
 
             let handle = 1;
             let mut value: u32 = 0;
-            let result_code = sequence_next(context, handle, &mut value);
+            let result_code = rvs_next(context, handle, &mut value);
             assert_eq!(result_code, ResultCode::NotFound.value());
             assert_eq!(value, 0);
 
-            sequence_context_free(context);
+            rvs_context_free(context);
         }
     }
 }

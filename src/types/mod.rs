@@ -10,13 +10,13 @@ pub use self::value::Value;
 pub use self::expr::Expr;
 pub use self::range::RangeSequence;
 
-pub trait Sequence {
+pub trait Rv {
     fn next(&mut self) -> u32;
     fn prev(&self) -> u32;
     fn done(&self) -> bool;
 }
 
-pub fn sequences_from_ast(assignments: Vec<Box<Node>>, ids: &mut HashMap<String, usize>, sequences: &mut Vec<Box<Sequence>>) {
+pub fn rvs_from_ast(assignments: Vec<Box<Node>>, ids: &mut HashMap<String, usize>, variables: &mut Vec<Box<Rv>>) {
     for assignment in assignments {
         if let Node::Assignment(ref lhs, ref rhs) = *assignment {
             let mut identifier: String = "".into();
@@ -25,19 +25,19 @@ pub fn sequences_from_ast(assignments: Vec<Box<Node>>, ids: &mut HashMap<String,
                 identifier = x.clone();
             }
 
-            sequences.push(sequence_from_ast(&rhs));
-            ids.insert(identifier, sequences.len() - 1);
+            variables.push(rv_from_ast(&rhs));
+            ids.insert(identifier, variables.len() - 1);
         }
     }
 }
 
-pub fn sequence_from_ast(node: &Node) -> Box<Sequence> {
+pub fn rv_from_ast(node: &Node) -> Box<Rv> {
     match *node {
         Node::Range(ref bx, ref by) => {
             Box::new(
                 RangeSequence::new(
-                    &mut *sequence_from_ast(bx),
-                    &mut *sequence_from_ast(by)
+                    &mut *rv_from_ast(bx),
+                    &mut *rv_from_ast(by)
                 )
             )
         }
@@ -45,9 +45,9 @@ pub fn sequence_from_ast(node: &Node) -> Box<Sequence> {
         Node::Operation(ref bx, ref op, ref by) => {
             Box::new(
                 Expr::new(
-                    sequence_from_ast(bx),
+                    rv_from_ast(bx),
                     op.clone(),
-                    sequence_from_ast(by)
+                    rv_from_ast(by)
                 )
             )
         },
@@ -57,15 +57,15 @@ pub fn sequence_from_ast(node: &Node) -> Box<Sequence> {
 
 #[cfg(test)]
 mod tests {
-    mod sequence_from_ast {
+    mod rv_from_ast {
         use super::super::*;
 
         #[test]
         fn number() {
             let ast = Node::Number(4);
-            let mut sequence = sequence_from_ast(&ast);
+            let mut variable = rv_from_ast(&ast);
 
-            assert_eq!(sequence.next(), 4);
+            assert_eq!(variable.next(), 4);
         }
 
         #[test]
@@ -76,12 +76,12 @@ mod tests {
                 Box::new(Node::Number(3)),
                 Box::new(Node::Number(4))
             );
-            let mut sequence = sequence_from_ast(&ast);
+            let mut variable = rv_from_ast(&ast);
 
             let mut values = HashMap::new();
 
             for _ in 0..10 {
-                let value = sequence.next();
+                let value = variable.next();
                 let entry = values.entry(value).or_insert(0);
                 *entry += 1;
                 assert!(value == 3 || value == 4);
@@ -92,7 +92,7 @@ mod tests {
         }
     }
 
-    mod sequences_from_ast {
+    mod rvs_from_ast {
         use super::super::*;
 
         use std::collections::hash_map::Entry::Occupied;
@@ -111,19 +111,19 @@ mod tests {
             ];
 
             let mut ids = HashMap::new();
-            let mut sequences = Vec::new();
-            sequences_from_ast(assignments, &mut ids, &mut sequences);
+            let mut variables = Vec::new();
+            rvs_from_ast(assignments, &mut ids, &mut variables);
 
             assert!(ids.contains_key("a"));
             if let Occupied(entry) = ids.entry("a".into()) {
                 let id = entry.get();
-                let value = sequences[*id].next();
+                let value = variables[*id].next();
                 assert_eq!(value, 5);
             }
             assert!(ids.contains_key("b"));
             if let Occupied(entry) = ids.entry("b".into()) {
                 let id = entry.get();
-                let value = sequences[*id].next();
+                let value = variables[*id].next();
                 assert_eq!(value, 6);
             }
         }
