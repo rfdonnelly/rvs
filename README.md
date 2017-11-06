@@ -60,6 +60,7 @@ A possible series of evaluations of `b` could yield the following:
   * [x] `prev()`
   * [x] `done()`
   * [ ] `reset()`
+  * [ ] `Display`
 
 * [x] Parse from string
   * [ ] Parse from file
