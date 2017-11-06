@@ -127,12 +127,17 @@ mod tests {
 
         #[test]
         fn good() {
-            assert!(assignments("a=5;\nb=6;").is_ok());
+            assert!(assignments(" a  = 5 ; \nb=6;").is_ok());
+        }
+
+        #[test]
+        fn expr_whitespace() {
+            assert!(assignments("a = 5 + 6 | 10 * ( 5 ^ 3) ;").is_ok());
         }
 
         #[test]
         fn ast() {
-            assert_eq!(assignments("a=5;\nb=6;"), Ok(vec![
+            assert_eq!(assignments(" a  = // comment0\n5 ; // comment1\nb=6;"), Ok(vec![
                 Box::new(Node::Assignment(
                     Box::new(Node::Identifier("a".into())),
                     Box::new(Node::Number(5))

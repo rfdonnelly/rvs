@@ -102,8 +102,8 @@ A possible series of evaluations of `b` could yield the following:
     * Logic operators
       * [x] &, |, ^
       * [x] <<, >>
-  * [ ] Whitespace
-  * [ ] Comments
+  * [x] Whitespace
+  * [x] Comments
   * [ ] Modules
 
 ### Extra

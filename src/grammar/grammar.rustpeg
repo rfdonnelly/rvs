@@ -19,40 +19,58 @@ pub hex_number -> u32
     }
 
 pub atom -> Box<Node>
-    = "(" v:expr ")" { v }
+    = "(" _ v:expr _ ")" { v }
     / u:hex_number { Box::new(Node::Number(u)) }
     / u:number { Box::new(Node::Number(u)) }
     / range
 
+op_or  = _ "|" _
+op_xor = _ "^" _
+op_and = _ "&" _
+op_shl = _ "<<" _
+op_shr = _ ">>" _
+op_add = _ "+" _
+op_sub = _ "-" _
+op_mul = _ "*" _
+op_div = _ "/" _
+op_mod = _ "%" _
+
 pub expr -> Box<Node>
     = #infix<atom> {
-        #L  x "|" y  { Box::new(Node::Operation(x, Opcode::Or, y)) }
-        #L  x "^" y  { Box::new(Node::Operation(x, Opcode::Xor, y)) }
-        #L  x "&" y  { Box::new(Node::Operation(x, Opcode::And, y)) }
-        #L  x "<<" y { Box::new(Node::Operation(x, Opcode::Shl, y)) }
-            x ">>" y { Box::new(Node::Operation(x, Opcode::Shr, y)) }
-        #L  x "+" y  { Box::new(Node::Operation(x, Opcode::Add, y)) }
-            x "-" y  { Box::new(Node::Operation(x, Opcode::Sub, y)) }
-        #L  x "*" y  { Box::new(Node::Operation(x, Opcode::Mul, y)) }
-            x "/" y  { Box::new(Node::Operation(x, Opcode::Div, y)) }
-            x "%" y  { Box::new(Node::Operation(x, Opcode::Mod, y)) }
+        #L  x op_or  y { Box::new(Node::Operation(x, Opcode::Or, y)) }
+        #L  x op_xor y { Box::new(Node::Operation(x, Opcode::Xor, y)) }
+        #L  x op_and y { Box::new(Node::Operation(x, Opcode::And, y)) }
+        #L  x op_shl y { Box::new(Node::Operation(x, Opcode::Shl, y)) }
+            x op_shr y { Box::new(Node::Operation(x, Opcode::Shr, y)) }
+        #L  x op_add y { Box::new(Node::Operation(x, Opcode::Add, y)) }
+            x op_sub y { Box::new(Node::Operation(x, Opcode::Sub, y)) }
+        #L  x op_mul y { Box::new(Node::Operation(x, Opcode::Mul, y)) }
+            x op_div y { Box::new(Node::Operation(x, Opcode::Div, y)) }
+            x op_mod y { Box::new(Node::Operation(x, Opcode::Mod, y)) }
     }
 
 pub assignment -> Box<Node>
-    = lhs:identifier "=" rhs:expr ";" {
+    = lhs:identifier _ "=" _ rhs:expr _ ";" {
         Box::new(Node::Assignment(
             Box::new(Node::Identifier(lhs.into())), rhs))
     }
 
 pub assignments -> Vec<Box<Node>>
-    = a:assignment ** eol { a }
+    = _ a:assignment ** _ { a }
 
 pub range -> Box<Node>
-    = "[" a:expr "," b:expr "]" {
+    = "[" _ a:expr _ "," _ b:expr _ "]" {
         Box::new(Node::Range(a, b))
     }
 
 // From: https://github.com/kevinmehall/rust-peg/blob/cc6a3cdebfafc670a9dffb0422709ff6d85d1207/src/grammar.rustpeg
+_ = #quiet<(whitespace / eol / comment)*>
+
+comment = singleLineComment
+
+singleLineComment
+    = "//" (!eolChar .)*
+
 // Modeled after ECMA-262, 5th ed., 7.3.
 eol
     = "\n"
@@ -60,3 +78,10 @@ eol
     / "\r"
     / "\u{2028}"
     / "\u{2029}"
+
+eolChar
+  = [\n\r\u{2028}\u{2029}]
+
+// Modeled after ECMA-262, 5th ed., 7.2.
+whitespace
+    = [ \t\u{00A0}\u{FEFF}\u{1680}\u{180E}\u{2000}-\u{200A}\u{202F}\u{205F}\u{3000}] // \v\f removed
