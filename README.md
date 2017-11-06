@@ -105,6 +105,7 @@ A possible series of evaluations of `b` could yield the following:
   * [x] Whitespace
   * [x] Comments
   * [ ] Modules
+  * [ ] Filename and line numbers in errors
 
 ### Extra
 
