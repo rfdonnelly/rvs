@@ -32,14 +32,16 @@
 use std::collections::HashMap;
 use std::collections::hash_map::Entry::Occupied;
 use std::panic::catch_unwind;
+use libc::uint32_t;
+use libc::c_char;
+use std::ffi::CStr;
+use std::path::Path;
+use std::fs::File;
+use std::error::Error;
+use std::io::prelude::*;
 
 use types::Rv;
 use ::parse_assignments;
-
-use libc::uint32_t;
-use libc::c_char;
-
-use std::ffi::CStr;
 
 type SequenceHandle = uint32_t;
 type ResultCodeRaw = uint32_t;
@@ -85,9 +87,9 @@ pub extern fn rvs_context_free(context: *mut Context) {
     unsafe { Box::from_raw(context); }
 }
 
-/// Passes a string to the Rvs parser.
+/// Parses a semicolon delimited string of Rvs statements and/or Rvs files.
 ///
-/// The string is expected to be valid Rvs DSL.
+/// A terminating semicolon is optional.
 ///
 /// # Errors
 ///
@@ -97,6 +99,20 @@ pub extern fn rvs_context_free(context: *mut Context) {
 /// # Panics
 ///
 /// If any pointer arguments are null.
+///
+/// # Examples
+///
+/// A single Rvs statement:
+///
+/// "a = 5"
+///
+/// A single Rvs file:
+///
+/// "example.rvs"
+///
+/// An Rvs file and an Rvs statement:
+///
+/// "example.rvs; a = 5;"
 #[no_mangle]
 pub extern fn rvs_parse(context: *mut Context, s: *const c_char) -> ResultCodeRaw {
     assert!(!context.is_null());
@@ -106,17 +122,49 @@ pub extern fn rvs_parse(context: *mut Context, s: *const c_char) -> ResultCodeRa
     let r_str = c_str.to_str().unwrap();
 
     let mut context = unsafe { &mut *context };
-    match parse_assignments(r_str, &mut context.ids, &mut context.variables) {
-        Ok(_) => ResultCode::Success.value(),
-        Err(e) => {
-            println!("{}", e);
-            println!("{}", r_str.lines().nth(e.line - 1).unwrap());
-            for _ in 0..e.column-1 { print!(" "); }
-            println!("^");
 
-            ResultCode::ParseError.value()
-        },
+    for entry in r_str.split(';') {
+        if !entry.is_empty() {
+            let is_file = !entry.contains("=");
+
+            let parser_string =
+                if is_file {
+                    let path = Path::new(&entry);
+                    if !path.exists() {
+                        panic!("path does not exist: {}", path.display());
+                    }
+
+                    let mut file = match File::open(&path) {
+                        Err(e) => panic!("could not open {}: {}", path.display(), e.description()),
+                        Ok(file) => file,
+                    };
+
+                    let mut contents = String::new();
+                    match file.read_to_string(&mut contents) {
+                        Err(e) => panic!("could not read {}: {}", path.display(), e.description()),
+                        Ok(_) => (),
+                    };
+
+                    contents
+                } else {
+                    entry.to_owned() + ";"
+                };
+
+            match parse_assignments(&parser_string, &mut context.ids, &mut context.variables) {
+                Ok(_) => (),
+                Err(e) => {
+                    println!("{}", e);
+                    println!("{}", parser_string.lines().nth(e.line - 1).unwrap());
+                    for _ in 0..e.column-1 { print!(" "); }
+                    println!("^");
+
+                    return ResultCode::ParseError.value()
+                },
+            }
+        }
     }
+
+    ResultCode::Success.value()
 }
 
 /// Returns the handle of a variable via the handle pointer
@@ -315,6 +363,33 @@ mod tests {
 
             let result_code = rvs_parse(context, CString::new("a = 1;\n1 = b;").unwrap().as_ptr());
             assert_eq!(result_code, ResultCode::ParseError.value());
+
+            rvs_context_free(context);
+        }
+
+        #[test]
+        fn file() {
+            let context = rvs_context_new();
+
+            let result_code = rvs_parse(context, CString::new("examples/basic.rvs;b = 3").unwrap().as_ptr());
+            assert_eq!(result_code, ResultCode::Success.value());
+
+            let mut handle = 0;
+            let mut value = 0;
+
+            let result_code = rvs_find(context, CString::new("a").unwrap().as_ptr(), &mut handle);
+            assert_eq!(result_code, ResultCode::Success.value());
+
+            let result_code = rvs_next(context, handle, &mut value);
+            assert_eq!(result_code, ResultCode::Success.value());
+            assert_eq!(value, 5);
+
+            let result_code = rvs_find(context, CString::new("b").unwrap().as_ptr(), &mut handle);
+            assert_eq!(result_code, ResultCode::Success.value());
+
+            let result_code = rvs_next(context, handle, &mut value);
+            assert_eq!(result_code, ResultCode::Success.value());
+            assert_eq!(value, 3);
 
             rvs_context_free(context);
         }
