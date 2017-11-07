@@ -2,7 +2,8 @@
 
 [![Build Status](https://travis-ci.org/rfdonnelly/rvs.svg?branch=master)](https://travis-ci.org/rfdonnelly/rvs)
 
-Rvs is a library for defining random variables using a simple DSL (Domain Specific Language).
+Rvs (pronounced r-v-s) is a library for defining random variables using a
+simple DSL (Domain Specific Language).
 
 ## Syntax
 
