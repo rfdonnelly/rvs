@@ -56,7 +56,7 @@ pub assignment -> Box<Node>
     }
 
 pub assignments -> Vec<Box<Node>>
-    = _ a:assignment ** _ { a }
+    = _ a:assignment ** _ _ { a }
 
 pub range -> Box<Node>
     = "[" _ a:expr _ "," _ b:expr _ "]" {
