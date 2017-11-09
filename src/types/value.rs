@@ -1,31 +1,29 @@
 use types::Rv;
+use types::RvData;
 
 pub struct Value {
-    prev: u32,
-    done: bool,
+    data: RvData,
 }
 
 impl Value {
     pub fn new(value: u32) -> Value {
         Value {
-            prev: value,
-            done: false,
+            data: RvData {
+                prev: value,
+                done: false,
+            },
         }
     }
 }
 
 impl Rv for Value {
     fn next(&mut self) -> u32 {
-        self.done = true;
+        self.data.done = true;
 
-        self.prev
+        self.data.prev
     }
 
-    fn prev(&self) -> u32 {
-        self.prev
-    }
-
-    fn done(&self) -> bool {
-        self.done
+    fn data(&self) -> &RvData {
+        &self.data
     }
 }

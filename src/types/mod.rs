@@ -10,10 +10,23 @@ pub use self::value::Value;
 pub use self::expr::Expr;
 pub use self::range::RangeSequence;
 
+pub struct RvData {
+    prev: u32,
+    done: bool,
+}
+
 pub trait Rv {
     fn next(&mut self) -> u32;
-    fn prev(&self) -> u32;
-    fn done(&self) -> bool;
+
+    fn prev(&self) -> u32 {
+        self.data().prev
+    }
+
+    fn done(&self) -> bool {
+        self.data().done
+    }
+
+    fn data(&self) -> &RvData;
 }
 
 pub fn rvs_from_ast(assignments: Vec<Box<Node>>, ids: &mut HashMap<String, usize>, variables: &mut Vec<Box<Rv>>) {

@@ -6,11 +6,12 @@ use rand::distributions::Sample;
 use rand::distributions::IndependentSample;
 
 use types::Rv;
+use types::RvData;
 
 pub struct RangeSequence {
-    prev: u32,
+    data: RvData,
     rng: Box<Rng>,
-    range: RangeInclusive
+    range: RangeInclusive,
 }
 
 pub struct RangeInclusive {
@@ -90,7 +91,10 @@ impl RangeSequence {
         // FIXME: Range::new may panic.
         // FIXME: Allow non-const seed
         RangeSequence {
-            prev: 0,
+            data: RvData {
+                prev: 0,
+                done: false,
+            },
             rng: Box::new(ChaChaRng::from_seed(&[0x0000_0000])),
             range: RangeInclusive::new(l.next(), r.next()),
         }
@@ -99,17 +103,13 @@ impl RangeSequence {
 
 impl Rv for RangeSequence {
     fn next(&mut self) -> u32 {
-        self.prev = self.range.ind_sample(&mut self.rng);
+        self.data.prev = self.range.ind_sample(&mut self.rng);
 
-        self.prev
+        self.data.prev
     }
 
-    fn prev(&self) -> u32 {
-        self.prev
-    }
-
-    fn done(&self) -> bool {
-        false
+    fn data(&self) -> &RvData {
+        &self.data
     }
 }
 
