@@ -8,20 +8,10 @@ pub mod c_api;
 
 use std::collections::HashMap;
 
-use types::rv_from_ast;
 use types::rvs_from_ast;
 use types::Rv;
 
 use grammar::ParseResult;
-
-fn parse_expression(s: &str) -> Box<Rv> {
-    match grammar::expr(s) {
-        Ok(ast) => {
-            rv_from_ast(&ast)
-        },
-        Err(_) => panic!("Could not parse: '{}'", s),
-    }
-}
 
 fn parse_assignments(s: &str, ids: &mut HashMap<String, usize>, variables: &mut Vec<Box<Rv>>) -> ParseResult<()> {
     match grammar::assignments(s) {
@@ -36,34 +26,6 @@ fn parse_assignments(s: &str, ids: &mut HashMap<String, usize>, variables: &mut 
 
 #[cfg(test)]
 mod tests {
-    mod parse_expression {
-        use super::super::*;
-
-        #[test]
-        fn basic() {
-            let mut variable = parse_expression("1+2*3");
-            assert_eq!(variable.next(), 7);
-        }
-
-        #[test]
-        fn range() {
-            use std::collections::HashMap;
-
-            let mut variable = parse_expression("1+[0,1]");
-
-            let mut values = HashMap::new();
-            for _ in 0..100 {
-                let value = variable.next();
-                let entry = values.entry(value).or_insert(0);
-                *entry += 1;
-                assert!(value == 1 || value == 2);
-            }
-
-            assert!(values[&1] > 0);
-            assert!(values[&2] > 0);
-        }
-    }
-
     mod parse_assignments {
         use super::super::*;
 
