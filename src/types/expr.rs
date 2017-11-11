@@ -1,3 +1,5 @@
+use rand::Rng;
+
 use ast::Opcode;
 use types::Rv;
 use types::RvData;
@@ -24,8 +26,8 @@ impl Expr {
 }
 
 impl Rv for Expr {
-    fn next(&mut self) -> u32 {
-        let (l, r) = (self.l.next(), self.r.next());
+    fn next(&mut self, rng: &mut Rng) -> u32 {
+        let (l, r) = (self.l.next(rng), self.r.next(rng));
 
         self.data.done = self.l.done() || self.r.done();
 
@@ -54,9 +56,11 @@ impl Rv for Expr {
 mod tests {
     use super::*;
     use types::Value;
+    use types::new_rng;
 
     #[test]
     fn expr() {
+        let mut rng = new_rng();
         let v0 = Box::new(Value::new(1));
         let v1 = Box::new(Value::new(2));
 
@@ -66,7 +70,7 @@ mod tests {
             v1,
         );
 
-        assert_eq!(expr.next(), 3);
-        assert_eq!(expr.next(), 3);
+        assert_eq!(expr.next(&mut rng), 3);
+        assert_eq!(expr.next(&mut rng), 3);
     }
 }

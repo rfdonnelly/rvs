@@ -1,3 +1,5 @@
+use rand::Rng;
+
 use types::Rv;
 use types::RvData;
 
@@ -17,7 +19,7 @@ impl Value {
 }
 
 impl Rv for Value {
-    fn next(&mut self) -> u32 {
+    fn next(&mut self, _rng: &mut Rng) -> u32 {
         self.data.done = true;
 
         self.data.prev

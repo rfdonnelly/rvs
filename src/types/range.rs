@@ -1,6 +1,4 @@
 use rand::Rng;
-use rand::SeedableRng;
-use rand::chacha::ChaChaRng;
 use rand::distributions::Range;
 use rand::distributions::Sample;
 use rand::distributions::IndependentSample;
@@ -10,7 +8,6 @@ use types::RvData;
 
 pub struct RangeSequence {
     data: RvData,
-    rng: Box<Rng>,
     range: RangeInclusive,
 }
 
@@ -89,21 +86,19 @@ impl Sample<u32> for RangeInclusive {
 impl RangeSequence {
     pub fn new(l: u32, r: u32) -> RangeSequence {
         // FIXME: Range::new may panic.
-        // FIXME: Allow non-const seed
         RangeSequence {
             data: RvData {
                 prev: 0,
                 done: false,
             },
-            rng: Box::new(ChaChaRng::from_seed(&[0x0000_0000])),
             range: RangeInclusive::new(l, r),
         }
     }
 }
 
 impl Rv for RangeSequence {
-    fn next(&mut self) -> u32 {
-        self.data.prev = self.range.ind_sample(&mut self.rng);
+    fn next(&mut self, rng: &mut Rng) -> u32 {
+        self.data.prev = self.range.ind_sample(rng);
 
         self.data.prev
     }
@@ -117,6 +112,7 @@ impl Rv for RangeSequence {
 mod tests {
     mod range {
         use super::super::*;
+        use types::new_rng;
 
         #[test]
         fn basic() {
@@ -124,10 +120,11 @@ mod tests {
 
             let mut range = RangeSequence::new(0, 1);
 
+            let mut rng = new_rng();
             let mut values = HashMap::new();
 
             for _ in 0..1000 {
-                let value = range.next();
+                let value = range.next(&mut rng);
                 let entry = values.entry(value).or_insert(0);
                 *entry += 1;
                 assert!(value == 0 || value == 1);
@@ -149,9 +146,11 @@ mod tests {
                 ::std::u32::MAX
             );
 
+            let mut rng = new_rng();
             let mut values = HashMap::new();
+
             for _ in 0..100 {
-                let value = variable.next();
+                let value = variable.next(&mut rng);
                 let entry = values.entry(value).or_insert(0);
                 *entry += 1;
                 assert!(value == ::std::u32::MAX - 1 || value == ::std::u32::MAX);
@@ -171,9 +170,11 @@ mod tests {
                 ::std::u32::MAX
             );
 
+            let mut rng = new_rng();
             let mut values = HashMap::new();
+
             for _ in 0u64..0x2_0000_0000u64 {
-                let value = variable.next();
+                let value = variable.next(&mut rng);
                 if value == ::std::u32::MIN || value == ::std::u32::MAX {
                     let entry = values.entry(value).or_insert(0);
                     *entry += 1;

@@ -2,6 +2,9 @@ pub mod value;
 pub mod expr;
 pub mod range;
 
+use rand::Rng;
+use rand::SeedableRng;
+use rand::chacha::ChaChaRng;
 use std::collections::HashMap;
 
 use ast::Node;
@@ -16,7 +19,7 @@ pub struct RvData {
 }
 
 pub trait Rv {
-    fn next(&mut self) -> u32;
+    fn next(&mut self, rng: &mut Rng) -> u32;
 
     fn prev(&self) -> u32 {
         self.data().prev
@@ -29,7 +32,27 @@ pub trait Rv {
     fn data(&self) -> &RvData;
 }
 
-pub fn rvs_from_ast(assignments: Vec<Box<Node>>, ids: &mut HashMap<String, usize>, variables: &mut Vec<Box<Rv>>) {
+/// Random Variable Container
+pub struct RvC {
+    root: Box<Rv>,
+    rng: Box<Rng>,
+}
+
+impl RvC {
+    pub fn next(&mut self) -> u32 {
+        self.root.next(&mut self.rng)
+    }
+
+    pub fn prev(&self) -> u32 {
+        self.root.prev()
+    }
+
+    pub fn done(&self) -> bool {
+        self.root.done()
+    }
+}
+
+pub fn rvs_from_ast(assignments: Vec<Box<Node>>, ids: &mut HashMap<String, usize>, variables: &mut Vec<Box<RvC>>) {
     for assignment in assignments {
         if let Node::Assignment(ref lhs, ref rhs) = *assignment {
             let mut identifier: String = "".into();
@@ -38,17 +61,26 @@ pub fn rvs_from_ast(assignments: Vec<Box<Node>>, ids: &mut HashMap<String, usize
                 identifier = x.clone();
             }
 
-            variables.push(rv_from_ast(&rhs));
+            // FIXME: Allow non-const seed
+            let mut rng = new_rng();
+            variables.push(Box::new(RvC {
+                root: rv_from_ast(&mut rng, &rhs),
+                rng: rng,
+            }));
             ids.insert(identifier, variables.len() - 1);
         }
     }
 }
 
-pub fn rv_from_ast(node: &Node) -> Box<Rv> {
+fn new_rng() -> Box<Rng> {
+    Box::new(ChaChaRng::from_seed(&[0x0000_0000]))
+}
+
+pub fn rv_from_ast(rng: &mut Rng, node: &Node) -> Box<Rv> {
     match *node {
         Node::Range(ref bx, ref by) => {
-            let l = rv_from_ast(bx).next();
-            let r = rv_from_ast(by).next();
+            let l = rv_from_ast(rng, bx).next(rng);
+            let r = rv_from_ast(rng, by).next(rng);
 
             Box::new(
                 RangeSequence::new(l, r)
@@ -58,9 +90,9 @@ pub fn rv_from_ast(node: &Node) -> Box<Rv> {
         Node::Operation(ref bx, ref op, ref by) => {
             Box::new(
                 Expr::new(
-                    rv_from_ast(bx),
+                    rv_from_ast(rng, bx),
                     op.clone(),
-                    rv_from_ast(by)
+                    rv_from_ast(rng, by)
                 )
             )
         },
@@ -75,26 +107,28 @@ mod tests {
 
         #[test]
         fn number() {
+            let mut rng = new_rng();
             let ast = Node::Number(4);
-            let mut variable = rv_from_ast(&ast);
+            let mut variable = rv_from_ast(&mut rng, &ast);
 
-            assert_eq!(variable.next(), 4);
+            assert_eq!(variable.next(&mut rng), 4);
         }
 
         #[test]
         fn range() {
             use std::collections::HashMap;
 
+            let mut rng = new_rng();
             let ast = Node::Range(
                 Box::new(Node::Number(3)),
                 Box::new(Node::Number(4))
             );
-            let mut variable = rv_from_ast(&ast);
+            let mut variable = rv_from_ast(&mut rng, &ast);
 
             let mut values = HashMap::new();
 
             for _ in 0..10 {
-                let value = variable.next();
+                let value = variable.next(&mut rng);
                 let entry = values.entry(value).or_insert(0);
                 *entry += 1;
                 assert!(value == 3 || value == 4);
