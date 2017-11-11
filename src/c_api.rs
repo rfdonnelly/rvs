@@ -40,7 +40,7 @@ use std::fs::File;
 use std::error::Error;
 use std::io::prelude::*;
 
-use types::Rv;
+use types::RvC;
 use ::parse_assignments;
 
 type SequenceHandle = uint32_t;
@@ -63,7 +63,7 @@ impl ResultCode {
 }
 
 pub struct Context {
-    variables: Vec<Box<Rv>>,
+    variables: Vec<Box<RvC>>,
     ids: HashMap<String, usize>,
 }
 
@@ -300,7 +300,7 @@ pub extern fn rvs_clear(context: *mut Context) {
     context.variables.clear();
 }
 
-fn handle_to_idx(variables: &Vec<Box<Rv>>, handle: SequenceHandle) -> Option<usize> {
+fn handle_to_idx(variables: &Vec<Box<RvC>>, handle: SequenceHandle) -> Option<usize> {
     let handle = handle as usize;
     if variables.is_empty() || handle == 0 || handle > variables.len() {
         Option::None

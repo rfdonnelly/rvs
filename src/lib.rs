@@ -9,11 +9,11 @@ pub mod c_api;
 use std::collections::HashMap;
 
 use types::rvs_from_ast;
-use types::Rv;
+use types::RvC;
 
 use grammar::ParseResult;
 
-fn parse_assignments(s: &str, ids: &mut HashMap<String, usize>, variables: &mut Vec<Box<Rv>>) -> ParseResult<()> {
+fn parse_assignments(s: &str, ids: &mut HashMap<String, usize>, variables: &mut Vec<Box<RvC>>) -> ParseResult<()> {
     match grammar::assignments(s) {
         Ok(assignments) => {
             rvs_from_ast(assignments, ids, variables);

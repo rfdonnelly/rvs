@@ -1,20 +1,23 @@
-use ast::Opcode;
+use rand::Rng;
 
+use ast::Opcode;
 use types::Rv;
+use types::RvData;
 
 pub struct Expr {
-    prev: u32,
-    done: bool,
+    data: RvData,
     operation: Opcode,
     l: Box<Rv>,
     r: Box<Rv>,
 }
 
-impl<'a> Expr {
+impl Expr {
     pub fn new(l: Box<Rv>, operation: Opcode, r: Box<Rv>) -> Expr {
         Expr {
-            prev: 0,
-            done: false,
+            data: RvData {
+                prev: 0,
+                done: false,
+            },
             operation: operation,
             l: l,
             r: r,
@@ -22,13 +25,13 @@ impl<'a> Expr {
     }
 }
 
-impl<'a> Rv for Expr {
-    fn next(&mut self) -> u32 {
-        let (l, r) = (self.l.next(), self.r.next());
+impl Rv for Expr {
+    fn next(&mut self, rng: &mut Rng) -> u32 {
+        let (l, r) = (self.l.next(rng), self.r.next(rng));
 
-        self.done = self.l.done() || self.r.done();
+        self.data.done = self.l.done() || self.r.done();
 
-        self.prev = match self.operation {
+        self.data.prev = match self.operation {
             Opcode::Or => l | r,
             Opcode::Xor => l ^ r,
             Opcode::And => l & r,
@@ -41,15 +44,11 @@ impl<'a> Rv for Expr {
             Opcode::Mod => l % r,
         };
 
-        self.prev
+        self.data.prev
     }
 
-    fn prev(&self) -> u32 {
-        self.prev
-    }
-
-    fn done(&self) -> bool {
-        self.done
+    fn data(&self) -> &RvData {
+        &self.data
     }
 }
 
@@ -57,9 +56,11 @@ impl<'a> Rv for Expr {
 mod tests {
     use super::*;
     use types::Value;
+    use types::new_rng;
 
     #[test]
     fn expr() {
+        let mut rng = new_rng();
         let v0 = Box::new(Value::new(1));
         let v1 = Box::new(Value::new(2));
 
@@ -69,7 +70,7 @@ mod tests {
             v1,
         );
 
-        assert_eq!(expr.next(), 3);
-        assert_eq!(expr.next(), 3);
+        assert_eq!(expr.next(&mut rng), 3);
+        assert_eq!(expr.next(&mut rng), 3);
     }
 }
