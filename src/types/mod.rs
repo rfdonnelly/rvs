@@ -47,11 +47,11 @@ pub fn rvs_from_ast(assignments: Vec<Box<Node>>, ids: &mut HashMap<String, usize
 pub fn rv_from_ast(node: &Node) -> Box<Rv> {
     match *node {
         Node::Range(ref bx, ref by) => {
+            let l = rv_from_ast(bx).next();
+            let r = rv_from_ast(by).next();
+
             Box::new(
-                RangeSequence::new(
-                    &mut *rv_from_ast(bx),
-                    &mut *rv_from_ast(by)
-                )
+                RangeSequence::new(l, r)
             )
         }
         Node::Number(x) => Box::new(Value::new(x)),

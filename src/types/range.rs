@@ -87,7 +87,7 @@ impl Sample<u32> for RangeInclusive {
 }
 
 impl RangeSequence {
-    pub fn new(l: &mut Rv, r: &mut Rv) -> RangeSequence {
+    pub fn new(l: u32, r: u32) -> RangeSequence {
         // FIXME: Range::new may panic.
         // FIXME: Allow non-const seed
         RangeSequence {
@@ -96,7 +96,7 @@ impl RangeSequence {
                 done: false,
             },
             rng: Box::new(ChaChaRng::from_seed(&[0x0000_0000])),
-            range: RangeInclusive::new(l.next(), r.next()),
+            range: RangeInclusive::new(l, r),
         }
     }
 }
@@ -117,16 +117,12 @@ impl Rv for RangeSequence {
 mod tests {
     mod range {
         use super::super::*;
-        use types::Value;
 
         #[test]
         fn basic() {
             use std::collections::HashMap;
 
-            let mut range = RangeSequence::new(
-                &mut Value::new(0),
-                &mut Value::new(1)
-            );
+            let mut range = RangeSequence::new(0, 1);
 
             let mut values = HashMap::new();
 
@@ -149,8 +145,8 @@ mod tests {
             use std::collections::HashMap;
 
             let mut variable = RangeSequence::new(
-                &mut Value::new(::std::u32::MAX - 1),
-                &mut Value::new(::std::u32::MAX)
+                ::std::u32::MAX - 1,
+                ::std::u32::MAX
             );
 
             let mut values = HashMap::new();
@@ -171,8 +167,8 @@ mod tests {
             use std::collections::HashMap;
 
             let mut variable = RangeSequence::new(
-                &mut Value::new(::std::u32::MIN),
-                &mut Value::new(::std::u32::MAX)
+                ::std::u32::MIN,
+                ::std::u32::MAX
             );
 
             let mut values = HashMap::new();
