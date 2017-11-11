@@ -121,7 +121,7 @@ pub extern fn rvs_parse(context: *mut Context, s: *const c_char) -> ResultCodeRa
     let c_str = unsafe { CStr::from_ptr(s) };
     let r_str = c_str.to_str().unwrap();
 
-    let mut context = unsafe { &mut *context };
+    let context = unsafe { &mut *context };
 
     for entry in r_str.split(';') {
         if !entry.is_empty() {
@@ -191,7 +191,7 @@ pub extern fn rvs_find(context: *mut Context, name: *const c_char, handle_ptr: *
     let c_str = unsafe { CStr::from_ptr(name) };
     let r_str = c_str.to_str().unwrap();
 
-    let mut context = unsafe { &mut *context };
+    let context = unsafe { &mut *context };
     if let Occupied(entry) = context.ids.entry(r_str.into()) {
         let id = *entry.get() as SequenceHandle;
 
@@ -220,7 +220,7 @@ pub extern fn rvs_next(context: *mut Context, handle: SequenceHandle, result_ptr
     assert!(!context.is_null());
     assert!(!result_ptr.is_null());
 
-    let mut context = unsafe { &mut *context };
+    let context = unsafe { &mut *context };
     let idx = match handle_to_idx(&context.variables, handle) {
         Some(x) => x,
         None => { return ResultCode::NotFound.value(); },
@@ -295,7 +295,7 @@ pub extern fn rvs_done(context: *mut Context, handle: SequenceHandle, result_ptr
 /// Clears all state and all parsed variables.
 #[no_mangle]
 pub extern fn rvs_clear(context: *mut Context) {
-    let mut context = unsafe { &mut *context };
+    let context = unsafe { &mut *context };
     context.ids.clear();
     context.variables.clear();
 }
@@ -326,8 +326,8 @@ mod tests {
             let result_code = rvs_parse(context, CString::new("a=5;").unwrap().as_ptr());
             assert_eq!(result_code, ResultCode::Success.value());
 
-            let mut ids = unsafe { &mut (*context).ids };
-            let mut variables = unsafe { &mut (*context).variables };
+            let ids = unsafe { &mut (*context).ids };
+            let variables = unsafe { &mut (*context).variables };
             assert!(ids.contains_key("a"));
             if let Occupied(entry) = ids.entry("a".into()) {
                 let id = entry.get();
@@ -345,8 +345,8 @@ mod tests {
             let result_code = rvs_parse(context, CString::new("a=[0,1];").unwrap().as_ptr());
             assert_eq!(result_code, ResultCode::Success.value());
 
-            let mut ids = unsafe { &mut (*context).ids };
-            let mut variables = unsafe { &mut (*context).variables };
+            let ids = unsafe { &mut (*context).ids };
+            let variables = unsafe { &mut (*context).variables };
             assert!(ids.contains_key("a"));
             if let Occupied(entry) = ids.entry("a".into()) {
                 let id = entry.get();
