@@ -1,86 +1,14 @@
 use rand::Rng;
 use rand::distributions::Range;
-use rand::distributions::Sample;
-use rand::distributions::IndependentSample;
+use rand::distributions::range::RangeInt;
+use rand::distributions::Distribution;
 
 use types::Rv;
 use types::RvData;
 
 pub struct RangeSequence {
     data: RvData,
-    range: RangeInclusive,
-}
-
-pub struct RangeInclusive {
-    range: Range<u32>,
-    use_range: bool,
-    offset: bool,
-}
-
-impl RangeInclusive {
-    fn new(low: u32, high: u32) -> RangeInclusive {
-        // Implement the inclusive range [x, y] using the exlusive range [x, y + 1) by handling
-        // three different cases:
-        //
-        // * The range [::std::u32::MIN, ::std::u32::MAX]
-        //
-        //   Cannot use rand::distributions::Range.  Use RNG directly.
-        //
-        //   [x, y] => [x, y]
-        //
-        // * The range [x, ::std::u32::MAX]
-        //
-        //   Can use rand::distributions::Range but must adjust the range down artifically, then
-        //   re-adjust up after sampling.
-        //
-        //   [x, y] => [x - 1, y) + 1
-        //
-        // * All other ranges
-        //
-        //   Use rand::distributions::Range normally.
-        //
-        //   [x, y] => [x, y + 1)
-        let (x, y, use_range, offset) = match (low, high) {
-            // Sample directly from RNG w/o Range
-            (::std::u32::MIN, ::std::u32::MAX) => (::std::u32::MIN, ::std::u32::MAX, false, false),
-            // Sample with Range + offset
-            (x, ::std::u32::MAX) => (x - 1, ::std::u32::MAX, true, true),
-            // Sample with Range normally
-            (x, y) => (x, y + 1, true, false)
-        };
-
-        RangeInclusive {
-            offset: offset,
-            use_range: use_range,
-            range: Range::new(x, y),
-        }
-    }
-}
-
-impl IndependentSample<u32> for RangeInclusive {
-    fn ind_sample<R: Rng>(&self, rng: &mut R) -> u32 {
-        // Should never see this case.  Could cause a panic due to overflow.
-        assert!(!(self.use_range == false && self.offset == true));
-
-        let sample =
-            if self.use_range {
-                self.range.ind_sample(rng)
-            } else {
-                rng.gen()
-            };
-
-        if self.offset {
-            sample + 1
-        } else {
-            sample
-        }
-    }
-}
-
-impl Sample<u32> for RangeInclusive {
-    fn sample<R: Rng>(&mut self, rng: &mut R) -> u32 {
-        self.ind_sample(rng)
-    }
+    range: Range<RangeInt<u32>>,
 }
 
 impl RangeSequence {
@@ -91,14 +19,14 @@ impl RangeSequence {
                 prev: 0,
                 done: false,
             },
-            range: RangeInclusive::new(l, r),
+            range: Range::new_inclusive(l, r),
         }
     }
 }
 
 impl Rv for RangeSequence {
     fn next(&mut self, rng: &mut Rng) -> u32 {
-        self.data.prev = self.range.ind_sample(rng);
+        self.data.prev = self.range.sample(rng);
 
         self.data.prev
     }

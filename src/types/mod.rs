@@ -4,7 +4,7 @@ pub mod range;
 
 use rand::Rng;
 use rand::SeedableRng;
-use rand::chacha::ChaChaRng;
+use rand::prng::ChaChaRng;
 use std::collections::HashMap;
 
 use ast::Node;
