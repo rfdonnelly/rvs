@@ -57,10 +57,11 @@ mod tests {
     use super::*;
     use types::Value;
     use types::new_rng;
+    use types::Seed;
 
     #[test]
     fn expr() {
-        let mut rng = new_rng();
+        let mut rng = new_rng(&Seed::from_u32(0));
         let v0 = Box::new(Value::new(1));
         let v1 = Box::new(Value::new(2));
 

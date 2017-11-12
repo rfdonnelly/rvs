@@ -69,7 +69,7 @@ A possible series of evaluations of `b` could yield the following:
 * C API
   * [x] `rvs_context_new()`
   * [x] `rvs_context_free()`
-  * [ ] `rvs_seed()`
+  * [x] `rvs_seed()`
   * [x] `rvs_parse()`
   * [x] `rvs_find()`
   * [x] `rvs_next()`

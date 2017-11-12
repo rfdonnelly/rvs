@@ -41,6 +41,7 @@ use std::io::prelude::*;
 
 use types::RvC;
 use types::Context;
+use types::Seed;
 use parse_assignments;
 
 type SequenceHandle = uint32_t;
@@ -78,6 +79,17 @@ pub extern fn rvs_context_new() -> *mut Context {
 pub extern fn rvs_context_free(context: *mut Context) {
     if context.is_null() { return }
     unsafe { Box::from_raw(context); }
+}
+
+/// Sets the seed for all future calls to `rvs_parse()`.
+///
+/// Should be called before `rvs_parse()`.
+#[no_mangle]
+pub extern fn rvs_seed(context: *mut Context, seed: u32) {
+    assert!(!context.is_null());
+
+    let context = unsafe { &mut *context };
+    context.seed = Seed::from_u32(seed);
 }
 
 /// Parses a semicolon delimited string of Rvs statements and/or Rvs files.
@@ -307,6 +319,45 @@ mod tests {
     use super::*;
 
     use std::ffi::CString;
+
+    mod rvs_seed {
+        use super::*;
+
+        fn next(seed: u32, s: &str) -> u32 {
+            let context = rvs_context_new();
+            rvs_seed(context, seed);
+
+            let s = format!("a = {};", s);
+            let result_code = rvs_parse(context, CString::new(s).unwrap().as_ptr());
+            assert_eq!(result_code, ResultCode::Success.value());
+
+            let mut handle = 0;
+            let result_code = rvs_find(context, CString::new("a").unwrap().as_ptr(), &mut handle);
+            assert_eq!(result_code, ResultCode::Success.value());
+
+            let mut value = 0;
+            let result_code = rvs_next(context, handle, &mut value);
+            assert_eq!(result_code, ResultCode::Success.value());
+
+            rvs_context_free(context);
+
+            value
+        }
+
+        #[test]
+        fn basic() {
+            let s = "[0, 0xffff_ffff]";
+
+            let seed0_value0 = next(0, s);
+            let seed1_value0 = next(1, s);
+            let seed0_value1 = next(0, s);
+            let seed1_value1 = next(1, s);
+
+            assert!(seed0_value0 != seed1_value0);
+            assert_eq!(seed0_value0, seed0_value1);
+            assert_eq!(seed1_value0, seed1_value1);
+        }
+    }
 
     mod rvs_parse {
         use super::*;
