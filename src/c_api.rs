@@ -41,7 +41,7 @@ use std::error::Error;
 use std::io::prelude::*;
 
 use types::RvC;
-use ::parse_assignments;
+use parse_assignments;
 
 type SequenceHandle = uint32_t;
 type ResultCodeRaw = uint32_t;
