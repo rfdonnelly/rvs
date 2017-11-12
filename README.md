@@ -2,13 +2,13 @@
 
 [![Build Status](https://travis-ci.org/rfdonnelly/rvs.svg?branch=master)](https://travis-ci.org/rfdonnelly/rvs)
 
-Rvs (pronounced r-v-s) is a library for defining random variables using a
-simple DSL (Domain Specific Language).
+Rvs (pronounced r-v-s) is a C API library for defining and evaluating random
+variables using a simple DSL (Domain Specific Language).
 
-## Syntax
+## Rvs Syntax
 
 The syntax for the Rvs DSL is a series of C-like assignment statements.  These
-statements both declare and initialize a variable.
+statements both declare and define a variable.
 
 ```C
 <indentifier> = <expression>;
@@ -18,7 +18,7 @@ statements both declare and initialize a variable.
 
 #### Constant Value Variable
 
-The following declares the variable `a` and initializes it to the value of `0`
+The following declares the variable `a` and defines it to the value of `0`
 
 ```C
 a = 0;
@@ -37,7 +37,7 @@ NOTE: Calling `next()` advances the variable to the next iteration.  Calling
 
 #### Random Range Variable
 
-The following declares the variable `b` and intializes it to the range `[0,
+The following declares the variable `b` and defines it to the range `[0,
 1]`.
 
 ```C
