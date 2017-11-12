@@ -4,7 +4,8 @@ pub mod range;
 
 use rand::Rng;
 use rand::SeedableRng;
-use rand::prng::ChaChaRng;
+use rand::prng::XorShiftRng;
+use rand::Sample;
 use std::collections::HashMap;
 
 use ast::Node;
@@ -52,7 +53,53 @@ impl RvC {
     }
 }
 
-pub fn rvs_from_ast(assignments: Vec<Box<Node>>, ids: &mut HashMap<String, usize>, variables: &mut Vec<Box<RvC>>) {
+pub struct Seed {
+    pub value: [u32; 4],
+}
+
+impl Seed {
+    /// Generates a 128-bit seed from a 32-bit seed
+    ///
+    /// This is done via two steps:
+    ///
+    /// 1. Create a low quality 128-bit seed (LQS)
+    ///
+    ///    This is done with simple bit manipulation of the 32-bit seed.
+    ///
+    /// 2. Create a higher quality 128-bit seed (HQS)
+    ///
+    ///    This is done by seeding an Rng with the LQS then using the Rng to generate the HQS.
+    pub fn from_u32(seed: u32) -> Seed {
+        let mut rng = XorShiftRng::from_seed([
+            seed,
+            seed ^ 0xaaaa_aaaa,
+            seed ^ 0x5555_5555,
+            !seed,
+        ]);
+
+        Seed {
+            value: [rng.gen(), rng.gen(), rng.gen(), rng.gen()],
+        }
+    }
+}
+
+pub struct Context {
+    pub variables: Vec<Box<RvC>>,
+    pub ids: HashMap<String, usize>,
+    pub seed: Seed,
+}
+
+impl Context {
+    pub fn new() -> Context {
+        Context {
+            variables: Vec::new(),
+            ids: HashMap::new(),
+            seed: Seed::from_u32(0),
+        }
+    }
+}
+
+pub fn rvs_from_ast(assignments: Vec<Box<Node>>, context: &mut Context) {
     for assignment in assignments {
         if let Node::Assignment(ref lhs, ref rhs) = *assignment {
             let mut identifier: String = "".into();
@@ -61,19 +108,18 @@ pub fn rvs_from_ast(assignments: Vec<Box<Node>>, ids: &mut HashMap<String, usize
                 identifier = x.clone();
             }
 
-            // FIXME: Allow non-const seed
-            let mut rng = new_rng();
-            variables.push(Box::new(RvC {
+            let mut rng = new_rng(&context.seed);
+            context.variables.push(Box::new(RvC {
                 root: rv_from_ast(&mut rng, &rhs),
                 rng: rng,
             }));
-            ids.insert(identifier, variables.len() - 1);
+            context.ids.insert(identifier, context.variables.len() - 1);
         }
     }
 }
 
-fn new_rng() -> Box<Rng> {
-    Box::new(ChaChaRng::from_seed(&[0x0000_0000]))
+fn new_rng(seed: &Seed) -> Box<Rng> {
+    Box::new(XorShiftRng::from_seed(seed.value))
 }
 
 pub fn rv_from_ast(rng: &mut Rng, node: &Node) -> Box<Rv> {
@@ -107,7 +153,7 @@ mod tests {
 
         #[test]
         fn number() {
-            let mut rng = new_rng();
+            let mut rng = new_rng(&Seed::from_u32(0));
             let ast = Node::Number(4);
             let mut variable = rv_from_ast(&mut rng, &ast);
 
@@ -118,7 +164,7 @@ mod tests {
         fn range() {
             use std::collections::HashMap;
 
-            let mut rng = new_rng();
+            let mut rng = new_rng(&Seed::from_u32(0));
             let ast = Node::Range(
                 Box::new(Node::Number(3)),
                 Box::new(Node::Number(4))
@@ -157,20 +203,19 @@ mod tests {
                 )),
             ];
 
-            let mut ids = HashMap::new();
-            let mut variables = Vec::new();
-            rvs_from_ast(assignments, &mut ids, &mut variables);
+            let mut context = Context::new();
+            rvs_from_ast(assignments, &mut context);
 
-            assert!(ids.contains_key("a"));
-            if let Occupied(entry) = ids.entry("a".into()) {
+            assert!(context.ids.contains_key("a"));
+            if let Occupied(entry) = context.ids.entry("a".into()) {
                 let id = entry.get();
-                let value = variables[*id].next();
+                let value = context.variables[*id].next();
                 assert_eq!(value, 5);
             }
-            assert!(ids.contains_key("b"));
-            if let Occupied(entry) = ids.entry("b".into()) {
+            assert!(context.ids.contains_key("b"));
+            if let Occupied(entry) = context.ids.entry("b".into()) {
                 let id = entry.get();
-                let value = variables[*id].next();
+                let value = context.variables[*id].next();
                 assert_eq!(value, 6);
             }
         }

@@ -41,6 +41,7 @@ mod tests {
     mod range {
         use super::super::*;
         use types::new_rng;
+        use types::Seed;
 
         #[test]
         fn basic() {
@@ -48,7 +49,7 @@ mod tests {
 
             let mut range = RangeSequence::new(0, 1);
 
-            let mut rng = new_rng();
+            let mut rng = new_rng(&Seed::from_u32(0));
             let mut values = HashMap::new();
 
             for _ in 0..1000 {
@@ -61,8 +62,9 @@ mod tests {
             let num_zeros = values[&0];
             let num_ones = values[&1];
 
-            assert!(num_zeros > 490 && num_zeros < 510);
-            assert!(num_ones > 490 && num_ones < 510);
+            println!("num_zeros:{} num_ones:{}", num_zeros, num_ones);
+            assert!(num_zeros > 487 && num_zeros < 513);
+            assert!(num_ones > 487 && num_ones < 513);
         }
 
         #[test]
@@ -74,7 +76,7 @@ mod tests {
                 ::std::u32::MAX
             );
 
-            let mut rng = new_rng();
+            let mut rng = new_rng(&Seed::from_u32(0));
             let mut values = HashMap::new();
 
             for _ in 0..100 {
@@ -98,7 +100,7 @@ mod tests {
                 ::std::u32::MAX
             );
 
-            let mut rng = new_rng();
+            let mut rng = new_rng(&Seed::from_u32(0));
             let mut values = HashMap::new();
 
             for _ in 0u64..0x2_0000_0000u64 {

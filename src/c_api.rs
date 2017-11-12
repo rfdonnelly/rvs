@@ -29,7 +29,6 @@
 //! rvs_context_free(context);
 //! ```
 
-use std::collections::HashMap;
 use std::collections::hash_map::Entry::Occupied;
 use std::panic::catch_unwind;
 use libc::uint32_t;
@@ -41,7 +40,9 @@ use std::error::Error;
 use std::io::prelude::*;
 
 use types::RvC;
-use ::parse_assignments;
+use types::Context;
+use types::Seed;
+use parse_assignments;
 
 type SequenceHandle = uint32_t;
 type ResultCodeRaw = uint32_t;
@@ -62,10 +63,6 @@ impl ResultCode {
     }
 }
 
-pub struct Context {
-    variables: Vec<Box<RvC>>,
-    ids: HashMap<String, usize>,
-}
 
 /// Allocates and returns a new context.
 ///
@@ -73,10 +70,7 @@ pub struct Context {
 #[no_mangle]
 pub extern fn rvs_context_new() -> *mut Context {
     Box::into_raw(Box::new(
-        Context {
-            variables: Vec::new(),
-            ids: HashMap::new(),
-        }
+        Context::new()
     ))
 }
 
@@ -85,6 +79,17 @@ pub extern fn rvs_context_new() -> *mut Context {
 pub extern fn rvs_context_free(context: *mut Context) {
     if context.is_null() { return }
     unsafe { Box::from_raw(context); }
+}
+
+/// Sets the seed for all future calls to `rvs_parse()`.
+///
+/// Should be called before `rvs_parse()`.
+#[no_mangle]
+pub extern fn rvs_seed(context: *mut Context, seed: u32) {
+    assert!(!context.is_null());
+
+    let context = unsafe { &mut *context };
+    context.seed = Seed::from_u32(seed);
 }
 
 /// Parses a semicolon delimited string of Rvs statements and/or Rvs files.
@@ -121,7 +126,7 @@ pub extern fn rvs_parse(context: *mut Context, s: *const c_char) -> ResultCodeRa
     let c_str = unsafe { CStr::from_ptr(s) };
     let r_str = c_str.to_str().unwrap();
 
-    let context = unsafe { &mut *context };
+    let mut context = unsafe { &mut *context };
 
     for entry in r_str.split(';') {
         if !entry.is_empty() {
@@ -150,7 +155,7 @@ pub extern fn rvs_parse(context: *mut Context, s: *const c_char) -> ResultCodeRa
                     entry.to_owned() + ";"
                 };
 
-            match parse_assignments(&parser_string, &mut context.ids, &mut context.variables) {
+            match parse_assignments(&parser_string, &mut context) {
                 Ok(_) => (),
                 Err(e) => {
                     println!("{}", e);
@@ -313,10 +318,50 @@ fn handle_to_idx(variables: &Vec<Box<RvC>>, handle: SequenceHandle) -> Option<us
 mod tests {
     use super::*;
 
+    use std::ffi::CString;
+
+    mod rvs_seed {
+        use super::*;
+
+        fn next(seed: u32, s: &str) -> u32 {
+            let context = rvs_context_new();
+            rvs_seed(context, seed);
+
+            let s = format!("a = {};", s);
+            let result_code = rvs_parse(context, CString::new(s).unwrap().as_ptr());
+            assert_eq!(result_code, ResultCode::Success.value());
+
+            let mut handle = 0;
+            let result_code = rvs_find(context, CString::new("a").unwrap().as_ptr(), &mut handle);
+            assert_eq!(result_code, ResultCode::Success.value());
+
+            let mut value = 0;
+            let result_code = rvs_next(context, handle, &mut value);
+            assert_eq!(result_code, ResultCode::Success.value());
+
+            rvs_context_free(context);
+
+            value
+        }
+
+        #[test]
+        fn basic() {
+            let s = "[0, 0xffff_ffff]";
+
+            let seed0_value0 = next(0, s);
+            let seed1_value0 = next(1, s);
+            let seed0_value1 = next(0, s);
+            let seed1_value1 = next(1, s);
+
+            assert!(seed0_value0 != seed1_value0);
+            assert_eq!(seed0_value0, seed0_value1);
+            assert_eq!(seed1_value0, seed1_value1);
+        }
+    }
+
     mod rvs_parse {
         use super::*;
 
-        use std::ffi::CString;
         use std::collections::hash_map::Entry::Occupied;
 
         #[test]
@@ -398,8 +443,6 @@ mod tests {
     mod rvs_find {
         use super::*;
 
-        use std::ffi::CString;
-
         #[test]
         fn not_found() {
             let context = rvs_context_new();
@@ -429,8 +472,6 @@ mod tests {
 
     mod rvs_next {
         use super::*;
-
-        use std::ffi::CString;
 
         #[test]
         fn found() {
