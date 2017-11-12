@@ -52,7 +52,21 @@ impl RvC {
     }
 }
 
-pub fn rvs_from_ast(assignments: Vec<Box<Node>>, ids: &mut HashMap<String, usize>, variables: &mut Vec<Box<RvC>>) {
+pub struct Context {
+    pub variables: Vec<Box<RvC>>,
+    pub ids: HashMap<String, usize>,
+}
+
+impl Context {
+    pub fn new() -> Context {
+        Context {
+            variables: Vec::new(),
+            ids: HashMap::new(),
+        }
+    }
+}
+
+pub fn rvs_from_ast(assignments: Vec<Box<Node>>, context: &mut Context) {
     for assignment in assignments {
         if let Node::Assignment(ref lhs, ref rhs) = *assignment {
             let mut identifier: String = "".into();
@@ -63,11 +77,11 @@ pub fn rvs_from_ast(assignments: Vec<Box<Node>>, ids: &mut HashMap<String, usize
 
             // FIXME: Allow non-const seed
             let mut rng = new_rng();
-            variables.push(Box::new(RvC {
+            context.variables.push(Box::new(RvC {
                 root: rv_from_ast(&mut rng, &rhs),
                 rng: rng,
             }));
-            ids.insert(identifier, variables.len() - 1);
+            context.ids.insert(identifier, context.variables.len() - 1);
         }
     }
 }
@@ -157,20 +171,19 @@ mod tests {
                 )),
             ];
 
-            let mut ids = HashMap::new();
-            let mut variables = Vec::new();
-            rvs_from_ast(assignments, &mut ids, &mut variables);
+            let mut context = Context::new();
+            rvs_from_ast(assignments, &mut context);
 
-            assert!(ids.contains_key("a"));
-            if let Occupied(entry) = ids.entry("a".into()) {
+            assert!(context.ids.contains_key("a"));
+            if let Occupied(entry) = context.ids.entry("a".into()) {
                 let id = entry.get();
-                let value = variables[*id].next();
+                let value = context.variables[*id].next();
                 assert_eq!(value, 5);
             }
-            assert!(ids.contains_key("b"));
-            if let Occupied(entry) = ids.entry("b".into()) {
+            assert!(context.ids.contains_key("b"));
+            if let Occupied(entry) = context.ids.entry("b".into()) {
                 let id = entry.get();
-                let value = variables[*id].next();
+                let value = context.variables[*id].next();
                 assert_eq!(value, 6);
             }
         }

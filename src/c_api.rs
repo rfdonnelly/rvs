@@ -29,7 +29,6 @@
 //! rvs_context_free(context);
 //! ```
 
-use std::collections::HashMap;
 use std::collections::hash_map::Entry::Occupied;
 use std::panic::catch_unwind;
 use libc::uint32_t;
@@ -41,6 +40,7 @@ use std::error::Error;
 use std::io::prelude::*;
 
 use types::RvC;
+use types::Context;
 use parse_assignments;
 
 type SequenceHandle = uint32_t;
@@ -62,10 +62,6 @@ impl ResultCode {
     }
 }
 
-pub struct Context {
-    variables: Vec<Box<RvC>>,
-    ids: HashMap<String, usize>,
-}
 
 /// Allocates and returns a new context.
 ///
@@ -73,10 +69,7 @@ pub struct Context {
 #[no_mangle]
 pub extern fn rvs_context_new() -> *mut Context {
     Box::into_raw(Box::new(
-        Context {
-            variables: Vec::new(),
-            ids: HashMap::new(),
-        }
+        Context::new()
     ))
 }
 
@@ -121,7 +114,7 @@ pub extern fn rvs_parse(context: *mut Context, s: *const c_char) -> ResultCodeRa
     let c_str = unsafe { CStr::from_ptr(s) };
     let r_str = c_str.to_str().unwrap();
 
-    let context = unsafe { &mut *context };
+    let mut context = unsafe { &mut *context };
 
     for entry in r_str.split(';') {
         if !entry.is_empty() {
@@ -150,7 +143,7 @@ pub extern fn rvs_parse(context: *mut Context, s: *const c_char) -> ResultCodeRa
                     entry.to_owned() + ";"
                 };
 
-            match parse_assignments(&parser_string, &mut context.ids, &mut context.variables) {
+            match parse_assignments(&parser_string, &mut context) {
                 Ok(_) => (),
                 Err(e) => {
                     println!("{}", e);
