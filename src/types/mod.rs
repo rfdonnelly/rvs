@@ -85,7 +85,7 @@ impl Seed {
 
 pub struct Context {
     pub variables: Vec<Box<RvC>>,
-    pub ids: HashMap<String, usize>,
+    pub handles: HashMap<String, usize>,
     pub seed: Seed,
 }
 
@@ -93,7 +93,7 @@ impl Context {
     pub fn new() -> Context {
         Context {
             variables: Vec::new(),
-            ids: HashMap::new(),
+            handles: HashMap::new(),
             seed: Seed::from_u32(0),
         }
     }
@@ -113,7 +113,7 @@ pub fn rvs_from_ast(assignments: Vec<Box<Node>>, context: &mut Context) {
                 root: rv_from_ast(&mut rng, &rhs),
                 rng: rng,
             }));
-            context.ids.insert(identifier, context.variables.len() - 1);
+            context.handles.insert(identifier, context.variables.len() - 1);
         }
     }
 }
@@ -206,14 +206,14 @@ mod tests {
             let mut context = Context::new();
             rvs_from_ast(assignments, &mut context);
 
-            assert!(context.ids.contains_key("a"));
-            if let Occupied(entry) = context.ids.entry("a".into()) {
+            assert!(context.handles.contains_key("a"));
+            if let Occupied(entry) = context.handles.entry("a".into()) {
                 let id = entry.get();
                 let value = context.variables[*id].next();
                 assert_eq!(value, 5);
             }
-            assert!(context.ids.contains_key("b"));
-            if let Occupied(entry) = context.ids.entry("b".into()) {
+            assert!(context.handles.contains_key("b"));
+            if let Occupied(entry) = context.handles.entry("b".into()) {
                 let id = entry.get();
                 let value = context.variables[*id].next();
                 assert_eq!(value, 6);

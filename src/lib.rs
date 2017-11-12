@@ -35,15 +35,15 @@ mod tests {
             let mut context = Context::new();
             assert!(parse_assignments("a=[0,1];\nb=2;", &mut context).is_ok());
 
-            assert!(context.ids.contains_key("a"));
-            assert!(context.ids.contains_key("b"));
+            assert!(context.handles.contains_key("a"));
+            assert!(context.handles.contains_key("b"));
 
-            if let Occupied(entry) = context.ids.entry("a".into()) {
+            if let Occupied(entry) = context.handles.entry("a".into()) {
                 let id = entry.get();
                 let value = context.variables[*id].next();
                 assert!(value == 0 || value == 1);
             }
-            if let Occupied(entry) = context.ids.entry("b".into()) {
+            if let Occupied(entry) = context.handles.entry("b".into()) {
                 let id = entry.get();
                 let value = context.variables[*id].next();
                 assert_eq!(value, 2);

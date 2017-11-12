@@ -188,16 +188,16 @@ pub extern fn rvs_parse(context: *mut Context, s: *const c_char) -> ResultCodeRa
 ///
 /// If any pointer arguments are null.
 #[no_mangle]
-pub extern fn rvs_find(context: *mut Context, name: *const c_char, handle_ptr: *mut SequenceHandle) -> ResultCodeRaw {
+pub extern fn rvs_find(context: *mut Context, id: *const c_char, handle_ptr: *mut SequenceHandle) -> ResultCodeRaw {
     assert!(!context.is_null());
-    assert!(!name.is_null());
+    assert!(!id.is_null());
     assert!(!handle_ptr.is_null());
 
-    let c_str = unsafe { CStr::from_ptr(name) };
-    let r_str = c_str.to_str().unwrap();
+    let id_cstr = unsafe { CStr::from_ptr(id) };
+    let id_rstr = id_cstr.to_str().unwrap();
 
     let context = unsafe { &mut *context };
-    if let Occupied(entry) = context.ids.entry(r_str.into()) {
+    if let Occupied(entry) = context.handles.entry(id_rstr.into()) {
         let id = *entry.get() as SequenceHandle;
 
         unsafe {
@@ -363,10 +363,10 @@ mod tests {
             let result_code = rvs_parse(context, CString::new("a=5;").unwrap().as_ptr());
             assert_eq!(result_code, ResultCode::Success.value());
 
-            let ids = unsafe { &mut (*context).ids };
+            let handles = unsafe { &mut (*context).handles };
             let variables = unsafe { &mut (*context).variables };
-            assert!(ids.contains_key("a"));
-            if let Occupied(entry) = ids.entry("a".into()) {
+            assert!(handles.contains_key("a"));
+            if let Occupied(entry) = handles.entry("a".into()) {
                 let id = entry.get();
                 let value = variables[*id].next();
                 assert_eq!(value, 5);
@@ -382,10 +382,10 @@ mod tests {
             let result_code = rvs_parse(context, CString::new("a=[0,1];").unwrap().as_ptr());
             assert_eq!(result_code, ResultCode::Success.value());
 
-            let ids = unsafe { &mut (*context).ids };
+            let handles = unsafe { &mut (*context).handles };
             let variables = unsafe { &mut (*context).variables };
-            assert!(ids.contains_key("a"));
-            if let Occupied(entry) = ids.entry("a".into()) {
+            assert!(handles.contains_key("a"));
+            if let Occupied(entry) = handles.entry("a".into()) {
                 let id = entry.get();
                 let value = variables[*id].next();
                 assert!(value == 0 || value == 1);
