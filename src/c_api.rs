@@ -306,10 +306,11 @@ fn handle_to_idx(variables: &Vec<Box<RvC>>, handle: SequenceHandle) -> Option<us
 mod tests {
     use super::*;
 
+    use std::ffi::CString;
+
     mod rvs_parse {
         use super::*;
 
-        use std::ffi::CString;
         use std::collections::hash_map::Entry::Occupied;
 
         #[test]
@@ -391,8 +392,6 @@ mod tests {
     mod rvs_find {
         use super::*;
 
-        use std::ffi::CString;
-
         #[test]
         fn not_found() {
             let context = rvs_context_new();
@@ -422,8 +421,6 @@ mod tests {
 
     mod rvs_next {
         use super::*;
-
-        use std::ffi::CString;
 
         #[test]
         fn found() {
