@@ -3,4 +3,4 @@ cache: cargo
 
 script:
   - cargo test
-  - cd c-api && make
+  - cd bindings/c_cpp/cpp_example && make

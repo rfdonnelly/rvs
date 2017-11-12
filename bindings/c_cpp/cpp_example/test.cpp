@@ -1,13 +1,6 @@
-#include <cstdint>
-#include <cassert>
+#include "rvs.h"
 
-extern "C" {
-    void* rvs_context_new();
-    void rvs_context_free(void* context);
-    uint32_t rvs_parse(void* context, const char* s);
-    uint32_t rvs_find(void* context, const char* name, uint32_t* handle_ptr);
-    uint32_t rvs_next(void* context, uint32_t handle, uint32_t* result_ptr);
-}
+#include <cassert>
 
 int main() {
     uint32_t err = 0;
