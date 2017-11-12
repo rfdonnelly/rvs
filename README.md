@@ -76,7 +76,6 @@ A possible series of evaluations of `b` could yield the following:
   * [x] `rvs_done()`
   * [x] `rvs_prev()`
   * [ ] `rvs_reset()`
-  * [x] `rvs_clear()`
 
 * Grammar
   * Types

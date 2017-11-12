@@ -176,7 +176,7 @@ pub extern fn rvs_parse(context: *mut Context, s: *const c_char) -> ResultCodeRa
 ///
 /// The callee owns the handle.  The handle is valid until one of the following occurs:
 ///
-/// * `rvs_clear()` is called
+/// * `rvs_context_free()` is called
 /// * The process terminates
 ///
 /// # Errors
@@ -295,14 +295,6 @@ pub extern fn rvs_done(context: *mut Context, handle: SequenceHandle, result_ptr
     unsafe { *result_ptr = value; };
 
     ResultCode::Success.value()
-}
-
-/// Clears all state and all parsed variables.
-#[no_mangle]
-pub extern fn rvs_clear(context: *mut Context) {
-    let context = unsafe { &mut *context };
-    context.ids.clear();
-    context.variables.clear();
 }
 
 fn handle_to_idx(variables: &Vec<Box<RvC>>, handle: SequenceHandle) -> Option<usize> {
