@@ -106,6 +106,18 @@ impl Context {
     }
 }
 
+impl fmt::Display for Context {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        for (id, handle) in self.handles.iter() {
+            write!(f, "{} = ", id)?;
+            self.variables[*handle].fmt(f)?;
+            writeln!(f, ";")?;
+        }
+
+        Ok(())
+    }
+}
+
 pub fn rvs_from_ast(assignments: Vec<Box<Node>>, context: &mut Context) {
     for assignment in assignments {
         if let Node::Assignment(ref lhs, ref rhs) = *assignment {
