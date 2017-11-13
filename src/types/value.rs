@@ -1,3 +1,4 @@
+use std::fmt;
 use rand::Rng;
 
 use types::Rv;
@@ -27,5 +28,11 @@ impl Rv for Value {
 
     fn data(&self) -> &RvData {
         &self.data
+    }
+}
+
+impl fmt::Display for Value {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "0x{:x}", self.data.prev)
     }
 }

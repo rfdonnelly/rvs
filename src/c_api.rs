@@ -64,7 +64,6 @@ impl ResultCode {
     }
 }
 
-
 /// Allocates and returns a new context.
 ///
 /// The caller owns the context and must call `rvs_context_free()` to free the context.

@@ -2,11 +2,12 @@ pub mod value;
 pub mod expr;
 pub mod range;
 
+use std::fmt;
+use std::collections::HashMap;
 use rand::Rng;
 use rand::SeedableRng;
 use rand::prng::XorShiftRng;
 use rand::Sample;
-use std::collections::HashMap;
 
 use ast::Node;
 
@@ -19,7 +20,7 @@ pub struct RvData {
     done: bool,
 }
 
-pub trait Rv {
+pub trait Rv: fmt::Display {
     fn next(&mut self, rng: &mut Rng) -> u32;
 
     fn prev(&self) -> u32 {
@@ -50,6 +51,12 @@ impl RvC {
 
     pub fn done(&self) -> bool {
         self.root.done()
+    }
+}
+
+impl fmt::Display for RvC {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        self.root.fmt(f)
     }
 }
 
