@@ -5,22 +5,23 @@
 //! # Examples
 //!
 //! ```
+//! use rvs::c_api::*;
+//! use std::ffi::CString;
+//!
 //! // Create a new context
 //! let context = rvs_context_new();
 //!
 //! // Define a variable "a" as a constant value 5.
-//! let char_str = CString::new("a=5;").unwrap().as_ptr();
-//! let result_code = rvs_parse(context, char_str);
+//! let result_code = rvs_parse(context, CString::new("a=5;").unwrap().as_ptr());
 //! assert_eq!(result_code, 0);
 //!
 //! // Find the variable "a"
-//! let char_str = CString::new("a").unwrap().as_ptr();
-//! let handle = 0;
-//! let result_code = rvs_find(context, char_str, &mut handle);
+//! let mut handle = 0;
+//! let result_code = rvs_find(context, CString::new("a").unwrap().as_ptr(), &mut handle);
 //! assert_eq!(result_code, 0);
 //!
 //! // Evaluate the variable "a"
-//! let result = 0;
+//! let mut result = 0;
 //! let result_code = rvs_next(context, handle, &mut result);
 //! assert_eq!(result_code, 0);
 //! assert_eq!(result, 5);
