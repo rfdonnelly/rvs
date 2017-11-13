@@ -13,4 +13,6 @@ libc = "0.2"
 
 [lib]
 name = "rvs"
-crate-type = ["cdylib"]
+# NOTE: Only have rlib to allow doc-tests to be run.  Doc-tests do not
+# work for cdylib.
+crate-type = ["cdylib", "rlib"]
