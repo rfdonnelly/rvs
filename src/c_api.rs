@@ -68,6 +68,15 @@ impl ResultCode {
 /// Allocates and returns a new context.
 ///
 /// The caller owns the context and must call `rvs_context_free()` to free the context.
+///
+/// # Examples
+///
+/// ```
+/// # use rvs::c_api::*;
+/// let context = rvs_context_new();
+/// // ...
+/// rvs_context_free(context);
+/// ```
 #[no_mangle]
 pub extern fn rvs_context_new() -> *mut Context {
     Box::into_raw(Box::new(
@@ -76,6 +85,15 @@ pub extern fn rvs_context_new() -> *mut Context {
 }
 
 /// Frees a context.
+///
+/// # Examples
+///
+/// ```
+/// # use rvs::c_api::*;
+/// let context = rvs_context_new();
+/// // ...
+/// rvs_context_free(context);
+/// ```
 #[no_mangle]
 pub extern fn rvs_context_free(context: *mut Context) {
     if context.is_null() { return }
@@ -85,6 +103,16 @@ pub extern fn rvs_context_free(context: *mut Context) {
 /// Sets the seed for all future calls to `rvs_parse()`.
 ///
 /// Should be called before `rvs_parse()`.
+///
+/// # Examples
+///
+/// ```
+/// # use rvs::c_api::*;
+/// let context = rvs_context_new();
+/// rvs_seed(context, 0);
+/// // ...
+/// rvs_context_free(context);
+/// ```
 #[no_mangle]
 pub extern fn rvs_seed(context: *mut Context, seed: u32) {
     assert!(!context.is_null());
@@ -175,10 +203,7 @@ pub extern fn rvs_parse(context: *mut Context, s: *const c_char) -> ResultCodeRa
 
 /// Returns the handle of a variable via the handle pointer
 ///
-/// The callee owns the handle.  The handle is valid until one of the following occurs:
-///
-/// * `rvs_context_free()` is called
-/// * The process terminates
+/// The callee owns the handle.  The handle is valid until `rvs_context_free()` is called.
 ///
 /// # Errors
 ///
