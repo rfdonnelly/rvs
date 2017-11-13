@@ -199,10 +199,7 @@ pub extern fn rvs_find(context: *mut Context, id: *const c_char, handle_ptr: *mu
     let context = unsafe { &mut *context };
     if let Occupied(entry) = context.handles.entry(id_rstr.into()) {
         let id = *entry.get() as SequenceHandle;
-
-        unsafe {
-            *handle_ptr = id + 1;
-        };
+        unsafe { *handle_ptr = id + 1; };
 
         ResultCode::Success.value()
     } else {
