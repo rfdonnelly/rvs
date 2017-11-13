@@ -25,10 +25,12 @@ fn parse_assignments(s: &str, context: &mut Context) -> ParseResult<()> {
 
 #[cfg(test)]
 mod tests {
-    mod parse_assignments {
-        use super::super::*;
+    use super::*;
 
-        use std::collections::hash_map::Entry::Occupied;
+    use std::collections::hash_map::Entry::Occupied;
+
+    mod parse_assignments {
+        use super::*;
 
         #[test]
         fn basic() {

@@ -155,8 +155,12 @@ pub fn rv_from_ast(rng: &mut Rng, node: &Node) -> Box<Rv> {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+
+    use std::collections::hash_map::Entry::Occupied;
+
     mod rv_from_ast {
-        use super::super::*;
+        use super::*;
 
         #[test]
         fn number() {
@@ -193,9 +197,7 @@ mod tests {
     }
 
     mod rvs_from_ast {
-        use super::super::*;
-
-        use std::collections::hash_map::Entry::Occupied;
+        use super::*;
 
         #[test]
         fn basic() {
