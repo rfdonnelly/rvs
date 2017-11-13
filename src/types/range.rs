@@ -1,3 +1,4 @@
+use std::fmt;
 use rand::Rng;
 use rand::distributions::Range;
 use rand::distributions::range::RangeInt;
@@ -8,6 +9,8 @@ use types::RvData;
 
 pub struct RangeSequence {
     data: RvData,
+    l: u32,
+    r: u32,
     range: Range<RangeInt<u32>>,
 }
 
@@ -19,6 +22,8 @@ impl RangeSequence {
                 prev: 0,
                 done: false,
             },
+            l: l,
+            r: r,
             range: Range::new_inclusive(l, r),
         }
     }
@@ -33,6 +38,12 @@ impl Rv for RangeSequence {
 
     fn data(&self) -> &RvData {
         &self.data
+    }
+}
+
+impl fmt::Display for RangeSequence {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "[0x{:x}, 0x{:x}]", self.l, self.r)
     }
 }
 

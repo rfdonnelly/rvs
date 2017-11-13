@@ -2,11 +2,12 @@ pub mod value;
 pub mod expr;
 pub mod range;
 
+use std::fmt;
+use std::collections::HashMap;
 use rand::Rng;
 use rand::SeedableRng;
 use rand::prng::XorShiftRng;
 use rand::Sample;
-use std::collections::HashMap;
 
 use ast::Node;
 
@@ -19,7 +20,7 @@ pub struct RvData {
     done: bool,
 }
 
-pub trait Rv {
+pub trait Rv: fmt::Display {
     fn next(&mut self, rng: &mut Rng) -> u32;
 
     fn prev(&self) -> u32 {
@@ -50,6 +51,12 @@ impl RvC {
 
     pub fn done(&self) -> bool {
         self.root.done()
+    }
+}
+
+impl fmt::Display for RvC {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        self.root.fmt(f)
     }
 }
 
@@ -96,6 +103,18 @@ impl Context {
             handles: HashMap::new(),
             seed: Seed::from_u32(0),
         }
+    }
+}
+
+impl fmt::Display for Context {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        for (id, handle) in self.handles.iter() {
+            write!(f, "{} = ", id)?;
+            self.variables[*handle].fmt(f)?;
+            writeln!(f, ";")?;
+        }
+
+        Ok(())
     }
 }
 
@@ -148,8 +167,12 @@ pub fn rv_from_ast(rng: &mut Rng, node: &Node) -> Box<Rv> {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+
+    use std::collections::hash_map::Entry::Occupied;
+
     mod rv_from_ast {
-        use super::super::*;
+        use super::*;
 
         #[test]
         fn number() {
@@ -186,9 +209,7 @@ mod tests {
     }
 
     mod rvs_from_ast {
-        use super::super::*;
-
-        use std::collections::hash_map::Entry::Occupied;
+        use super::*;
 
         #[test]
         fn basic() {

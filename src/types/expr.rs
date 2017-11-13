@@ -1,3 +1,5 @@
+use std::fmt;
+use std::fmt::Write;
 use rand::Rng;
 
 use ast::Opcode;
@@ -49,6 +51,18 @@ impl Rv for Expr {
 
     fn data(&self) -> &RvData {
         &self.data
+    }
+}
+
+impl fmt::Display for Expr {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        f.write_char('(')?;
+        self.l.fmt(f)?;
+        f.write_char(' ')?;
+        self.operation.fmt(f)?;
+        f.write_char(' ')?;
+        self.r.fmt(f)?;
+        f.write_char(')')
     }
 }
 
