@@ -1,5 +1,6 @@
 extern crate rand;
 extern crate libc;
+extern crate linked_hash_map;
 
 mod ast;
 mod grammar;
@@ -27,7 +28,7 @@ fn parse_assignments(s: &str, context: &mut Context) -> ParseResult<()> {
 mod tests {
     use super::*;
 
-    use std::collections::hash_map::Entry::Occupied;
+    use linked_hash_map::Entry::Occupied;
 
     mod parse_assignments {
         use super::*;

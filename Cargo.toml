@@ -10,6 +10,7 @@ peg = { version = "0.5" }
 [dependencies]
 rand = { git = "https://github.com/dhardy/rand" }
 libc = "0.2"
+linked-hash-map = "0.5"
 
 [lib]
 name = "rvs"

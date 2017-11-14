@@ -30,7 +30,7 @@
 //! rvs_context_free(context);
 //! ```
 
-use std::collections::hash_map::Entry::Occupied;
+use linked_hash_map::Entry::Occupied;
 use std::panic::catch_unwind;
 use libc::uint32_t;
 use libc::c_char;
@@ -375,8 +375,6 @@ mod tests {
 
     mod rvs_parse {
         use super::*;
-
-        use std::collections::hash_map::Entry::Occupied;
 
         #[test]
         fn basic() {

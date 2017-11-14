@@ -3,7 +3,7 @@ pub mod expr;
 pub mod range;
 
 use std::fmt;
-use std::collections::HashMap;
+use linked_hash_map::LinkedHashMap;
 use rand::Rng;
 use rand::SeedableRng;
 use rand::prng::XorShiftRng;
@@ -92,7 +92,7 @@ impl Seed {
 
 pub struct Context {
     pub variables: Vec<Box<RvC>>,
-    pub handles: HashMap<String, usize>,
+    pub handles: LinkedHashMap<String, usize>,
     pub seed: Seed,
 }
 
@@ -100,7 +100,7 @@ impl Context {
     pub fn new() -> Context {
         Context {
             variables: Vec::new(),
-            handles: HashMap::new(),
+            handles: LinkedHashMap::new(),
             seed: Seed::from_u32(0),
         }
     }
@@ -169,10 +169,12 @@ pub fn rv_from_ast(rng: &mut Rng, node: &Node) -> Box<Rv> {
 mod tests {
     use super::*;
 
-    use std::collections::hash_map::Entry::Occupied;
+    use linked_hash_map::Entry::Occupied;
 
     mod rv_from_ast {
         use super::*;
+
+        use std::collections::HashMap;
 
         #[test]
         fn number() {
@@ -185,8 +187,6 @@ mod tests {
 
         #[test]
         fn range() {
-            use std::collections::HashMap;
-
             let mut rng = new_rng(&Seed::from_u32(0));
             let ast = Node::Range(
                 Box::new(Node::Number(3)),
