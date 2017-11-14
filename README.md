@@ -81,19 +81,29 @@ A possible series of evaluations of `b` could yield the following:
 * Grammar
   * Types
     * Meta Types
-      * [ ] Next(id) - Returns the next value of a variable
-      * [ ] Copy(id) - Returns a copy of a variable
-      * [ ] Last(id) - Returns the last value of a variable
-      * [ ] Done(expr) - Forces the sub expression to indicate done on every next
-      * [ ] Once(expr) - Forces the sub expression to be evaluated once
-      * [ ] Populate(expr) - Returns all evaluations of the expression until done
+      * [ ] Next - Returns the next value of a variable. Syntax: `<identifier>`
+      * [ ] Copy - Returns a copy of a variable. Syntax: `<identifier>.copy`
+      * [ ] Prev - Returns the last value of a variable. Syntax:
+            `<identifier>.prev`
+      * [ ] Done - Forces the sub expression to indicate done on every next.
+            Syntax: `<expr>.done`
+      * [ ] Once - Forces the sub expression to be evaluated once. Syntax:
+            `<expr>.once`
+      * [ ] Expand - Returns all evaluations of the expression until done.
+            Syntax: `<expr>.expand`
     * Random Types
-      * [x] Range
-      * [ ] Sample
-      * [ ] SampleNoRepeat
-      * [ ] WeightedRandom
+      * [x] Range - Returns a random value in the range [<lower>, <upper>]
+            inclusive.  Syntax: `[<lower>, <upper>]`
+      * [ ] Sample - Randomly selects then returns a sub-expression.  Syntax:
+            `Sample(<expr>, ...)`
+      * [ ] SampleNoRepeat - Randomly selects then returns a sub-expression.
+            Will not return same sub-expression until all sub-expressions have
+            been returned.  Syntax: `SampleNoRepeat(<expr>, ...)`
+      * [ ] WeightedRandom - Randomly selects then returns a sub-expression
+            according to weight.  Syntax: `{<expr>: <weight>, ...}`
     * Misc Types
-      * [ ] Pattern
+      * [ ] Pattern - Returns sub-expressions in order.  Syntax:
+            `Pattern(<expr>, ...)`
       * [ ] Loop
     * Arithmetic operators
       * [x] +, -
