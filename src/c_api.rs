@@ -450,6 +450,28 @@ mod tests {
 
             rvs_context_free(context);
         }
+
+        #[test]
+        fn override_rv() {
+            let context = rvs_context_new();
+
+            let result_code = rvs_parse(context, CString::new("a = 0;a = 1").unwrap().as_ptr());
+            assert_eq!(result_code, ResultCode::Success.value());
+
+            let result_code = rvs_parse(context, CString::new("a = 2").unwrap().as_ptr());
+            assert_eq!(result_code, ResultCode::Success.value());
+
+            let mut handle = 0;
+            let result_code = rvs_find(context, CString::new("a").unwrap().as_ptr(), &mut handle);
+            assert_eq!(result_code, ResultCode::Success.value());
+
+            let mut value = 0;
+            let result_code = rvs_next(context, handle, &mut value);
+            assert_eq!(result_code, ResultCode::Success.value());
+            assert_eq!(value, 2);
+
+            rvs_context_free(context);
+        }
     }
 
     mod rvs_find {

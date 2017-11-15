@@ -64,7 +64,7 @@ A possible series of evaluations of `b` could yield the following:
 * [x] Parse from string
   * [x] Parse from file
   * [x] Parsing error reporting
-  * [ ] Overriding existing variable definitions
+  * [x] Overriding existing variable definitions
 
 * C API
   * [x] `rvs_context_new()`
