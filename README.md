@@ -79,6 +79,10 @@ A possible series of evaluations of `b` could yield the following:
   * [ ] `rvs_write_definitions()`
 
 * Grammar
+  * Consructs
+    * [x] Variables
+    * [ ] Enums
+    * [ ] Structs
   * Types
     * Meta Types
       * [ ] Next - Returns the next value of a variable. Syntax: `<identifier>`
