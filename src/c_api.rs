@@ -158,7 +158,7 @@ pub extern fn rvs_parse(context: *mut Context, s: *const c_char) -> ResultCodeRa
 
     for entry in r_str.split(';') {
         if !entry.is_empty() {
-            let is_file = !entry.contains("=");
+            let is_file = !entry.contains("=") && !entry.contains("require");
 
             let parser_string =
                 if is_file {
@@ -334,6 +334,18 @@ mod tests {
 
     use std::ffi::CString;
 
+    fn next_by_name(context: *mut Context, name: &str) -> u32 {
+        let mut handle = 0;
+        let result_code = rvs_find(context, CString::new(name).unwrap().as_ptr(), &mut handle);
+        assert_eq!(result_code, ResultCode::Success.value());
+
+        let mut value = 0;
+        let result_code = rvs_next(context, handle, &mut value);
+        assert_eq!(result_code, ResultCode::Success.value());
+
+        value
+    }
+
     mod rvs_seed {
         use super::*;
 
@@ -375,6 +387,19 @@ mod tests {
 
     mod rvs_parse {
         use super::*;
+
+        #[test]
+        fn require() {
+            let context = rvs_context_new();
+
+            let result_code = rvs_parse(context, CString::new("require 'examples/require.rvs'").unwrap().as_ptr());
+            assert_eq!(result_code, ResultCode::Success.value());
+
+            assert_eq!(next_by_name(context, "a"), 5);
+            assert_eq!(next_by_name(context, "b"), 1);
+
+            rvs_context_free(context);
+        }
 
         #[test]
         fn basic() {

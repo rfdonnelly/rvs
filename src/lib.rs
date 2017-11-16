@@ -14,9 +14,9 @@ use types::Context;
 use grammar::ParseResult;
 
 fn parse_assignments(s: &str, context: &mut Context) -> ParseResult<()> {
-    match grammar::assignments(s) {
-        Ok(assignments) => {
-            rvs_from_ast(assignments, context);
+    match grammar::items(s) {
+        Ok(items) => {
+            rvs_from_ast(&items, context);
 
             Ok(())
         },

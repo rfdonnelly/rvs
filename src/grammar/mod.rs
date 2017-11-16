@@ -106,6 +106,7 @@ mod tests {
         #[test]
         fn ast() {
             assert_eq!(assignment("a=5;"), Ok(
+                Item::Single(
                     Box::new(
                         Node::Assignment(
                             Box::new(Node::Identifier("a".into())),
@@ -113,7 +114,7 @@ mod tests {
                         )
                     )
                 )
-            );
+            ));
         }
 
         #[test]
@@ -122,30 +123,34 @@ mod tests {
         }
     }
 
-    mod assignments {
+    mod items {
         use super::super::*;
 
         #[test]
         fn good() {
-            assert!(assignments(" a  = 5 ; \nb=6;").is_ok());
+            assert!(items(" a  = 5 ; \nb=6;").is_ok());
         }
 
         #[test]
         fn expr_whitespace() {
-            assert!(assignments("a = 5 + 6 | 10 * ( 5 ^ 3) ;").is_ok());
+            assert!(items("a = 5 + 6 | 10 * ( 5 ^ 3) ;").is_ok());
         }
 
         #[test]
         fn ast() {
-            assert_eq!(assignments(" a  = // comment0\n5 ; // comment1\nb=6;"), Ok(vec![
-                Box::new(Node::Assignment(
-                    Box::new(Node::Identifier("a".into())),
-                    Box::new(Node::Number(5))
-                )),
-                Box::new(Node::Assignment(
-                    Box::new(Node::Identifier("b".into())),
-                    Box::new(Node::Number(6))
-                )),
+            assert_eq!(items(" a  = // comment0\n5 ; // comment1\nb=6;"), Ok(vec![
+                Item::Single(
+                    Box::new(Node::Assignment(
+                        Box::new(Node::Identifier("a".into())),
+                        Box::new(Node::Number(5))
+                    )),
+                ),
+                Item::Single(
+                    Box::new(Node::Assignment(
+                        Box::new(Node::Identifier("b".into())),
+                        Box::new(Node::Number(6))
+                    )),
+                )
             ]));
         }
     }

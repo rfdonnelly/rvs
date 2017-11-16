@@ -3,6 +3,7 @@ pub mod expr;
 pub mod range;
 
 use std::fmt;
+use std::ops::Deref;
 use linked_hash_map::LinkedHashMap;
 use rand::Rng;
 use rand::SeedableRng;
@@ -10,6 +11,7 @@ use rand::prng::XorShiftRng;
 use rand::Sample;
 
 use ast::Node;
+use ast::Item;
 
 pub use self::value::Value;
 pub use self::expr::Expr;
@@ -118,21 +120,31 @@ impl fmt::Display for Context {
     }
 }
 
-pub fn rvs_from_ast(assignments: Vec<Box<Node>>, context: &mut Context) {
-    for assignment in assignments {
-        if let Node::Assignment(ref lhs, ref rhs) = *assignment {
-            let mut identifier: String = "".into();
+pub fn rvs_from_ast(items: &Vec<Item>, context: &mut Context) {
+    for item in items {
+        match *item {
+            Item::Single(ref node) => {
+                match *node.deref() {
+                    Node::Assignment(ref lhs, ref rhs) => {
+                        let mut identifier: String = "".into();
 
-            if let Node::Identifier(ref x) = **lhs {
-                identifier = x.clone();
+                        if let Node::Identifier(ref x) = **lhs {
+                            identifier = x.clone();
+                        }
+
+                        let mut rng = new_rng(&context.seed);
+                        context.variables.push(Box::new(RvC {
+                            root: rv_from_ast(&mut rng, &rhs),
+                            rng: rng,
+                        }));
+                        context.handles.insert(identifier, context.variables.len() - 1);
+                    },
+                    _ => {},
+                }
             }
-
-            let mut rng = new_rng(&context.seed);
-            context.variables.push(Box::new(RvC {
-                root: rv_from_ast(&mut rng, &rhs),
-                rng: rng,
-            }));
-            context.handles.insert(identifier, context.variables.len() - 1);
+            Item::Multiple(ref items) => {
+                rvs_from_ast(items, context)
+            }
         }
     }
 }
@@ -213,19 +225,23 @@ mod tests {
 
         #[test]
         fn basic() {
-            let assignments = vec![
-                Box::new(Node::Assignment(
-                    Box::new(Node::Identifier("a".into())),
-                    Box::new(Node::Number(5))
-                )),
-                Box::new(Node::Assignment(
-                    Box::new(Node::Identifier("b".into())),
-                    Box::new(Node::Number(6))
-                )),
+            let items = vec![
+                Item::Single(
+                    Box::new(Node::Assignment(
+                        Box::new(Node::Identifier("a".into())),
+                        Box::new(Node::Number(5))
+                    ))
+                ),
+                Item::Single(
+                    Box::new(Node::Assignment(
+                        Box::new(Node::Identifier("b".into())),
+                        Box::new(Node::Number(6))
+                    ))
+                ),
             ];
 
             let mut context = Context::new();
-            rvs_from_ast(assignments, &mut context);
+            rvs_from_ast(&items, &mut context);
 
             assert!(context.handles.contains_key("a"));
             if let Occupied(entry) = context.handles.entry("a".into()) {

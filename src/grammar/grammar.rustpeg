@@ -1,7 +1,28 @@
 use std::str::FromStr;
+use std::char;
+use std::path::Path;
+use std::fs::File;
+use std::error::Error;
+use std::io::prelude::*;
 
 use ast::Opcode;
 use ast::Node;
+use ast::Item;
+
+require -> Item
+    = "require" _ s:string ";" {
+        let path = Path::new(&s);
+        let mut file = match File::open(&path) {
+            Ok(file) => file,
+            Err(e) => panic!("could not open {}: {}", path.display(), e.description()),
+        };
+        let mut contents = String::new();
+        match file.read_to_string(&mut contents) {
+            Ok(_) => (),
+            Err(e) => panic!("could not read {}: {}", path.display(), e.description()),
+        }
+        Item::Multiple(items(&contents).unwrap())
+    }
 
 pub identifier -> &'input str
     = #quiet<$([a-zA-Z_] [a-zA-Z0-9_:]*)> / #expected("identifier")
@@ -49,14 +70,22 @@ pub expr -> Box<Node>
             x op_mod y { Box::new(Node::Operation(x, Opcode::Mod, y)) }
     }
 
-pub assignment -> Box<Node>
+pub item -> Item
+    = assignment
+    / require
+
+pub assignment -> Item
     = lhs:identifier _ "=" _ rhs:expr _ ";" {
-        Box::new(Node::Assignment(
-            Box::new(Node::Identifier(lhs.into())), rhs))
+        Item::Single(
+            Box::new(Node::Assignment(
+                Box::new(Node::Identifier(lhs.into())),
+                rhs
+            ))
+        )
     }
 
-pub assignments -> Vec<Box<Node>>
-    = _ a:assignment ** _ _ { a }
+pub items -> Vec<Item>
+    = _ a:item ** _ _ { a }
 
 pub range -> Box<Node>
     = "[" _ a:expr _ "," _ b:expr _ "]" {
@@ -85,3 +114,69 @@ eolChar
 // Modeled after ECMA-262, 5th ed., 7.2.
 whitespace
     = [ \t\u{00A0}\u{FEFF}\u{1680}\u{180E}\u{2000}-\u{200A}\u{202F}\u{205F}\u{3000}] // \v\f removed
+
+string -> String
+    = string:(doubleQuotedString / singleQuotedString) { string }
+
+doubleQuotedString -> String
+    = '"' s:doubleQuotedCharacter* '"' { s.into_iter().collect() }
+
+doubleQuotedCharacter -> char
+    = simpleDoubleQuotedCharacter
+    / simpleEscapeSequence
+    / zeroEscapeSequence
+    / hex2EscapeSequence
+    / unicodeEscapeSequence
+    / eolEscapeSequence
+
+simpleDoubleQuotedCharacter -> char
+    = !('"' / "\\" / eolChar) c:$. { c.chars().next().unwrap() }
+
+singleQuotedString -> String
+    = "'" s:singleQuotedCharacter* "'" { s.into_iter().collect() }
+
+singleQuotedCharacter -> char
+    = simpleSingleQuotedCharacter
+    / simpleEscapeSequence
+    / zeroEscapeSequence
+    / hex2EscapeSequence
+    / unicodeEscapeSequence
+    / eolEscapeSequence
+
+simpleSingleQuotedCharacter -> char
+    = !("'" / "\\" / eolChar) c:$. { c.chars().next().unwrap() }
+
+simpleEscapeSequence -> char
+    = "\\" !(digit / "x" / "u" / eolChar) c:$(.) {
+        match c.chars().next().unwrap() {
+            //'b' => '\b',
+            //'f' => '\f',
+            'n' => '\n',
+            'r' => '\r',
+            't' => '\t',
+            //'v' => '\v',
+            x  => x
+        }
+    }
+
+zeroEscapeSequence -> char
+    = "\\0" !digit { 0u8 as char }
+
+hex2EscapeSequence -> char
+    = "\\x" value:$(hexDigit hexDigit) {
+        char::from_u32(u32::from_str_radix(value, 16).unwrap()).unwrap()
+    }
+
+unicodeEscapeSequence -> char
+    = "\\u{" value:$(hexDigit+) "}" {
+        char::from_u32(u32::from_str_radix(value, 16).unwrap()).unwrap()
+    }
+
+eolEscapeSequence -> char
+    = "\\" eol { '\n' }
+
+digit
+    = [0-9]
+
+hexDigit
+    = [0-9a-fA-F]

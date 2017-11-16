@@ -23,6 +23,20 @@ pub enum Node {
     Range(Box<Node>, Box<Node>),
 }
 
+/// An abstraction above Node to implement `require`
+#[derive(PartialEq, Debug)]
+pub enum Item {
+    /// A single item in the current file
+    ///
+    /// E.g. Node::Assignment
+    Single(Box<Node>),
+
+    /// The expansion of a `require` statement
+    ///
+    /// Contains all items from the `require`d file.
+    Multiple(Vec<Item>),
+}
+
 impl fmt::Display for Opcode {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let operator = match *self {

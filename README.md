@@ -114,7 +114,12 @@ A possible series of evaluations of `b` could yield the following:
       * [x] <<, >>
   * [x] Whitespace
   * [x] Comments
-  * [ ] Modules
+  * [x] Require/Include/Import/Etc
+    * [ ] Search path - Key value pair E.g. 'key0=/a/b/c:key1=/d/e/f'.
+      * [ ] Key relative paths E.g. `::key0::path::file => '/a/b/c/path/file.rvs'`
+      * [ ] Precendence path E.g. `path::file` => ['/a/b/c/path/file.rvs', '/d/e/f/path/file.rvs']
+    * [ ] Source relative path E.g. a `require fileb` in `filea` becomes `$(dirname filea)/fileb.rvs`
+    * [ ] Simplified naming E.g. `path::file` instead of `'path/file.rvs'`
   * [ ] Filename in errors
   * [x] Line numbers in errors
 
