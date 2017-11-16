@@ -59,7 +59,7 @@ A possible series of evaluations of `b` could yield the following:
   * [x] `prev()`
   * [x] `done()`
   * [ ] `reset()`
-  * [ ] `Display`
+  * [x] `Display`
 
 * [x] Parse from string
   * [x] Parse from file
