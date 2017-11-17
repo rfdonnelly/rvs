@@ -21,6 +21,8 @@ pub enum Node {
     Operation(Box<Node>, Opcode, Box<Node>),
     Assignment(Box<Node>, Box<Node>),
     Range(Box<Node>, Box<Node>),
+    Enum(String, Vec<Box<Node>>),
+    EnumItem(String, Box<Node>),
 }
 
 /// An abstraction above Node to implement `require`
