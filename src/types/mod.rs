@@ -95,6 +95,7 @@ impl Seed {
 pub struct Context {
     pub variables: Vec<Box<RvC>>,
     pub handles: LinkedHashMap<String, usize>,
+    pub enums: LinkedHashMap<String, Enum>,
     pub seed: Seed,
 }
 
@@ -103,6 +104,7 @@ impl Context {
         Context {
             variables: Vec::new(),
             handles: LinkedHashMap::new(),
+            enums: LinkedHashMap::new(),
             seed: Seed::from_u32(0),
         }
     }
@@ -117,6 +119,20 @@ impl fmt::Display for Context {
         }
 
         Ok(())
+    }
+}
+
+pub struct Enum {
+    name: String,
+    items: LinkedHashMap<String, u32>,
+}
+
+impl Enum {
+    pub fn new(name: String, items: LinkedHashMap<String, u32>) -> Enum {
+        Enum {
+            name,
+            items,
+        }
     }
 }
 
@@ -139,6 +155,27 @@ pub fn rvs_from_ast(items: &Vec<Item>, context: &mut Context) {
                         }));
                         context.handles.insert(identifier, context.variables.len() - 1);
                     },
+                    Node::Enum(ref name, ref enum_items_vec) => {
+                        let mut enum_items_map = LinkedHashMap::new();
+
+                        // FIXME Convert to .map()
+                        for item in enum_items_vec.iter() {
+                            if let Node::EnumItem(ref name, ref value_node) = *item.deref() {
+                                if let Node::Number(value) = *value_node.deref() {
+                                    // FIXME Check for existence
+                                    enum_items_map.insert(name.to_owned(), value);
+                                } else {
+                                    panic!("Expected Number but found...FIXME");
+                                }
+                            } else {
+                                panic!("Expected EnumItem but found...FIXME");
+                            }
+                        }
+                        context.enums.insert(
+                            name.to_owned(),
+                            Enum::new(name.to_owned(), enum_items_map)
+                        );
+                    }
                     _ => {},
                 }
             }
