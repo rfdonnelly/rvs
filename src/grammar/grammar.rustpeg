@@ -50,6 +50,7 @@ pub atom -> Box<Node>
     = "(" _ v:expr _ ")" { v }
     / number
     / range
+    / enum_item_inst
 
 op_or  = _ "|" _
 op_xor = _ "^" _
@@ -94,6 +95,13 @@ pub assignment -> Item
 pub items -> Vec<Item>
     = _ a:item ** _ _ { a }
 
+enum -> Item
+    = "enum" _ id:typename _ "{" _ enum_items:enum_item ** _ _ "}" {
+        Item::Single(
+            Box::new(Node::Enum(id.into(), enum_items))
+        )
+    }
+
 enum_item -> Box<Node>
     = id:typename _ "=" _ value:number _ "," {
         Box::new(
@@ -101,10 +109,10 @@ enum_item -> Box<Node>
         )
     }
 
-enum -> Item
-    = "enum" _ id:typename _ "{" _ enum_items:enum_item ** _ _ "}" {
-        Item::Single(
-            Box::new(Node::Enum(id.into(), enum_items))
+enum_item_inst -> Box<Node>
+    = a:typename "::" b:typename {
+        Box::new(
+            Node::EnumItemInst(a.into(), b.into())
         )
     }
 

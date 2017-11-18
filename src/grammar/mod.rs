@@ -121,6 +121,11 @@ mod tests {
         fn bad() {
             assert!(assignment("a=5").is_err());
         }
+
+        #[test]
+        fn with_enum() {
+            assert!(assignment("a = Enum::Value;").is_ok());
+        }
     }
 
     mod items {

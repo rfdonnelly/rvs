@@ -23,6 +23,7 @@ pub enum Node {
     Range(Box<Node>, Box<Node>),
     Enum(String, Vec<Box<Node>>),
     EnumItem(String, Box<Node>),
+    EnumItemInst(String, String),
 }
 
 /// An abstraction above Node to implement `require`
