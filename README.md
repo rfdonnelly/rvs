@@ -5,52 +5,37 @@
 Rvs (pronounced r-v-s) is a C API library for defining and evaluating random
 variables using a simple DSL (Domain Specific Language).
 
-## Rvs Syntax
-
-The syntax for the Rvs DSL is a series of C-like assignment statements.  These
-statements both declare and define a variable.
+## Examples
 
 ```C
-<indentifier> = <expression>;
+// An enumeration defintion with implicit value members.
+enum Command {
+    Read,
+    Write,
+    Erase,
+}
+
+// A variable that yields the repeating pattern: 2, 0, 1, 0
+pattern = Pattern(
+    Command::Erase,
+    Command::Read,
+    Command::Write,
+    Command::Read,
+};
+
+// A variable that yields random values in the set {0, 1, 2}
+sample = Sample(Command);
+
+// A variable that yields random values in the range [0, 7] inclusive
+range = [0, 7];
+
+// A variable that yields weighted random values
+weighted = {
+    50: Command::Write,
+    40: Command::Read,
+    10: Command::Erase,
+};
 ```
-
-### Examples
-
-#### Constant Value Variable
-
-The following declares the variable `a` and defines it to the value of `0`
-
-```C
-a = 0;
-```
-
-Evaluations of `a` yields the following:
-
-| Iteration |  0  |  1  |  2  |  3  |  4  |  5  | ... |
-| --------- | --- | --- | --- | --- | --- | --- | --- |
-| `next()`  |  0  |  0  |  0  |  0  |  0  |  0  | ... |
-| `prev()`  |  0  |  0  |  0  |  0  |  0  |  0  | ... |
-| `done()`  |  0  |  1  |  1  |  1  |  1  |  1  | ... |
-
-NOTE: Calling `next()` advances the variable to the next iteration.  Calling
-`prev()` or `done()` does not.
-
-#### Random Range Variable
-
-The following declares the variable `b` and defines it to the range `[0,
-1]`.
-
-```C
-b = [0, 1];
-```
-
-A possible series of evaluations of `b` could yield the following:
-
-| Iteration |  0  |  1  |  2  |  3  |  4  |  5  | ... |
-| --------- | --- | --- | --- | --- | --- | --- | --- |
-| `next()`  |  1  |  0  |  0  |  1  |  1  |  0  | ... |
-| `prev()`  |  0  |  1  |  0  |  0  |  1  |  1  | ... |
-| `done()`  |  0  |  0  |  0  |  0  |  0  |  0  | ... |
 
 ## Feature Status
 
