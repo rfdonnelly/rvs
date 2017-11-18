@@ -27,6 +27,9 @@ require -> Item
 pub identifier -> &'input str
     = #quiet<$([a-zA-Z_] [a-zA-Z0-9_:]*)> / #expected("identifier")
 
+typename -> &'input str
+    = #quiet<$([A-Z] [a-zA-Z0-9]*)> / #expected("typename")
+
 pub dec_number -> u32
     = s:$([0-9] [0-9_]*) {
         let stripped = &str::replace(s, "_", "");
@@ -47,6 +50,7 @@ pub atom -> Box<Node>
     = "(" _ v:expr _ ")" { v }
     / number
     / range
+    / enum_item_inst
 
 op_or  = _ "|" _
 op_xor = _ "^" _
@@ -74,7 +78,8 @@ pub expr -> Box<Node>
     }
 
 pub item -> Item
-    = assignment
+    = enum
+    / assignment
     / require
 
 pub assignment -> Item
@@ -89,6 +94,27 @@ pub assignment -> Item
 
 pub items -> Vec<Item>
     = _ a:item ** _ _ { a }
+
+enum -> Item
+    = "enum" _ id:typename _ "{" _ enum_items:enum_item ** _ _ "}" {
+        Item::Single(
+            Box::new(Node::Enum(id.into(), enum_items))
+        )
+    }
+
+enum_item -> Box<Node>
+    = id:typename _ "=" _ value:number _ "," {
+        Box::new(
+            Node::EnumItem(id.into(), value)
+        )
+    }
+
+enum_item_inst -> Box<Node>
+    = a:typename "::" b:typename {
+        Box::new(
+            Node::EnumItemInst(a.into(), b.into())
+        )
+    }
 
 pub range -> Box<Node>
     = "[" _ a:expr _ "," _ b:expr _ "]" {

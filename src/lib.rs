@@ -7,16 +7,13 @@ mod grammar;
 mod types;
 pub mod c_api;
 
-
-use types::rvs_from_ast;
 use types::Context;
-
 use grammar::ParseResult;
 
 fn parse_assignments(s: &str, context: &mut Context) -> ParseResult<()> {
     match grammar::items(s) {
         Ok(items) => {
-            rvs_from_ast(&items, context);
+            context.rvs_from_ast(&items);
 
             Ok(())
         },
