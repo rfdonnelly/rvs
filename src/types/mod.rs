@@ -136,52 +136,79 @@ impl Enum {
     }
 }
 
-pub fn rvs_from_ast(items: &Vec<Item>, context: &mut Context) {
-    for item in items {
-        match *item {
-            Item::Single(ref node) => {
-                match *node.deref() {
-                    Node::Assignment(ref lhs, ref rhs) => {
-                        let mut identifier: String = "".into();
+impl Context {
+    pub fn rvs_from_ast(&mut self, items: &Vec<Item>) {
+        for item in items {
+            match *item {
+                Item::Single(ref node) => {
+                    match *node.deref() {
+                        Node::Assignment(ref lhs, ref rhs) => {
+                            let mut identifier: String = "".into();
 
-                        if let Node::Identifier(ref x) = **lhs {
-                            identifier = x.clone();
-                        }
-
-                        let mut rng = new_rng(&context.seed);
-                        context.variables.push(Box::new(RvC {
-                            root: rv_from_ast(&mut rng, &rhs),
-                            rng: rng,
-                        }));
-                        context.handles.insert(identifier, context.variables.len() - 1);
-                    },
-                    Node::Enum(ref name, ref enum_items_vec) => {
-                        let mut enum_items_map = LinkedHashMap::new();
-
-                        // FIXME Convert to .map()
-                        for item in enum_items_vec.iter() {
-                            if let Node::EnumItem(ref name, ref value_node) = *item.deref() {
-                                if let Node::Number(value) = *value_node.deref() {
-                                    // FIXME Check for existence
-                                    enum_items_map.insert(name.to_owned(), value);
-                                } else {
-                                    panic!("Expected Number but found...FIXME");
-                                }
-                            } else {
-                                panic!("Expected EnumItem but found...FIXME");
+                            if let Node::Identifier(ref x) = **lhs {
+                                identifier = x.clone();
                             }
+
+                            let mut rng = new_rng(&self.seed);
+                            let rvc = Box::new(RvC {
+                                root: self.rv_from_ast(&mut rng, &rhs),
+                                rng: rng,
+                            });
+                            self.variables.push(rvc);
+                            self.handles.insert(identifier, self.variables.len() - 1);
+                        },
+                        Node::Enum(ref name, ref enum_items_vec) => {
+                            let mut enum_items_map = LinkedHashMap::new();
+
+                            // FIXME Convert to .map()
+                            for item in enum_items_vec.iter() {
+                                if let Node::EnumItem(ref name, ref value_node) = *item.deref() {
+                                    if let Node::Number(value) = *value_node.deref() {
+                                        // FIXME Check for existence
+                                        enum_items_map.insert(name.to_owned(), value);
+                                    } else {
+                                        panic!("Expected Number but found...FIXME");
+                                    }
+                                } else {
+                                    panic!("Expected EnumItem but found...FIXME");
+                                }
+                            }
+                            self.enums.insert(
+                                name.to_owned(),
+                                Enum::new(name.to_owned(), enum_items_map)
+                            );
                         }
-                        context.enums.insert(
-                            name.to_owned(),
-                            Enum::new(name.to_owned(), enum_items_map)
-                        );
+                        _ => {},
                     }
-                    _ => {},
+                }
+                Item::Multiple(ref items) => {
+                    self.rvs_from_ast(items)
                 }
             }
-            Item::Multiple(ref items) => {
-                rvs_from_ast(items, context)
+        }
+    }
+
+    pub fn rv_from_ast(&self, rng: &mut Rng, node: &Node) -> Box<Rv> {
+        match *node {
+            Node::Range(ref bx, ref by) => {
+                let l = self.rv_from_ast(rng, bx).next(rng);
+                let r = self.rv_from_ast(rng, by).next(rng);
+
+                Box::new(
+                    RangeSequence::new(l, r)
+                )
             }
+            Node::Number(x) => Box::new(Value::new(x)),
+            Node::Operation(ref bx, ref op, ref by) => {
+                Box::new(
+                    Expr::new(
+                        self.rv_from_ast(rng, bx),
+                        op.clone(),
+                        self.rv_from_ast(rng, by)
+                    )
+                )
+            },
+            _ => panic!("Not supported"),
         }
     }
 }
@@ -190,29 +217,6 @@ fn new_rng(seed: &Seed) -> Box<Rng> {
     Box::new(XorShiftRng::from_seed(seed.value))
 }
 
-pub fn rv_from_ast(rng: &mut Rng, node: &Node) -> Box<Rv> {
-    match *node {
-        Node::Range(ref bx, ref by) => {
-            let l = rv_from_ast(rng, bx).next(rng);
-            let r = rv_from_ast(rng, by).next(rng);
-
-            Box::new(
-                RangeSequence::new(l, r)
-            )
-        }
-        Node::Number(x) => Box::new(Value::new(x)),
-        Node::Operation(ref bx, ref op, ref by) => {
-            Box::new(
-                Expr::new(
-                    rv_from_ast(rng, bx),
-                    op.clone(),
-                    rv_from_ast(rng, by)
-                )
-            )
-        },
-        _ => panic!("Not supported"),
-    }
-}
 
 #[cfg(test)]
 mod tests {
@@ -227,21 +231,23 @@ mod tests {
 
         #[test]
         fn number() {
+            let context = Context::new();
             let mut rng = new_rng(&Seed::from_u32(0));
             let ast = Node::Number(4);
-            let mut variable = rv_from_ast(&mut rng, &ast);
+            let mut variable = context.rv_from_ast(&mut rng, &ast);
 
             assert_eq!(variable.next(&mut rng), 4);
         }
 
         #[test]
         fn range() {
+            let context = Context::new();
             let mut rng = new_rng(&Seed::from_u32(0));
             let ast = Node::Range(
                 Box::new(Node::Number(3)),
                 Box::new(Node::Number(4))
             );
-            let mut variable = rv_from_ast(&mut rng, &ast);
+            let mut variable = context.rv_from_ast(&mut rng, &ast);
 
             let mut values = HashMap::new();
 
@@ -278,7 +284,7 @@ mod tests {
             ];
 
             let mut context = Context::new();
-            rvs_from_ast(&items, &mut context);
+            context.rvs_from_ast(&items);
 
             assert!(context.handles.contains_key("a"));
             if let Occupied(entry) = context.handles.entry("a".into()) {
