@@ -95,7 +95,7 @@ weighted = {
             Will not return same sub-expression until all sub-expressions have
             been returned.  Syntax: `SampleNoRepeat(<expr>, ...)`
       * [ ] WeightedRandom - Randomly selects then returns a sub-expression
-            according to weight.  Syntax: `{<expr>: <weight>, ...}`
+            according to weight.  Syntax: `{<weight>: <expr>, ...}`
     * Misc Types
       * [ ] Pattern - Returns sub-expressions in order.  Syntax:
             `Pattern(<expr>, ...)`
