@@ -1,5 +1,6 @@
-a = 5;
-
 enum MyEnum {
-    MyValue = 0,
+    MyValue = 5,
 }
+
+a = MyEnum::MyValue;
+

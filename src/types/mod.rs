@@ -208,6 +208,19 @@ impl Context {
                     )
                 )
             },
+            Node::EnumItemInst(ref a, ref b) => {
+                if let Some(entry) = self.enums.get(a) {
+                    if let Some(entry) = entry.items.get(b) {
+                        Box::new(
+                            Value::new(*entry)
+                        )
+                    } else {
+                        panic!("Could not find enum value '{}' in enum '{}'", b, a);
+                    }
+                } else {
+                    panic!("Could not find enum '{}'", a);
+                }
+            },
             _ => panic!("Not supported"),
         }
     }
