@@ -98,7 +98,7 @@ weighted = {
       * [x] WeightedSample - Randomly selects then returns a sub-expression
             according to weight.  Syntax: `{<weight>: <expr>, ...}`
     * Misc Types
-      * [ ] Pattern - Returns sub-expressions in order.  Syntax:
+      * [x] Pattern - Returns sub-expressions in order.  Syntax:
             `Pattern(<expr>, ...)`
       * [ ] Loop
     * Arithmetic operators

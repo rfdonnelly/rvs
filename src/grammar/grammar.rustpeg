@@ -54,7 +54,8 @@ pub atom -> Box<Node>
     / enum_item_inst
 
 function -> Box<Node>
-    = range
+    = pattern
+    / range
     / sample
     / weighted_sample
 
@@ -119,6 +120,16 @@ enum_item_inst -> Box<Node>
     = a:typename "::" b:typename {
         Box::new(
             Node::EnumItemInst(a.into(), b.into())
+        )
+    }
+
+pattern -> Box<Node>
+    = "Pattern(" _ a:expr ++ ("," _) _ ")" {
+        Box::new(
+            Node::Function(
+                Function::Pattern,
+                a
+            )
         )
     }
 
