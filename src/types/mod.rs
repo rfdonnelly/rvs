@@ -5,7 +5,6 @@ pub mod sample;
 pub mod weightedsample;
 
 use std::fmt;
-use std::ops::Deref;
 use linked_hash_map::LinkedHashMap;
 use rand::Rng;
 use rand::SeedableRng;
@@ -192,8 +191,8 @@ impl Context {
 
         // FIXME Convert to .map()
         for item in items.iter() {
-            if let Node::EnumItem(ref name, ref value_node) = *item.deref() {
-                if let Node::Number(value) = *value_node.deref() {
+            if let Node::EnumItem(ref name, ref value_node) = **item {
+                if let Node::Number(value) = **value_node {
                     // FIXME Check for existence
                     enum_items_map.insert(name.to_owned(), value);
                 } else {
