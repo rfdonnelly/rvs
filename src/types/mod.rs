@@ -214,6 +214,21 @@ impl Context {
                             )
                         )
                     }
+                    Function::WeightedSample => {
+                        Box::new(
+                            WeightedSample::new(
+                                args.into_iter()
+                                    .map(|arg|
+                                         if let Node::WeightedPair(ref weight, ref node) = **arg {
+                                             (*weight, self.rv_from_ast(rng, node))
+                                         } else {
+                                             panic!("Expected WeightedPair but found ... FIXME");
+                                         }
+                                     )
+                                    .collect()
+                            )
+                        )
+                    }
                 }
             }
             Node::Number(x) => Box::new(Value::new(x)),

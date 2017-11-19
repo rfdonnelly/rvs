@@ -18,6 +18,7 @@ pub enum Opcode {
 pub enum Function {
     Range,
     Sample,
+    WeightedSample,
 }
 
 #[derive(PartialEq, Debug)]
@@ -30,6 +31,7 @@ pub enum Node {
     EnumItem(String, Box<Node>),
     EnumItemInst(String, String),
     Function(Function, Vec<Box<Node>>),
+    WeightedPair(u32, Box<Node>),
 }
 
 /// An abstraction above Node to implement `require`
