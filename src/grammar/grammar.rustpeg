@@ -55,6 +55,7 @@ pub atom -> Box<Node>
 
 function -> Box<Node>
     = range
+    / sample
 
 op_or  = _ "|" _
 op_xor = _ "^" _
@@ -125,6 +126,16 @@ pub range -> Box<Node>
         Box::new(
             Node::Function(
                 Function::Range,
+                a
+            )
+        )
+    }
+
+sample -> Box<Node>
+    = "Sample(" _ a:expr ++ ("," _) _ ")" {
+        Box::new(
+            Node::Function(
+                Function::Sample,
                 a
             )
         )

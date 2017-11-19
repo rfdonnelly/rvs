@@ -17,6 +17,7 @@ pub enum Opcode {
 #[derive(PartialEq, Debug)]
 pub enum Function {
     Range,
+    Sample,
 }
 
 #[derive(PartialEq, Debug)]

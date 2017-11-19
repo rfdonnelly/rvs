@@ -90,7 +90,7 @@ weighted = {
     * Random Types
       * [x] Range - Returns a random value in the range [<lower>, <upper>]
             inclusive.  Syntax: `[<lower>, <upper>]`
-      * [ ] Sample - Randomly selects then returns a sub-expression.  Syntax:
+      * [x] Sample - Randomly selects then returns a sub-expression.  Syntax:
             `Sample(<expr>, ...)`
       * [ ] SampleNoRepeat - Randomly selects then returns a sub-expression.
             Will not return same sub-expression until all sub-expressions have

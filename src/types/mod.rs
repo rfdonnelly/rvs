@@ -1,6 +1,7 @@
 pub mod value;
 pub mod expr;
 pub mod range;
+pub mod sample;
 
 use std::fmt;
 use std::ops::Deref;
@@ -8,7 +9,7 @@ use linked_hash_map::LinkedHashMap;
 use rand::Rng;
 use rand::SeedableRng;
 use rand::prng::XorShiftRng;
-use rand::Sample;
+use rand::Sample as RandSample;
 
 use ast::Node;
 use ast::Function;
@@ -17,6 +18,7 @@ use ast::Item;
 pub use self::value::Value;
 pub use self::expr::Expr;
 pub use self::range::RangeSequence;
+pub use self::sample::Sample;
 
 pub struct RvData {
     prev: u32,
@@ -199,6 +201,15 @@ impl Context {
 
                         Box::new(
                             RangeSequence::new(l, r)
+                        )
+                    }
+                    Function::Sample => {
+                        Box::new(
+                            Sample::new(
+                                args.into_iter()
+                                    .map(|arg| self.rv_from_ast(rng, &arg))
+                                    .collect()
+                            )
                         )
                     }
                 }

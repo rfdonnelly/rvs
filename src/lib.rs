@@ -25,6 +25,7 @@ fn parse_assignments(s: &str, context: &mut Context) -> ParseResult<()> {
 mod tests {
     use super::*;
 
+    use std::collections::HashSet;
     use linked_hash_map::Entry::Occupied;
 
     mod parse_assignments {
@@ -66,6 +67,28 @@ mod tests {
             let mut context = Context::new();
             assert!(parse_assignments("a = (10 + 6) * 8;", &mut context).is_ok());
             assert_eq!(context.to_string(), "a = ((0xa + 0x6) * 0x8);\n");
+        }
+    }
+
+    mod sample {
+        use super::*;
+
+        #[test]
+        fn basic() {
+            let mut context = Context::new();
+            assert!(parse_assignments("a = Sample(1, 2, 4, 8);", &mut context).is_ok());
+
+            let a = context.variables.get_mut(context.handles["a"]).unwrap();
+
+            let expected: HashSet<u32> =
+                [1, 2, 4, 8].iter().cloned().collect();
+            let mut actual: HashSet<u32> = HashSet::new();
+
+            for _ in 0..16 {
+                actual.insert(a.next());
+            }
+
+            assert_eq!(expected, actual);
         }
     }
 }
