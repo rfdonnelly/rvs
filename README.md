@@ -111,6 +111,7 @@ weighted = {
   * [x] Whitespace
   * [x] Comments
   * [x] Require/Include/Import/Etc
+    * [ ] Require is idempotent
     * [ ] Search path - Key value pair E.g. 'key0=/a/b/c:key1=/d/e/f'.
       * [ ] Key relative paths E.g. `::key0::path::file => '/a/b/c/path/file.rvs'`
       * [ ] Precendence path E.g. `path::file` => ['/a/b/c/path/file.rvs', '/d/e/f/path/file.rvs']
