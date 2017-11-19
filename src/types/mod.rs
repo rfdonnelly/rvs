@@ -154,21 +154,9 @@ impl Context {
         for item in items {
             match *item {
                 Item::Single(ref node) => {
-                    match *node.deref() {
+                    match **node {
                         Node::Assignment(ref lhs, ref rhs) => {
-                            let mut identifier: String = "".into();
-
-                            if let Node::Identifier(ref x) = **lhs {
-                                identifier = x.clone();
-                            }
-
-                            let mut rng = new_rng(&self.seed);
-                            let rvc = Box::new(RvC {
-                                root: self.transform_expr(&mut rng, &rhs),
-                                rng: rng,
-                            });
-                            self.variables.push(rvc);
-                            self.handles.insert(identifier, self.variables.len() - 1);
+                            self.transform_assignment(lhs, rhs);
                         },
                         Node::Enum(ref name, ref enum_items_vec) => {
                             let mut enum_items_map = LinkedHashMap::new();
@@ -199,6 +187,22 @@ impl Context {
                 }
             }
         }
+    }
+
+    pub fn transform_assignment(&mut self, lhs: &Node, rhs: &Node) {
+        let mut identifier: String = "".into();
+
+        if let Node::Identifier(ref x) = *lhs {
+            identifier = x.clone();
+        }
+
+        let mut rng = new_rng(&self.seed);
+        let rvc = Box::new(RvC {
+            root: self.transform_expr(&mut rng, &rhs),
+            rng: rng,
+        });
+        self.variables.push(rvc);
+        self.handles.insert(identifier, self.variables.len() - 1);
     }
 
     pub fn transform_expr(&self, rng: &mut Rng, node: &Node) -> Box<Rv> {
