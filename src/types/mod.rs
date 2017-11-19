@@ -113,6 +113,14 @@ impl Context {
             seed: Seed::from_u32(0),
         }
     }
+
+    pub fn get_variable(&mut self, name: &str) -> Option<&mut Box<RvC>> {
+        if let Some(index) = self.handles.get(name) {
+            self.variables.get_mut(*index)
+        } else {
+            None
+        }
+    }
 }
 
 impl fmt::Display for Context {

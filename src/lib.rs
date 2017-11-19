@@ -27,7 +27,6 @@ mod tests {
 
     use std::collections::HashSet;
     use std::collections::HashMap;
-    use linked_hash_map::Entry::Occupied;
 
     mod parse_rvs {
         use super::*;
@@ -37,18 +36,16 @@ mod tests {
             let mut context = Context::new();
             assert!(parse_rvs("a=[0,1];\nb=2;", &mut context).is_ok());
 
-            assert!(context.handles.contains_key("a"));
-            assert!(context.handles.contains_key("b"));
-
-            if let Occupied(entry) = context.handles.entry("a".into()) {
-                let id = entry.get();
-                let value = context.variables[*id].next();
-                assert!(value == 0 || value == 1);
+            {
+                let a = context.get_variable("a").unwrap();
+                let result = a.next();
+                assert!(result == 0 || result == 1);
             }
-            if let Occupied(entry) = context.handles.entry("b".into()) {
-                let id = entry.get();
-                let value = context.variables[*id].next();
-                assert_eq!(value, 2);
+
+            {
+                let b = context.get_variable("b").unwrap();
+                let result = b.next();
+                assert_eq!(result, 2);
             }
         }
     }
@@ -79,7 +76,7 @@ mod tests {
             let mut context = Context::new();
             assert!(parse_rvs("a = Sample(1, 2, 4, 8);", &mut context).is_ok());
 
-            let a = context.variables.get_mut(context.handles["a"]).unwrap();
+            let a = context.get_variable("a").unwrap();
 
             let expected: HashSet<u32> =
                 [1, 2, 4, 8].iter().cloned().collect();
@@ -101,7 +98,7 @@ mod tests {
             let mut context = Context::new();
             assert!(parse_rvs("a = { 10: 0, 90: 1 };", &mut context).is_ok());
 
-            let a = context.variables.get_mut(context.handles["a"]).unwrap();
+            let a = context.get_variable("a").unwrap();
 
             let mut results: HashMap<u32, u32> = HashMap::new();
 
