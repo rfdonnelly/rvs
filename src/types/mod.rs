@@ -212,40 +212,7 @@ impl Context {
     pub fn transform_expr(&self, rng: &mut Rng, node: &Node) -> Box<Rv> {
         match *node {
             Node::Function(ref function, ref args) => {
-                match *function {
-                    Function::Range => {
-                        let l = self.transform_expr(rng, &args[0]).next(rng);
-                        let r = self.transform_expr(rng, &args[1]).next(rng);
-
-                        Box::new(
-                            RangeSequence::new(l, r)
-                        )
-                    }
-                    Function::Sample => {
-                        Box::new(
-                            Sample::new(
-                                args.into_iter()
-                                    .map(|arg| self.transform_expr(rng, &arg))
-                                    .collect()
-                            )
-                        )
-                    }
-                    Function::WeightedSample => {
-                        Box::new(
-                            WeightedSample::new(
-                                args.into_iter()
-                                    .map(|arg|
-                                         if let Node::WeightedPair(ref weight, ref node) = **arg {
-                                             (*weight, self.transform_expr(rng, node))
-                                         } else {
-                                             panic!("Expected WeightedPair but found ... FIXME");
-                                         }
-                                     )
-                                    .collect()
-                            )
-                        )
-                    }
-                }
+                self.transform_function(rng, function, args)
             }
             Node::Number(x) => Box::new(Value::new(x)),
             Node::Operation(ref bx, ref op, ref by) => {
@@ -271,6 +238,43 @@ impl Context {
                 }
             },
             _ => panic!("Not supported"),
+        }
+    }
+
+    pub fn transform_function(&self, rng: &mut Rng, function: &Function, args: &Vec<Box<Node>>) -> Box<Rv> {
+        match *function {
+            Function::Range => {
+                let l = self.transform_expr(rng, &args[0]).next(rng);
+                let r = self.transform_expr(rng, &args[1]).next(rng);
+
+                Box::new(
+                    RangeSequence::new(l, r)
+                    )
+            }
+            Function::Sample => {
+                Box::new(
+                    Sample::new(
+                        args.into_iter()
+                        .map(|arg| self.transform_expr(rng, &arg))
+                        .collect()
+                        )
+                    )
+            }
+            Function::WeightedSample => {
+                Box::new(
+                    WeightedSample::new(
+                        args.into_iter()
+                        .map(|arg|
+                             if let Node::WeightedPair(ref weight, ref node) = **arg {
+                                 (*weight, self.transform_expr(rng, node))
+                             } else {
+                                 panic!("Expected WeightedPair but found ... FIXME");
+                             }
+                            )
+                        .collect()
+                        )
+                    )
+            }
         }
     }
 }
