@@ -10,7 +10,7 @@ pub mod c_api;
 use types::Context;
 use grammar::ParseResult;
 
-fn parse_assignments(s: &str, context: &mut Context) -> ParseResult<()> {
+fn parse_rvs(s: &str, context: &mut Context) -> ParseResult<()> {
     match grammar::items(s) {
         Ok(items) => {
             context.rvs_from_ast(&items);
@@ -29,13 +29,13 @@ mod tests {
     use std::collections::HashMap;
     use linked_hash_map::Entry::Occupied;
 
-    mod parse_assignments {
+    mod parse_rvs {
         use super::*;
 
         #[test]
         fn basic() {
             let mut context = Context::new();
-            assert!(parse_assignments("a=[0,1];\nb=2;", &mut context).is_ok());
+            assert!(parse_rvs("a=[0,1];\nb=2;", &mut context).is_ok());
 
             assert!(context.handles.contains_key("a"));
             assert!(context.handles.contains_key("b"));
@@ -59,14 +59,14 @@ mod tests {
         #[test]
         fn multiple() {
             let mut context = Context::new();
-            assert!(parse_assignments("a=[0,1];b=[2,3];", &mut context).is_ok());
+            assert!(parse_rvs("a=[0,1];b=[2,3];", &mut context).is_ok());
             assert_eq!(context.to_string(), "a = [0x0, 0x1];\nb = [0x2, 0x3];\n");
         }
 
         #[test]
         fn precendence() {
             let mut context = Context::new();
-            assert!(parse_assignments("a = (10 + 6) * 8;", &mut context).is_ok());
+            assert!(parse_rvs("a = (10 + 6) * 8;", &mut context).is_ok());
             assert_eq!(context.to_string(), "a = ((0xa + 0x6) * 0x8);\n");
         }
     }
@@ -77,7 +77,7 @@ mod tests {
         #[test]
         fn basic() {
             let mut context = Context::new();
-            assert!(parse_assignments("a = Sample(1, 2, 4, 8);", &mut context).is_ok());
+            assert!(parse_rvs("a = Sample(1, 2, 4, 8);", &mut context).is_ok());
 
             let a = context.variables.get_mut(context.handles["a"]).unwrap();
 
@@ -99,7 +99,7 @@ mod tests {
         #[test]
         fn basic() {
             let mut context = Context::new();
-            assert!(parse_assignments("a = { 10: 0, 90: 1 };", &mut context).is_ok());
+            assert!(parse_rvs("a = { 10: 0, 90: 1 };", &mut context).is_ok());
 
             let a = context.variables.get_mut(context.handles["a"]).unwrap();
 
