@@ -43,7 +43,7 @@ use std::io::prelude::*;
 use types::RvC;
 use types::Context;
 use types::Seed;
-use parse_assignments;
+use parse_rvs;
 
 type SequenceHandle = uint32_t;
 type ResultCodeRaw = uint32_t;
@@ -183,7 +183,7 @@ pub extern fn rvs_parse(context: *mut Context, s: *const c_char) -> ResultCodeRa
                     entry.to_owned() + ";"
                 };
 
-            match parse_assignments(&parser_string, &mut context) {
+            match parse_rvs(&parser_string, &mut context) {
                 Ok(_) => (),
                 Err(e) => {
                     println!("{}", e);

@@ -5,7 +5,6 @@ pub mod sample;
 pub mod weightedsample;
 
 use std::fmt;
-use std::ops::Deref;
 use linked_hash_map::LinkedHashMap;
 use rand::Rng;
 use rand::SeedableRng;
@@ -113,6 +112,14 @@ impl Context {
             seed: Seed::from_u32(0),
         }
     }
+
+    pub fn get_variable(&mut self, name: &str) -> Option<&mut Box<RvC>> {
+        if let Some(index) = self.handles.get(name) {
+            self.variables.get_mut(*index)
+        } else {
+            None
+        }
+    }
 }
 
 impl fmt::Display for Context {
@@ -142,102 +149,77 @@ impl Enum {
 }
 
 impl Context {
-    pub fn rvs_from_ast(&mut self, items: &Vec<Item>) {
+    pub fn transform_items(&mut self, items: &Vec<Item>) {
         for item in items {
             match *item {
                 Item::Single(ref node) => {
-                    match *node.deref() {
+                    match **node {
                         Node::Assignment(ref lhs, ref rhs) => {
-                            let mut identifier: String = "".into();
-
-                            if let Node::Identifier(ref x) = **lhs {
-                                identifier = x.clone();
-                            }
-
-                            let mut rng = new_rng(&self.seed);
-                            let rvc = Box::new(RvC {
-                                root: self.rv_from_ast(&mut rng, &rhs),
-                                rng: rng,
-                            });
-                            self.variables.push(rvc);
-                            self.handles.insert(identifier, self.variables.len() - 1);
+                            self.transform_assignment(lhs, rhs);
                         },
-                        Node::Enum(ref name, ref enum_items_vec) => {
-                            let mut enum_items_map = LinkedHashMap::new();
-
-                            // FIXME Convert to .map()
-                            for item in enum_items_vec.iter() {
-                                if let Node::EnumItem(ref name, ref value_node) = *item.deref() {
-                                    if let Node::Number(value) = *value_node.deref() {
-                                        // FIXME Check for existence
-                                        enum_items_map.insert(name.to_owned(), value);
-                                    } else {
-                                        panic!("Expected Number but found...FIXME");
-                                    }
-                                } else {
-                                    panic!("Expected EnumItem but found...FIXME");
-                                }
-                            }
-                            self.enums.insert(
-                                name.to_owned(),
-                                Enum::new(name.to_owned(), enum_items_map)
-                            );
+                        Node::Enum(ref name, ref items) => {
+                            self.transform_enum(name, items);
                         }
                         _ => {},
                     }
                 }
                 Item::Multiple(ref items) => {
-                    self.rvs_from_ast(items)
+                    self.transform_items(items)
                 }
             }
         }
     }
 
-    pub fn rv_from_ast(&self, rng: &mut Rng, node: &Node) -> Box<Rv> {
+    pub fn transform_assignment(&mut self, lhs: &Node, rhs: &Node) {
+        let mut identifier: String = "".into();
+
+        if let Node::Identifier(ref x) = *lhs {
+            identifier = x.clone();
+        }
+
+        let mut rng = new_rng(&self.seed);
+        let rvc = Box::new(RvC {
+            root: self.transform_expr(&mut rng, &rhs),
+            rng: rng,
+        });
+        self.variables.push(rvc);
+        self.handles.insert(identifier, self.variables.len() - 1);
+    }
+
+    pub fn transform_enum(&mut self, name: &String, items: &Vec<Box<Node>>) {
+        let mut enum_items_map = LinkedHashMap::new();
+
+        // FIXME Convert to .map()
+        for item in items.iter() {
+            if let Node::EnumItem(ref name, ref value_node) = **item {
+                if let Node::Number(value) = **value_node {
+                    // FIXME Check for existence
+                    enum_items_map.insert(name.to_owned(), value);
+                } else {
+                    panic!("Expected Number but found...FIXME");
+                }
+            } else {
+                panic!("Expected EnumItem but found...FIXME");
+            }
+        }
+        self.enums.insert(
+            name.to_owned(),
+            Enum::new(name.to_owned(), enum_items_map)
+            );
+    }
+
+    pub fn transform_expr(&self, rng: &mut Rng, node: &Node) -> Box<Rv> {
         match *node {
             Node::Function(ref function, ref args) => {
-                match *function {
-                    Function::Range => {
-                        let l = self.rv_from_ast(rng, &args[0]).next(rng);
-                        let r = self.rv_from_ast(rng, &args[1]).next(rng);
-
-                        Box::new(
-                            RangeSequence::new(l, r)
-                        )
-                    }
-                    Function::Sample => {
-                        Box::new(
-                            Sample::new(
-                                args.into_iter()
-                                    .map(|arg| self.rv_from_ast(rng, &arg))
-                                    .collect()
-                            )
-                        )
-                    }
-                    Function::WeightedSample => {
-                        Box::new(
-                            WeightedSample::new(
-                                args.into_iter()
-                                    .map(|arg|
-                                         if let Node::WeightedPair(ref weight, ref node) = **arg {
-                                             (*weight, self.rv_from_ast(rng, node))
-                                         } else {
-                                             panic!("Expected WeightedPair but found ... FIXME");
-                                         }
-                                     )
-                                    .collect()
-                            )
-                        )
-                    }
-                }
+                self.transform_function(rng, function, args)
             }
             Node::Number(x) => Box::new(Value::new(x)),
             Node::Operation(ref bx, ref op, ref by) => {
                 Box::new(
                     Expr::new(
-                        self.rv_from_ast(rng, bx),
+                        self.transform_expr(rng, bx),
                         op.clone(),
-                        self.rv_from_ast(rng, by)
+                        self.transform_expr(rng, by)
                     )
                 )
             },
@@ -257,6 +239,43 @@ impl Context {
             _ => panic!("Not supported"),
         }
     }
+
+    pub fn transform_function(&self, rng: &mut Rng, function: &Function, args: &Vec<Box<Node>>) -> Box<Rv> {
+        match *function {
+            Function::Range => {
+                let l = self.transform_expr(rng, &args[0]).next(rng);
+                let r = self.transform_expr(rng, &args[1]).next(rng);
+
+                Box::new(
+                    RangeSequence::new(l, r)
+                    )
+            }
+            Function::Sample => {
+                Box::new(
+                    Sample::new(
+                        args.into_iter()
+                        .map(|arg| self.transform_expr(rng, &arg))
+                        .collect()
+                        )
+                    )
+            }
+            Function::WeightedSample => {
+                Box::new(
+                    WeightedSample::new(
+                        args.into_iter()
+                        .map(|arg|
+                             if let Node::WeightedPair(ref weight, ref node) = **arg {
+                                 (*weight, self.transform_expr(rng, node))
+                             } else {
+                                 panic!("Expected WeightedPair but found ... FIXME");
+                             }
+                            )
+                        .collect()
+                        )
+                    )
+            }
+        }
+    }
 }
 
 fn new_rng(seed: &Seed) -> Box<Rng> {
@@ -270,7 +289,7 @@ mod tests {
 
     use linked_hash_map::Entry::Occupied;
 
-    mod rv_from_ast {
+    mod transform_expr {
         use super::*;
 
         use std::collections::HashMap;
@@ -280,7 +299,7 @@ mod tests {
             let context = Context::new();
             let mut rng = new_rng(&Seed::from_u32(0));
             let ast = Node::Number(4);
-            let mut variable = context.rv_from_ast(&mut rng, &ast);
+            let mut variable = context.transform_expr(&mut rng, &ast);
 
             assert_eq!(variable.next(&mut rng), 4);
         }
@@ -296,7 +315,7 @@ mod tests {
                     Box::new(Node::Number(4))
                 ]
             );
-            let mut variable = context.rv_from_ast(&mut rng, &ast);
+            let mut variable = context.transform_expr(&mut rng, &ast);
 
             let mut values = HashMap::new();
 
@@ -312,7 +331,7 @@ mod tests {
         }
     }
 
-    mod rvs_from_ast {
+    mod transform_items {
         use super::*;
 
         #[test]
@@ -333,7 +352,7 @@ mod tests {
             ];
 
             let mut context = Context::new();
-            context.rvs_from_ast(&items);
+            context.transform_items(&items);
 
             assert!(context.handles.contains_key("a"));
             if let Occupied(entry) = context.handles.entry("a".into()) {
