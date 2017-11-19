@@ -26,6 +26,7 @@ mod tests {
     use super::*;
 
     use std::collections::HashSet;
+    use std::collections::HashMap;
     use linked_hash_map::Entry::Occupied;
 
     mod parse_assignments {
@@ -89,6 +90,29 @@ mod tests {
             }
 
             assert_eq!(expected, actual);
+        }
+    }
+
+    mod weighted_sample {
+        use super::*;
+
+        #[test]
+        fn basic() {
+            let mut context = Context::new();
+            assert!(parse_assignments("a = { 10: 0, 90: 1 };", &mut context).is_ok());
+
+            let a = context.variables.get_mut(context.handles["a"]).unwrap();
+
+            let mut results: HashMap<u32, u32> = HashMap::new();
+
+            for _ in 0..1000 {
+                let result = a.next();
+                let entry = results.entry(result).or_insert(0);
+                *entry += 1;
+            }
+
+            assert!(results[&0] >= 100 - 10 && results[&0] <= 100 + 10);
+            assert!(results[&1] >= 900 - 10 && results[&1] <= 900 + 10);
         }
     }
 }

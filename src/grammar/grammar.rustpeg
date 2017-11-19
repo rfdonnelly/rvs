@@ -56,6 +56,7 @@ pub atom -> Box<Node>
 function -> Box<Node>
     = range
     / sample
+    / weighted_sample
 
 op_or  = _ "|" _
 op_xor = _ "^" _
@@ -136,6 +137,23 @@ sample -> Box<Node>
         Box::new(
             Node::Function(
                 Function::Sample,
+                a
+            )
+        )
+    }
+
+weighted_pair -> Box<Node>
+    = a:dec_number _ ":" _ b:expr {
+        Box::new(
+            Node::WeightedPair(a, b)
+        )
+    }
+
+weighted_sample -> Box<Node>
+    = "{" _ a:weighted_pair ++ ("," _) _ "}" {
+        Box::new(
+            Node::Function(
+                Function::WeightedSample,
                 a
             )
         )

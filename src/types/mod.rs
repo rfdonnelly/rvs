@@ -2,6 +2,7 @@ pub mod value;
 pub mod expr;
 pub mod range;
 pub mod sample;
+pub mod weightedsample;
 
 use std::fmt;
 use std::ops::Deref;
@@ -19,6 +20,7 @@ pub use self::value::Value;
 pub use self::expr::Expr;
 pub use self::range::RangeSequence;
 pub use self::sample::Sample;
+pub use self::weightedsample::WeightedSample;
 
 pub struct RvData {
     prev: u32,
@@ -208,6 +210,21 @@ impl Context {
                             Sample::new(
                                 args.into_iter()
                                     .map(|arg| self.rv_from_ast(rng, &arg))
+                                    .collect()
+                            )
+                        )
+                    }
+                    Function::WeightedSample => {
+                        Box::new(
+                            WeightedSample::new(
+                                args.into_iter()
+                                    .map(|arg|
+                                         if let Node::WeightedPair(ref weight, ref node) = **arg {
+                                             (*weight, self.rv_from_ast(rng, node))
+                                         } else {
+                                             panic!("Expected WeightedPair but found ... FIXME");
+                                         }
+                                     )
                                     .collect()
                             )
                         )
