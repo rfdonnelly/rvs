@@ -158,26 +158,8 @@ impl Context {
                         Node::Assignment(ref lhs, ref rhs) => {
                             self.transform_assignment(lhs, rhs);
                         },
-                        Node::Enum(ref name, ref enum_items_vec) => {
-                            let mut enum_items_map = LinkedHashMap::new();
-
-                            // FIXME Convert to .map()
-                            for item in enum_items_vec.iter() {
-                                if let Node::EnumItem(ref name, ref value_node) = *item.deref() {
-                                    if let Node::Number(value) = *value_node.deref() {
-                                        // FIXME Check for existence
-                                        enum_items_map.insert(name.to_owned(), value);
-                                    } else {
-                                        panic!("Expected Number but found...FIXME");
-                                    }
-                                } else {
-                                    panic!("Expected EnumItem but found...FIXME");
-                                }
-                            }
-                            self.enums.insert(
-                                name.to_owned(),
-                                Enum::new(name.to_owned(), enum_items_map)
-                            );
+                        Node::Enum(ref name, ref items) => {
+                            self.transform_enum(name, items);
                         }
                         _ => {},
                     }
@@ -203,6 +185,28 @@ impl Context {
         });
         self.variables.push(rvc);
         self.handles.insert(identifier, self.variables.len() - 1);
+    }
+
+    pub fn transform_enum(&mut self, name: &String, items: &Vec<Box<Node>>) {
+        let mut enum_items_map = LinkedHashMap::new();
+
+        // FIXME Convert to .map()
+        for item in items.iter() {
+            if let Node::EnumItem(ref name, ref value_node) = *item.deref() {
+                if let Node::Number(value) = *value_node.deref() {
+                    // FIXME Check for existence
+                    enum_items_map.insert(name.to_owned(), value);
+                } else {
+                    panic!("Expected Number but found...FIXME");
+                }
+            } else {
+                panic!("Expected EnumItem but found...FIXME");
+            }
+        }
+        self.enums.insert(
+            name.to_owned(),
+            Enum::new(name.to_owned(), enum_items_map)
+            );
     }
 
     pub fn transform_expr(&self, rng: &mut Rng, node: &Node) -> Box<Rv> {
