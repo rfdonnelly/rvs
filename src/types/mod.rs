@@ -142,7 +142,7 @@ impl Enum {
 }
 
 impl Context {
-    pub fn rvs_from_ast(&mut self, items: &Vec<Item>) {
+    pub fn transform_items(&mut self, items: &Vec<Item>) {
         for item in items {
             match *item {
                 Item::Single(ref node) => {
@@ -156,7 +156,7 @@ impl Context {
 
                             let mut rng = new_rng(&self.seed);
                             let rvc = Box::new(RvC {
-                                root: self.rv_from_ast(&mut rng, &rhs),
+                                root: self.transform_expr(&mut rng, &rhs),
                                 rng: rng,
                             });
                             self.variables.push(rvc);
@@ -187,19 +187,19 @@ impl Context {
                     }
                 }
                 Item::Multiple(ref items) => {
-                    self.rvs_from_ast(items)
+                    self.transform_items(items)
                 }
             }
         }
     }
 
-    pub fn rv_from_ast(&self, rng: &mut Rng, node: &Node) -> Box<Rv> {
+    pub fn transform_expr(&self, rng: &mut Rng, node: &Node) -> Box<Rv> {
         match *node {
             Node::Function(ref function, ref args) => {
                 match *function {
                     Function::Range => {
-                        let l = self.rv_from_ast(rng, &args[0]).next(rng);
-                        let r = self.rv_from_ast(rng, &args[1]).next(rng);
+                        let l = self.transform_expr(rng, &args[0]).next(rng);
+                        let r = self.transform_expr(rng, &args[1]).next(rng);
 
                         Box::new(
                             RangeSequence::new(l, r)
@@ -209,7 +209,7 @@ impl Context {
                         Box::new(
                             Sample::new(
                                 args.into_iter()
-                                    .map(|arg| self.rv_from_ast(rng, &arg))
+                                    .map(|arg| self.transform_expr(rng, &arg))
                                     .collect()
                             )
                         )
@@ -220,7 +220,7 @@ impl Context {
                                 args.into_iter()
                                     .map(|arg|
                                          if let Node::WeightedPair(ref weight, ref node) = **arg {
-                                             (*weight, self.rv_from_ast(rng, node))
+                                             (*weight, self.transform_expr(rng, node))
                                          } else {
                                              panic!("Expected WeightedPair but found ... FIXME");
                                          }
@@ -235,9 +235,9 @@ impl Context {
             Node::Operation(ref bx, ref op, ref by) => {
                 Box::new(
                     Expr::new(
-                        self.rv_from_ast(rng, bx),
+                        self.transform_expr(rng, bx),
                         op.clone(),
-                        self.rv_from_ast(rng, by)
+                        self.transform_expr(rng, by)
                     )
                 )
             },
@@ -270,7 +270,7 @@ mod tests {
 
     use linked_hash_map::Entry::Occupied;
 
-    mod rv_from_ast {
+    mod transform_expr {
         use super::*;
 
         use std::collections::HashMap;
@@ -280,7 +280,7 @@ mod tests {
             let context = Context::new();
             let mut rng = new_rng(&Seed::from_u32(0));
             let ast = Node::Number(4);
-            let mut variable = context.rv_from_ast(&mut rng, &ast);
+            let mut variable = context.transform_expr(&mut rng, &ast);
 
             assert_eq!(variable.next(&mut rng), 4);
         }
@@ -296,7 +296,7 @@ mod tests {
                     Box::new(Node::Number(4))
                 ]
             );
-            let mut variable = context.rv_from_ast(&mut rng, &ast);
+            let mut variable = context.transform_expr(&mut rng, &ast);
 
             let mut values = HashMap::new();
 
@@ -312,7 +312,7 @@ mod tests {
         }
     }
 
-    mod rvs_from_ast {
+    mod transform_items {
         use super::*;
 
         #[test]
@@ -333,7 +333,7 @@ mod tests {
             ];
 
             let mut context = Context::new();
-            context.rvs_from_ast(&items);
+            context.transform_items(&items);
 
             assert!(context.handles.contains_key("a"));
             if let Occupied(entry) = context.handles.entry("a".into()) {

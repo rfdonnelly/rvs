@@ -13,7 +13,7 @@ use grammar::ParseResult;
 fn parse_rvs(s: &str, context: &mut Context) -> ParseResult<()> {
     match grammar::items(s) {
         Ok(items) => {
-            context.rvs_from_ast(&items);
+            context.transform_items(&items);
 
             Ok(())
         },
