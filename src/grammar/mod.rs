@@ -167,9 +167,12 @@ mod tests {
         fn ast() {
             assert_eq!(range("[1,2]"), Ok(
                     Box::new(
-                        Node::Range(
-                            Box::new(Node::Number(1)),
-                            Box::new(Node::Number(2))
+                        Node::Function(
+                            Function::Range,
+                            vec![
+                                Box::new(Node::Number(1)),
+                                Box::new(Node::Number(2))
+                            ]
                         )
                     )
                 ));

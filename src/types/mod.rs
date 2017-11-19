@@ -11,6 +11,7 @@ use rand::prng::XorShiftRng;
 use rand::Sample;
 
 use ast::Node;
+use ast::Function;
 use ast::Item;
 
 pub use self::value::Value;
@@ -190,13 +191,17 @@ impl Context {
 
     pub fn rv_from_ast(&self, rng: &mut Rng, node: &Node) -> Box<Rv> {
         match *node {
-            Node::Range(ref bx, ref by) => {
-                let l = self.rv_from_ast(rng, bx).next(rng);
-                let r = self.rv_from_ast(rng, by).next(rng);
+            Node::Function(ref function, ref args) => {
+                match *function {
+                    Function::Range => {
+                        let l = self.rv_from_ast(rng, &args[0]).next(rng);
+                        let r = self.rv_from_ast(rng, &args[1]).next(rng);
 
-                Box::new(
-                    RangeSequence::new(l, r)
-                )
+                        Box::new(
+                            RangeSequence::new(l, r)
+                        )
+                    }
+                }
             }
             Node::Number(x) => Box::new(Value::new(x)),
             Node::Operation(ref bx, ref op, ref by) => {
@@ -256,9 +261,12 @@ mod tests {
         fn range() {
             let context = Context::new();
             let mut rng = new_rng(&Seed::from_u32(0));
-            let ast = Node::Range(
-                Box::new(Node::Number(3)),
-                Box::new(Node::Number(4))
+            let ast = Node::Function(
+                Function::Range,
+                vec![
+                    Box::new(Node::Number(3)),
+                    Box::new(Node::Number(4))
+                ]
             );
             let mut variable = context.rv_from_ast(&mut rng, &ast);
 

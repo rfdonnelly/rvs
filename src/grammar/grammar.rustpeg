@@ -6,6 +6,7 @@ use std::error::Error;
 use std::io::prelude::*;
 
 use ast::Opcode;
+use ast::Function;
 use ast::Node;
 use ast::Item;
 
@@ -49,8 +50,11 @@ pub number -> Box<Node>
 pub atom -> Box<Node>
     = "(" _ v:expr _ ")" { v }
     / number
-    / range
+    / function
     / enum_item_inst
+
+function -> Box<Node>
+    = range
 
 op_or  = _ "|" _
 op_xor = _ "^" _
@@ -117,8 +121,13 @@ enum_item_inst -> Box<Node>
     }
 
 pub range -> Box<Node>
-    = "[" _ a:expr _ "," _ b:expr _ "]" {
-        Box::new(Node::Range(a, b))
+    = "[" _ a:expr **<2, 2> ("," _) _ "]" {
+        Box::new(
+            Node::Function(
+                Function::Range,
+                a
+            )
+        )
     }
 
 // From: https://github.com/kevinmehall/rust-peg/blob/cc6a3cdebfafc670a9dffb0422709ff6d85d1207/src/grammar.rustpeg

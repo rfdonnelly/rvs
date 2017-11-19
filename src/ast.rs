@@ -15,15 +15,20 @@ pub enum Opcode {
 }
 
 #[derive(PartialEq, Debug)]
+pub enum Function {
+    Range,
+}
+
+#[derive(PartialEq, Debug)]
 pub enum Node {
     Identifier(String),
     Number(u32),
     Operation(Box<Node>, Opcode, Box<Node>),
     Assignment(Box<Node>, Box<Node>),
-    Range(Box<Node>, Box<Node>),
     Enum(String, Vec<Box<Node>>),
     EnumItem(String, Box<Node>),
     EnumItemInst(String, String),
+    Function(Function, Vec<Box<Node>>),
 }
 
 /// An abstraction above Node to implement `require`
