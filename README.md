@@ -70,9 +70,9 @@ weighted = {
     * [x] Enums
       * [x] Implicit values E.g. `enum Enum { Value, }`
       * [x] Explicit values E.g. `enum Enum { Value = 0, }`
-      * [x] Use of enum members E.g. `enum Enum { Value = 0, }\n a =
+      * [x] Use of enum members E.g. `enum Enum { Value = 0, } a =
         Enum::Value` expands to `a = 0`
-      * [ ] Use of enum types E.g. `enum Enum { Value0, Value1, }\n a =
+      * [ ] Use of enum types E.g. `enum Enum { Value0, Value1, } a =
         Sample(Enum)` expands to `a = Sample(0, 1)`
     * [ ] Structs
   * Types
@@ -124,7 +124,7 @@ weighted = {
 
 * Optimizations
   * [ ] Convert `HashMap<String, Box<Rv>>` to `HashMap<&str, Box<Rv>>`
-  * [ ] Replace `RangeInclusive` with
+  * [x] Replace `RangeInclusive` with
     [`rand::distributions::Range::new_inclusive()`](https://github.com/rust-lang-nursery/rand/issues/188)
 * [ ] Separate into multiple crates
   * [ ] Rvs Library
