@@ -29,7 +29,7 @@ sample = Sample(Command);
 // A variable that yields random values in the range [0, 7] inclusive
 range = [0, 7];
 
-// A variable that yields weighted random values `1` 50% of the time, `0` 40%
+// A variable that yields weighted random values `0` 40% of the time, `1` 50%
 // of the time, and `2` 10% of the time.
 weighted = {
     40: Command::Read,
