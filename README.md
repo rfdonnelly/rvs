@@ -32,8 +32,8 @@ range = [0, 7];
 // A variable that yields weighted random values `1` 50% of the time, `0` 40%
 // of the time, and `2` 10% of the time.
 weighted = {
-    50: Command::Write,
     40: Command::Read,
+    50: Command::Write,
     10: Command::Erase,
 };
 ```
