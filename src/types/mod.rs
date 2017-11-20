@@ -270,13 +270,24 @@ impl Context {
                     )
             }
             Function::Sample => {
-                Box::new(
-                    Sample::new(
-                        args.into_iter()
-                        .map(|arg| self.transform_expr(rng, &arg))
-                        .collect()
-                        )
-                    )
+                let mut children: Vec<Box<Rv>> = Vec::new();
+                for arg in args.iter() {
+                    if let Node::EnumInst(ref name) = **arg {
+                        if let Some(entry) = self.enums.get(name) {
+                            for value in entry.items.values() {
+                                children.push(
+                                    Box::new(Value::new(*value))
+                                );
+                            }
+                        } else {
+                            panic!("Could not find enum '{}'", name);
+                        }
+                    } else {
+                        children.push(self.transform_expr(rng, &arg));
+                    }
+                }
+
+                Box::new(Sample::new(children))
             }
             Function::WeightedSample => {
                 Box::new(

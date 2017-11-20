@@ -16,11 +16,7 @@ pattern = Pattern(
 );
 
 // A variable that yields random values in the set {0, 1, 2}
-sample = Sample(
-    Command::Read,
-    Command::Write,
-    Command::Erase,
-);
+sample = Sample(Command);
 
 // A variable that yields random values in the range [0, 7] inclusive
 range = [0, 7];
