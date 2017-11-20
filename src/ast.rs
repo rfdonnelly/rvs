@@ -30,6 +30,7 @@ pub enum Node {
     Assignment(Box<Node>, Box<Node>),
     Enum(String, Vec<Box<Node>>),
     EnumItem(String, Option<Box<Node>>),
+    EnumInst(String),
     EnumItemInst(String, String),
     Function(Function, Vec<Box<Node>>),
     WeightedPair(u32, Box<Node>),

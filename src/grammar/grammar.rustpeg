@@ -131,6 +131,13 @@ enum_item_inst -> Box<Node>
         )
     }
 
+enum_inst -> Box<Node>
+    = a:typename {
+        Box::new(
+            Node::EnumInst(a.into())
+        )
+    }
+
 pattern -> Box<Node>
     = "Pattern(" _ a:expr ++ ("," _) optional_trailing_comma _ ")" {
         Box::new(
@@ -152,7 +159,7 @@ pub range -> Box<Node>
     }
 
 sample -> Box<Node>
-    = "Sample(" _ a:expr ++ ("," _) optional_trailing_comma _ ")" {
+    = "Sample(" _ a:(expr / enum_inst) ++ ("," _) optional_trailing_comma _ ")" {
         Box::new(
             Node::Function(
                 Function::Sample,
