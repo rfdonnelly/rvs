@@ -109,10 +109,15 @@ enum -> Item
         )
     }
 
+enum_assignment -> Box<Node>
+    = "=" _ a:number _ {
+        a
+    }
+
 enum_item -> Box<Node>
-    = id:typename _ "=" _ value:number _ "," {
+    = a:typename _ b:enum_assignment? "," {
         Box::new(
-            Node::EnumItem(id.into(), value)
+            Node::EnumItem(a.into(), b)
         )
     }
 

@@ -68,7 +68,7 @@ weighted = {
   * Consructs
     * [x] Variables
     * [x] Enums
-      * [ ] Implicit values E.g. `enum Enum { Value, }`
+      * [x] Implicit values E.g. `enum Enum { Value, }`
       * [x] Explicit values E.g. `enum Enum { Value = 0, }`
       * [x] Use of enum members E.g. `enum Enum { Value = 0, }\n a =
         Enum::Value` expands to `a = 0`

@@ -191,14 +191,22 @@ impl Context {
     pub fn transform_enum(&mut self, name: &String, items: &Vec<Box<Node>>) {
         let mut enum_items_map = LinkedHashMap::new();
 
+        let mut next_implicit_value = 0;
+
         // FIXME Convert to .map()
         for item in items.iter() {
-            if let Node::EnumItem(ref name, ref value_node) = **item {
-                if let Node::Number(value) = **value_node {
-                    // FIXME Check for existence
-                    enum_items_map.insert(name.to_owned(), value);
+            if let Node::EnumItem(ref name, ref value) = **item {
+                if let Some(ref value) = *value {
+                    if let Node::Number(value) = **value {
+                        // FIXME Check for existence
+                        enum_items_map.insert(name.to_owned(), value);
+                        next_implicit_value = value + 1;
+                    } else {
+                        panic!("Expected Number but found...FIXME");
+                    }
                 } else {
-                    panic!("Expected Number but found...FIXME");
+                    enum_items_map.insert(name.to_owned(), next_implicit_value);
+                    next_implicit_value += 1;
                 }
             } else {
                 panic!("Expected EnumItem but found...FIXME");
