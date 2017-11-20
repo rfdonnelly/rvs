@@ -21,7 +21,7 @@ pattern = Pattern(
     Command::Read,
     Command::Write,
     Command::Read,
-};
+);
 
 // A variable that yields random values in the set {0, 1, 2}
 sample = Sample(Command);
@@ -32,8 +32,8 @@ range = [0, 7];
 // A variable that yields weighted random values `1` 50% of the time, `0` 40%
 // of the time, and `2` 10% of the time.
 weighted = {
-    50: Command::Write,
     40: Command::Read,
+    50: Command::Write,
     10: Command::Erase,
 };
 ```
@@ -68,7 +68,7 @@ weighted = {
   * Consructs
     * [x] Variables
     * [x] Enums
-      * [ ] Implicit values E.g. `enum Enum { Value, }`
+      * [x] Implicit values E.g. `enum Enum { Value, }`
       * [x] Explicit values E.g. `enum Enum { Value = 0, }`
       * [x] Use of enum members E.g. `enum Enum { Value = 0, }\n a =
         Enum::Value` expands to `a = 0`
@@ -98,7 +98,7 @@ weighted = {
       * [x] WeightedSample - Randomly selects then returns a sub-expression
             according to weight.  Syntax: `{<weight>: <expr>, ...}`
     * Misc Types
-      * [ ] Pattern - Returns sub-expressions in order.  Syntax:
+      * [x] Pattern - Returns sub-expressions in order.  Syntax:
             `Pattern(<expr>, ...)`
       * [ ] Loop
     * Arithmetic operators

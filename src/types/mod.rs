@@ -1,5 +1,6 @@
 pub mod value;
 pub mod expr;
+pub mod pattern;
 pub mod range;
 pub mod sample;
 pub mod weightedsample;
@@ -17,6 +18,7 @@ use ast::Item;
 
 pub use self::value::Value;
 pub use self::expr::Expr;
+pub use self::pattern::Pattern;
 pub use self::range::RangeSequence;
 pub use self::sample::Sample;
 pub use self::weightedsample::WeightedSample;
@@ -189,14 +191,22 @@ impl Context {
     pub fn transform_enum(&mut self, name: &String, items: &Vec<Box<Node>>) {
         let mut enum_items_map = LinkedHashMap::new();
 
+        let mut next_implicit_value = 0;
+
         // FIXME Convert to .map()
         for item in items.iter() {
-            if let Node::EnumItem(ref name, ref value_node) = **item {
-                if let Node::Number(value) = **value_node {
-                    // FIXME Check for existence
-                    enum_items_map.insert(name.to_owned(), value);
+            if let Node::EnumItem(ref name, ref value) = **item {
+                if let Some(ref value) = *value {
+                    if let Node::Number(value) = **value {
+                        // FIXME Check for existence
+                        enum_items_map.insert(name.to_owned(), value);
+                        next_implicit_value = value + 1;
+                    } else {
+                        panic!("Expected Number but found...FIXME");
+                    }
                 } else {
-                    panic!("Expected Number but found...FIXME");
+                    enum_items_map.insert(name.to_owned(), next_implicit_value);
+                    next_implicit_value += 1;
                 }
             } else {
                 panic!("Expected EnumItem but found...FIXME");
@@ -242,6 +252,15 @@ impl Context {
 
     pub fn transform_function(&self, rng: &mut Rng, function: &Function, args: &Vec<Box<Node>>) -> Box<Rv> {
         match *function {
+            Function::Pattern => {
+                Box::new(
+                    Pattern::new(
+                        args.into_iter()
+                        .map(|arg| self.transform_expr(rng, &arg))
+                        .collect()
+                        )
+                    )
+            }
             Function::Range => {
                 let l = self.transform_expr(rng, &args[0]).next(rng);
                 let r = self.transform_expr(rng, &args[1]).next(rng);

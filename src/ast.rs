@@ -16,6 +16,7 @@ pub enum Opcode {
 
 #[derive(PartialEq, Debug)]
 pub enum Function {
+    Pattern,
     Range,
     Sample,
     WeightedSample,
@@ -28,7 +29,7 @@ pub enum Node {
     Operation(Box<Node>, Opcode, Box<Node>),
     Assignment(Box<Node>, Box<Node>),
     Enum(String, Vec<Box<Node>>),
-    EnumItem(String, Box<Node>),
+    EnumItem(String, Option<Box<Node>>),
     EnumItemInst(String, String),
     Function(Function, Vec<Box<Node>>),
     WeightedPair(u32, Box<Node>),

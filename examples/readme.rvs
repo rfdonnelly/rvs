@@ -1,0 +1,34 @@
+// This is a copy of examples in the README
+
+// An enumeration defintion with implicit value members.
+enum Command {
+    Read,
+    Write,
+    Erase,
+}
+
+// A variable that yields the repeating pattern: 2, 0, 1, 0
+pattern = Pattern(
+    Command::Erase,
+    Command::Read,
+    Command::Write,
+    Command::Read,
+);
+
+// A variable that yields random values in the set {0, 1, 2}
+sample = Sample(
+    Command::Read,
+    Command::Write,
+    Command::Erase,
+);
+
+// A variable that yields random values in the range [0, 7] inclusive
+range = [0, 7];
+
+// A variable that yields weighted random values `1` 50% of the time, `0` 40%
+// of the time, and `2` 10% of the time.
+weighted = {
+    40: Command::Read,
+    50: Command::Write,
+    10: Command::Erase,
+};

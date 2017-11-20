@@ -54,7 +54,8 @@ pub atom -> Box<Node>
     / enum_item_inst
 
 function -> Box<Node>
-    = range
+    = pattern
+    / range
     / sample
     / weighted_sample
 
@@ -101,17 +102,25 @@ pub assignment -> Item
 pub items -> Vec<Item>
     = _ a:item ** _ _ { a }
 
+optional_trailing_comma
+    = (_ "," _)?
+
 enum -> Item
-    = "enum" _ id:typename _ "{" _ enum_items:enum_item ** _ _ "}" {
+    = "enum" _ id:typename _ "{" _ enum_items:enum_item ** ("," _) optional_trailing_comma _ "}" {
         Item::Single(
             Box::new(Node::Enum(id.into(), enum_items))
         )
     }
 
+enum_assignment -> Box<Node>
+    = "=" _ a:number _ {
+        a
+    }
+
 enum_item -> Box<Node>
-    = id:typename _ "=" _ value:number _ "," {
+    = a:typename _ b:enum_assignment? {
         Box::new(
-            Node::EnumItem(id.into(), value)
+            Node::EnumItem(a.into(), b)
         )
     }
 
@@ -122,8 +131,18 @@ enum_item_inst -> Box<Node>
         )
     }
 
+pattern -> Box<Node>
+    = "Pattern(" _ a:expr ++ ("," _) optional_trailing_comma _ ")" {
+        Box::new(
+            Node::Function(
+                Function::Pattern,
+                a
+            )
+        )
+    }
+
 pub range -> Box<Node>
-    = "[" _ a:expr **<2, 2> ("," _) _ "]" {
+    = "[" _ a:expr **<2, 2> ("," _) optional_trailing_comma _ "]" {
         Box::new(
             Node::Function(
                 Function::Range,
@@ -133,7 +152,7 @@ pub range -> Box<Node>
     }
 
 sample -> Box<Node>
-    = "Sample(" _ a:expr ++ ("," _) _ ")" {
+    = "Sample(" _ a:expr ++ ("," _) optional_trailing_comma _ ")" {
         Box::new(
             Node::Function(
                 Function::Sample,
@@ -150,7 +169,7 @@ weighted_pair -> Box<Node>
     }
 
 weighted_sample -> Box<Node>
-    = "{" _ a:weighted_pair ++ ("," _) _ "}" {
+    = "{" _ a:weighted_pair ++ ("," _) optional_trailing_comma _ "}" {
         Box::new(
             Node::Function(
                 Function::WeightedSample,
