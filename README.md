@@ -21,7 +21,7 @@ pattern = Pattern(
     Command::Read,
     Command::Write,
     Command::Read,
-};
+);
 
 // A variable that yields random values in the set {0, 1, 2}
 sample = Sample(Command);
