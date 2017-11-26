@@ -30,7 +30,6 @@
 //! rvs_context_free(context);
 //! ```
 
-use linked_hash_map::Entry::Occupied;
 use std::panic::catch_unwind;
 use libc::uint32_t;
 use libc::c_char;
@@ -222,9 +221,9 @@ pub extern fn rvs_find(context: *mut Context, id: *const c_char, handle_ptr: *mu
     let id_rstr = id_cstr.to_str().unwrap();
 
     let context = unsafe { &mut *context };
-    if let Occupied(entry) = context.handles.entry(id_rstr.into()) {
-        let id = *entry.get() as SequenceHandle;
-        unsafe { *handle_ptr = id + 1; };
+    if let Some(handle) = context.handles.get(id_rstr) {
+        let handle = *handle as SequenceHandle;
+        unsafe { *handle_ptr = handle + 1; };
 
         ResultCode::Success.value()
     } else {
@@ -411,11 +410,9 @@ mod tests {
             let handles = unsafe { &mut (*context).handles };
             let variables = unsafe { &mut (*context).variables };
             assert!(handles.contains_key("a"));
-            if let Occupied(entry) = handles.entry("a".into()) {
-                let id = entry.get();
-                let value = variables[*id].next();
-                assert_eq!(value, 5);
-            }
+            let id = handles.get("a").unwrap();
+            let value = variables[*id].next();
+            assert_eq!(value, 5);
 
             rvs_context_free(context);
         }
@@ -430,11 +427,9 @@ mod tests {
             let handles = unsafe { &mut (*context).handles };
             let variables = unsafe { &mut (*context).variables };
             assert!(handles.contains_key("a"));
-            if let Occupied(entry) = handles.entry("a".into()) {
-                let id = entry.get();
-                let value = variables[*id].next();
-                assert!(value == 0 || value == 1);
-            }
+            let id = handles.get("a").unwrap();
+            let value = variables[*id].next();
+            assert!(value == 0 || value == 1);
 
             rvs_context_free(context);
         }
