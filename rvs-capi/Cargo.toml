@@ -1,0 +1,14 @@
+[package]
+name = "rvs-capi"
+version = "0.1.0"
+authors = ["Rob Donnelly <rfdonnelly@gmail.com>"]
+
+[dependencies]
+libc = "0.2"
+rvs = { version = "0.1", path = ".." }
+
+[lib]
+name = "rvsc"
+# NOTE: Only have rlib to allow doc-tests to be run.  Doc-tests do not
+# work for cdylib.
+crate-type = ["cdylib", "rlib"]

@@ -5,7 +5,7 @@
 //! # Examples
 //!
 //! ```
-//! use rvs::c_api::*;
+//! use rvsc::*;
 //! use std::ffi::CString;
 //!
 //! // Create a new context
@@ -39,10 +39,10 @@ use std::fs::File;
 use std::error::Error;
 use std::io::prelude::*;
 
-use types::RvC;
-use types::Context;
-use types::Seed;
-use parse_rvs;
+use rvs::types::RvC;
+use rvs::types::Context;
+use rvs::types::Seed;
+use rvs::parse_rvs;
 
 type SequenceHandle = uint32_t;
 type ResultCodeRaw = uint32_t;
@@ -70,7 +70,7 @@ impl ResultCode {
 /// # Examples
 ///
 /// ```
-/// # use rvs::c_api::*;
+/// # use rvsc::*;
 /// let context = rvs_context_new();
 /// // ...
 /// rvs_context_free(context);
@@ -87,7 +87,7 @@ pub extern fn rvs_context_new() -> *mut Context {
 /// # Examples
 ///
 /// ```
-/// # use rvs::c_api::*;
+/// # use rvsc::*;
 /// let context = rvs_context_new();
 /// // ...
 /// rvs_context_free(context);
@@ -105,7 +105,7 @@ pub extern fn rvs_context_free(context: *mut Context) {
 /// # Examples
 ///
 /// ```
-/// # use rvs::c_api::*;
+/// # use rvsc::*;
 /// let context = rvs_context_new();
 /// rvs_seed(context, 0);
 /// // ...
@@ -391,7 +391,7 @@ mod tests {
         fn require() {
             let context = rvs_context_new();
 
-            let result_code = rvs_parse(context, CString::new("require 'examples/require.rvs'").unwrap().as_ptr());
+            let result_code = rvs_parse(context, CString::new("require '../examples/require.rvs'").unwrap().as_ptr());
             assert_eq!(result_code, ResultCode::Success.value());
 
             assert_eq!(next_by_name(context, "a"), 5);
@@ -448,7 +448,7 @@ mod tests {
         fn file() {
             let context = rvs_context_new();
 
-            let result_code = rvs_parse(context, CString::new("examples/basic.rvs;b = 3").unwrap().as_ptr());
+            let result_code = rvs_parse(context, CString::new("../examples/basic.rvs;b = 3").unwrap().as_ptr());
             assert_eq!(result_code, ResultCode::Success.value());
 
             let mut handle = 0;

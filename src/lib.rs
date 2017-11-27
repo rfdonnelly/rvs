@@ -1,16 +1,14 @@
 extern crate rand;
-extern crate libc;
 extern crate linked_hash_map;
 
 mod ast;
 mod grammar;
-mod types;
-pub mod c_api;
+pub mod types;
 
 use types::Context;
 use grammar::ParseResult;
 
-fn parse_rvs(s: &str, context: &mut Context) -> ParseResult<()> {
+pub fn parse_rvs(s: &str, context: &mut Context) -> ParseResult<()> {
     match grammar::items(s) {
         Ok(items) => {
             context.transform_items(&items);
