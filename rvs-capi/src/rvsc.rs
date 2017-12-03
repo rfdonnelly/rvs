@@ -8,12 +8,13 @@
 //! use rvsc::*;
 //! use std::ffi::CString;
 //!
-//! // Create a new context
+//! // Create a new context and error
 //! let context = rvs_context_new();
+//! let error = rvs_error_new();
 //!
 //! // Define a variable "a" as a constant value 5.
-//! let result_code = rvs_parse(context, CString::new("a=5;").unwrap().as_ptr());
-//! assert_eq!(result_code, 0);
+//! rvs_parse(context, CString::new("a=5;").unwrap().as_ptr(), error);
+//! assert_eq!(rvs_error_code(error), ErrorKind::None.code());
 //!
 //! // Find the variable "a"
 //! let mut handle = 0;
@@ -26,7 +27,8 @@
 //! assert_eq!(result_code, 0);
 //! assert_eq!(result, 5);
 //!
-//! // Free the context
+//! // Free the error and context
+//! rvs_error_free(error);
 //! rvs_context_free(context);
 //! ```
 
@@ -36,13 +38,15 @@ use libc::c_char;
 use std::ffi::CStr;
 use std::path::Path;
 use std::fs::File;
-use std::error::Error;
 use std::io::prelude::*;
 
 use rvs::types::RvC;
 use rvs::types::Context;
 use rvs::types::Seed;
 use rvs::parse_rvs;
+
+use error::Error;
+use error::ErrorKind;
 
 type SequenceHandle = uint32_t;
 type ResultCodeRaw = uint32_t;
@@ -146,7 +150,11 @@ pub extern fn rvs_seed(context: *mut Context, seed: u32) {
 ///
 /// "example.rvs; a = 5;"
 #[no_mangle]
-pub extern fn rvs_parse(context: *mut Context, s: *const c_char) -> ResultCodeRaw {
+pub extern fn rvs_parse(
+    context: *mut Context,
+    s: *const c_char,
+    error: *mut Error
+) {
     assert!(!context.is_null());
     assert!(!s.is_null());
 
@@ -167,13 +175,13 @@ pub extern fn rvs_parse(context: *mut Context, s: *const c_char) -> ResultCodeRa
                     }
 
                     let mut file = match File::open(&path) {
-                        Err(e) => panic!("could not open {}: {}", path.display(), e.description()),
+                        Err(e) => panic!("could not open {}: {}", path.display(), ::std::error::Error::description(&e)),
                         Ok(file) => file,
                     };
 
                     let mut contents = String::new();
                     match file.read_to_string(&mut contents) {
-                        Err(e) => panic!("could not read {}: {}", path.display(), e.description()),
+                        Err(e) => panic!("could not read {}: {}", path.display(), ::std::error::Error::description(&e)),
                         Ok(_) => (),
                     };
 
@@ -185,18 +193,25 @@ pub extern fn rvs_parse(context: *mut Context, s: *const c_char) -> ResultCodeRa
             match parse_rvs(&parser_string, &mut context) {
                 Ok(_) => (),
                 Err(e) => {
-                    println!("{}", e);
-                    println!("{}", parser_string.lines().nth(e.line - 1).unwrap());
-                    for _ in 0..e.column-1 { print!(" "); }
-                    println!("^");
-
-                    return ResultCode::ParseError.value()
+                    unsafe {
+                        if !error.is_null() {
+                            *error = Error::new(ErrorKind::Parse(e))
+                        }
+                        // FIXME: Add the following to the error:
+                        // println!("{}", e);
+                        // println!("{}", parser_string.lines().nth(e.line - 1).unwrap());
+                        // for _ in 0..e.column-1 { print!(" "); }
+                        // println!("^");
+                        //
+                        // To do so:
+                        //
+                        // 1. Convert rust-peg ParseError into an Rvs ParseError
+                        // 2. Pass the Rvs ParseError
+                    }
                 },
             }
         }
     }
-
-    ResultCode::Success.value()
 }
 
 /// Returns the handle of a variable via the handle pointer
@@ -333,6 +348,12 @@ mod tests {
 
     use std::ffi::CString;
 
+    use error::{
+        rvs_error_new,
+        rvs_error_free,
+        rvs_error_code,
+    };
+
     fn next_by_name(context: *mut Context, name: &str) -> u32 {
         let mut handle = 0;
         let result_code = rvs_find(context, CString::new(name).unwrap().as_ptr(), &mut handle);
@@ -350,11 +371,12 @@ mod tests {
 
         fn next(seed: u32, s: &str) -> u32 {
             let context = rvs_context_new();
+            let error = rvs_error_new();
             rvs_seed(context, seed);
 
             let s = format!("a = {};", s);
-            let result_code = rvs_parse(context, CString::new(s).unwrap().as_ptr());
-            assert_eq!(result_code, ResultCode::Success.value());
+            rvs_parse(context, CString::new(s).unwrap().as_ptr(), error);
+            assert_eq!(rvs_error_code(error), ErrorKind::None.code());
 
             let mut handle = 0;
             let result_code = rvs_find(context, CString::new("a").unwrap().as_ptr(), &mut handle);
@@ -364,6 +386,7 @@ mod tests {
             let result_code = rvs_next(context, handle, &mut value);
             assert_eq!(result_code, ResultCode::Success.value());
 
+            rvs_error_free(error);
             rvs_context_free(context);
 
             value
@@ -387,25 +410,39 @@ mod tests {
     mod rvs_parse {
         use super::*;
 
+        // FIXME Cannot test this due to error parameter being mutable while std::ptr::null() is
+        // not.
+        // #[test]
+        // fn null_error_struct() {
+        //     use std::ptr;
+        //
+        //     let context = rvs_context_new();
+        //     rvs_parse(context, CString::new("a=5;").unwrap().as_ptr(), ptr::null());
+        //     assert_eq!(next_by_name(context, "a"), 5);
+        // }
+
         #[test]
         fn require() {
             let context = rvs_context_new();
+            let error = rvs_error_new();
 
-            let result_code = rvs_parse(context, CString::new("require '../examples/require.rvs'").unwrap().as_ptr());
-            assert_eq!(result_code, ResultCode::Success.value());
+            rvs_parse(context, CString::new("require '../examples/require.rvs'").unwrap().as_ptr(), error);
+            assert_eq!(rvs_error_code(error), ErrorKind::None.code());
 
             assert_eq!(next_by_name(context, "a"), 5);
             assert_eq!(next_by_name(context, "b"), 1);
 
+            rvs_error_free(error);
             rvs_context_free(context);
         }
 
         #[test]
         fn basic() {
             let context = rvs_context_new();
+            let error = rvs_error_new();
 
-            let result_code = rvs_parse(context, CString::new("a=5;").unwrap().as_ptr());
-            assert_eq!(result_code, ResultCode::Success.value());
+            rvs_parse(context, CString::new("a=5;").unwrap().as_ptr(), error);
+            assert_eq!(rvs_error_code(error), ErrorKind::None.code());
 
             let handles = unsafe { &mut (*context).handles };
             let variables = unsafe { &mut (*context).variables };
@@ -414,15 +451,17 @@ mod tests {
             let value = variables[*id].next();
             assert_eq!(value, 5);
 
+            rvs_error_free(error);
             rvs_context_free(context);
         }
 
         #[test]
         fn range() {
             let context = rvs_context_new();
+            let error = rvs_error_new();
 
-            let result_code = rvs_parse(context, CString::new("a=[0,1];").unwrap().as_ptr());
-            assert_eq!(result_code, ResultCode::Success.value());
+            rvs_parse(context, CString::new("a=[0,1];").unwrap().as_ptr(), error);
+            assert_eq!(rvs_error_code(error), ErrorKind::None.code());
 
             let handles = unsafe { &mut (*context).handles };
             let variables = unsafe { &mut (*context).variables };
@@ -431,25 +470,34 @@ mod tests {
             let value = variables[*id].next();
             assert!(value == 0 || value == 1);
 
+            rvs_error_free(error);
             rvs_context_free(context);
         }
 
         #[test]
         fn parse_error() {
+            use rvs::grammar::ParseError;
+
             let context = rvs_context_new();
+            let error = rvs_error_new();
 
-            let result_code = rvs_parse(context, CString::new("a = 1;\n1 = b;").unwrap().as_ptr());
-            assert_eq!(result_code, ResultCode::ParseError.value());
+            rvs_parse(context, CString::new("a = 1;\n1 = b;").unwrap().as_ptr(), error);
+            // FIXME: Check error message
+            // println!("{}", unsafe { *error });
+            // assert_eq!(rvs_error_code(error), ErrorKind::Parse(ParseError::new()).code());
+            assert!(rvs_error_code(error) != ErrorKind::None.code());
 
+            rvs_error_free(error);
             rvs_context_free(context);
         }
 
         #[test]
         fn file() {
             let context = rvs_context_new();
+            let error = rvs_error_new();
 
-            let result_code = rvs_parse(context, CString::new("../examples/basic.rvs;b = 3").unwrap().as_ptr());
-            assert_eq!(result_code, ResultCode::Success.value());
+            rvs_parse(context, CString::new("../examples/basic.rvs;b = 3").unwrap().as_ptr(), error);
+            assert_eq!(rvs_error_code(error), ErrorKind::None.code());
 
             let mut handle = 0;
             let mut value = 0;
@@ -468,18 +516,20 @@ mod tests {
             assert_eq!(result_code, ResultCode::Success.value());
             assert_eq!(value, 3);
 
+            rvs_error_free(error);
             rvs_context_free(context);
         }
 
         #[test]
         fn override_rv() {
             let context = rvs_context_new();
+            let error = rvs_error_new();
 
-            let result_code = rvs_parse(context, CString::new("a = 0;a = 1").unwrap().as_ptr());
-            assert_eq!(result_code, ResultCode::Success.value());
+            rvs_parse(context, CString::new("a = 0;a = 1").unwrap().as_ptr(), error);
+            assert_eq!(rvs_error_code(error), ErrorKind::None.code());
 
-            let result_code = rvs_parse(context, CString::new("a = 2").unwrap().as_ptr());
-            assert_eq!(result_code, ResultCode::Success.value());
+            rvs_parse(context, CString::new("a = 2").unwrap().as_ptr(), error);
+            assert_eq!(rvs_error_code(error), ErrorKind::None.code());
 
             let mut handle = 0;
             let result_code = rvs_find(context, CString::new("a").unwrap().as_ptr(), &mut handle);
@@ -490,6 +540,7 @@ mod tests {
             assert_eq!(result_code, ResultCode::Success.value());
             assert_eq!(value, 2);
 
+            rvs_error_free(error);
             rvs_context_free(context);
         }
     }
@@ -511,15 +562,17 @@ mod tests {
         #[test]
         fn found() {
             let context = rvs_context_new();
+            let error = rvs_error_new();
 
-            let result_code = rvs_parse(context, CString::new("a=5;").unwrap().as_ptr());
-            assert_eq!(result_code, 0);
+            rvs_parse(context, CString::new("a=5;").unwrap().as_ptr(), error);
+            assert_eq!(rvs_error_code(error), ErrorKind::None.code());
 
             let mut handle: SequenceHandle = 0;
             let result_code = rvs_find(context, CString::new("a").unwrap().as_ptr(), &mut handle);
             assert_eq!(handle, 1);
             assert_eq!(result_code, ResultCode::Success.value());
 
+            rvs_error_free(error);
             rvs_context_free(context);
         }
     }
@@ -530,9 +583,10 @@ mod tests {
         #[test]
         fn found() {
             let context = rvs_context_new();
+            let error = rvs_error_new();
 
-            let result_code = rvs_parse(context, CString::new("a=5;").unwrap().as_ptr());
-            assert_eq!(result_code, ResultCode::Success.value());
+            rvs_parse(context, CString::new("a=5;").unwrap().as_ptr(), error);
+            assert_eq!(rvs_error_code(error), ErrorKind::None.code());
 
             let mut handle: SequenceHandle = 0;
             let result_code = rvs_find(context, CString::new("a").unwrap().as_ptr(), &mut handle);
@@ -543,6 +597,7 @@ mod tests {
             assert_eq!(result_code, ResultCode::Success.value());
             assert_eq!(value, 5);
 
+            rvs_error_free(error);
             rvs_context_free(context);
         }
 
