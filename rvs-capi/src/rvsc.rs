@@ -21,9 +21,7 @@
 //! assert!(handle != 0);
 //!
 //! // Evaluate the variable "a"
-//! let mut result = 0;
-//! let result_code = rvs_next(context, handle, &mut result);
-//! assert_eq!(result_code, 0);
+//! let result = rvs_next(context, handle);
 //! assert_eq!(result, 5);
 //!
 //! // Free the error and context
@@ -48,23 +46,6 @@ use error::Error;
 use error::ErrorKind;
 
 type SequenceHandle = uint32_t;
-type ResultCodeRaw = uint32_t;
-
-enum ResultCode {
-    Success,
-    NotFound,
-    ParseError,
-}
-
-impl ResultCode {
-    fn value(&self) -> ResultCodeRaw {
-        match *self {
-            ResultCode::Success => 0,
-            ResultCode::NotFound => 1,
-            ResultCode::ParseError => 2,
-        }
-    }
-}
 
 /// Allocates and returns a new context.
 ///
@@ -223,7 +204,7 @@ pub extern fn rvs_parse(
 ///
 /// # Panics
 ///
-/// If any pointer arguments are null.
+/// * If any pointer arguments are null
 #[no_mangle]
 pub extern fn rvs_find(context: *mut Context, id: *const c_char) -> SequenceHandle {
     assert!(!context.is_null());
@@ -245,87 +226,71 @@ pub extern fn rvs_find(context: *mut Context, id: *const c_char) -> SequenceHand
 ///
 /// # Errors
 ///
-/// * Returns ResultCode::Success on success
-/// * Returns ResultCode::NotFound if the handle is not valid
+/// Returns 0 if handle is invalid.
 ///
 /// # Panics
 ///
-/// If any pointer arguments are null.
+/// * If any pointer arguments are null
+/// * If handle doesn't exist
 #[no_mangle]
-pub extern fn rvs_next(context: *mut Context, handle: SequenceHandle, result_ptr: *mut u32) -> ResultCodeRaw {
+pub extern fn rvs_next(context: *mut Context, handle: SequenceHandle) -> u32 {
     assert!(!context.is_null());
-    assert!(!result_ptr.is_null());
 
     let context = unsafe { &mut *context };
-    let idx = match handle_to_idx(&context.variables, handle) {
-        Some(x) => x,
-        None => { return ResultCode::NotFound.value(); },
-    };
+    assert!(handle > 0 && handle <= (context.variables.len() as u32));
 
-    let value = context.variables[idx].next();
-    unsafe { *result_ptr = value; };
-
-    ResultCode::Success.value()
+    match handle_to_idx(&context.variables, handle) {
+        Some(idx) => context.variables[idx].next(),
+        None => 0,
+    }
 }
 
-/// Returns the previous value of a variable via the result pointer
-///
-/// If `rvs_next()` has not been called on the same variable handle previously, the result
-/// with be `0`.
+/// Returns the previous value of a variable
 ///
 /// # Errors
 ///
-/// * Returns ResultCode::Success on success
-/// * Returns ResultCode::NotFound if the handle is not valid
+/// * Returns 0 if handle is invalid
+/// * Returns 0 if `rvs_next` has not been called
 ///
 /// # Panics
 ///
-/// If any pointer arguments are null.
+/// * If any pointer arguments are null
+/// * If handle doesn't exist
 #[no_mangle]
-pub extern fn rvs_prev(context: *mut Context, handle: SequenceHandle, result_ptr: *mut u32) -> ResultCodeRaw {
+pub extern fn rvs_prev(context: *mut Context, handle: SequenceHandle) -> u32 {
     assert!(!context.is_null());
-    assert!(!result_ptr.is_null());
 
     let context = unsafe { &mut *context };
-    let idx = match handle_to_idx(&context.variables, handle) {
-        Some(x) => x,
-        None => { return ResultCode::NotFound.value(); },
-    };
+    assert!(handle > 0 && handle <= (context.variables.len() as u32));
 
-    let value = context.variables[idx].prev();
-    unsafe { *result_ptr = value; };
-
-    ResultCode::Success.value()
+    match handle_to_idx(&context.variables, handle) {
+        Some(idx) => context.variables[idx].prev(),
+        None => 0,
+    }
 }
 
 /// Returns the done value of a variable via the result pointer
 ///
-/// If `rvs_next()` has not been called on the same variable handle previously, the result
-/// with be `0`.
-///
 /// # Errors
 ///
-/// * Returns ResultCode::Success on success
-/// * Returns ResultCode::NotFound if the handle is not valid
+/// * Returns false if handle is invalid
+/// * Returns false if `rvs_next` has not been called
 ///
 /// # Panics
 ///
-/// If any pointer arguments are null.
+/// * If any pointer arguments are null
+/// * If handle doesn't exist
 #[no_mangle]
-pub extern fn rvs_done(context: *mut Context, handle: SequenceHandle, result_ptr: *mut bool) -> ResultCodeRaw {
+pub extern fn rvs_done(context: *mut Context, handle: SequenceHandle) -> bool {
     assert!(!context.is_null());
-    assert!(!result_ptr.is_null());
 
     let context = unsafe { &mut *context };
-    let idx = match handle_to_idx(&context.variables, handle) {
-        Some(x) => x,
-        None => { return ResultCode::NotFound.value(); },
-    };
+    assert!(handle > 0 && handle <= (context.variables.len() as u32));
 
-    let value = context.variables[idx].done();
-    unsafe { *result_ptr = value; };
-
-    ResultCode::Success.value()
+    match handle_to_idx(&context.variables, handle) {
+        Some(idx) => context.variables[idx].done(),
+        None => false,
+    }
 }
 
 fn handle_to_idx(variables: &Vec<Box<RvC>>, handle: SequenceHandle) -> Option<usize> {
@@ -353,11 +318,7 @@ mod tests {
         let handle = rvs_find(context, CString::new(name).unwrap().as_ptr());
         assert!(handle != 0);
 
-        let mut value = 0;
-        let result_code = rvs_next(context, handle, &mut value);
-        assert_eq!(result_code, ResultCode::Success.value());
-
-        value
+        rvs_next(context, handle)
     }
 
     mod rvs_seed {
@@ -375,9 +336,7 @@ mod tests {
             let handle = rvs_find(context, CString::new("a").unwrap().as_ptr());
             assert!(handle != 0);
 
-            let mut value = 0;
-            let result_code = rvs_next(context, handle, &mut value);
-            assert_eq!(result_code, ResultCode::Success.value());
+            let value = rvs_next(context, handle);
 
             rvs_error_free(error);
             rvs_context_free(context);
@@ -492,20 +451,16 @@ mod tests {
             rvs_parse(context, CString::new("../examples/basic.rvs;b = 3").unwrap().as_ptr(), error);
             assert_eq!(rvs_error_code(error), ErrorKind::None.code());
 
-            let mut value = 0;
-
             let handle = rvs_find(context, CString::new("a").unwrap().as_ptr());
             assert!(handle != 0);
 
-            let result_code = rvs_next(context, handle, &mut value);
-            assert_eq!(result_code, ResultCode::Success.value());
+            let value = rvs_next(context, handle);
             assert_eq!(value, 5);
 
             let handle = rvs_find(context, CString::new("b").unwrap().as_ptr());
             assert!(handle != 0);
 
-            let result_code = rvs_next(context, handle, &mut value);
-            assert_eq!(result_code, ResultCode::Success.value());
+            let value = rvs_next(context, handle);
             assert_eq!(value, 3);
 
             rvs_error_free(error);
@@ -526,9 +481,7 @@ mod tests {
             let handle = rvs_find(context, CString::new("a").unwrap().as_ptr());
             assert!(handle != 0);
 
-            let mut value = 0;
-            let result_code = rvs_next(context, handle, &mut value);
-            assert_eq!(result_code, ResultCode::Success.value());
+            let value = rvs_next(context, handle);
             assert_eq!(value, 2);
 
             rvs_error_free(error);
@@ -579,9 +532,7 @@ mod tests {
             let handle = rvs_find(context, CString::new("a").unwrap().as_ptr());
             assert!(handle != 0);
 
-            let mut value: u32 = 0;
-            let result_code = rvs_next(context, handle, &mut value);
-            assert_eq!(result_code, ResultCode::Success.value());
+            let value = rvs_next(context, handle);
             assert_eq!(value, 5);
 
             rvs_error_free(error);
@@ -589,13 +540,12 @@ mod tests {
         }
 
         #[test]
+        #[should_panic]
         fn not_found() {
             let context = rvs_context_new();
 
             let handle = 1;
-            let mut value: u32 = 0;
-            let result_code = rvs_next(context, handle, &mut value);
-            assert_eq!(result_code, ResultCode::NotFound.value());
+            let value = rvs_next(context, handle);
             assert_eq!(value, 0);
 
             rvs_context_free(context);
