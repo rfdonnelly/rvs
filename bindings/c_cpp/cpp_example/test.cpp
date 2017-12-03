@@ -6,20 +6,18 @@ int main() {
     uint32_t err = 0;
 
     auto context = rvs_context_new();
+    auto error = rvs_error_new();
 
-    err = rvs_parse(context, "a=5;");
-    assert(err == 0);
+    rvs_parse(context, "a=5;", error);
+    assert(rvs_error_code(error) == 0);
 
-    uint32_t handle = 0;
-    err = rvs_find(context, "a", &handle);
-    assert(err == 0);
+    auto handle = rvs_find(context, "a");
     assert(handle == 1);
 
-    uint32_t result = 0;
-    err = rvs_next(context, handle, &result);
-    assert(err == 0);
+    auto result = rvs_next(context, handle);
     assert(result == 5);
 
+    rvs_error_free(error);
     rvs_context_free(context);
 }
 
