@@ -9,6 +9,4 @@ rvs = { version = "0.1", path = ".." }
 
 [lib]
 name = "rvs"
-# NOTE: Only have rlib to allow doc-tests to be run.  Doc-tests do not
-# work for cdylib.
-crate-type = ["cdylib", "rlib"]
+crate-type = ["cdylib"]

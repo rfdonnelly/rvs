@@ -20,4 +20,3 @@ int main() {
     rvs_error_free(error);
     rvs_context_free(context);
 }
-
