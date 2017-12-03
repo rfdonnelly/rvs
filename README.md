@@ -130,5 +130,5 @@ weighted = {
   * [ ] Rvs Library
   * [ ] DSL (Grammar/Parser, AST)
   * [ ] Interactive binary
-  * [ ] C-API
+  * [x] C-API
 * [ ] Implement the `Iterator` trait
