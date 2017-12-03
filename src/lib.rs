@@ -1,8 +1,8 @@
 extern crate rand;
 extern crate linked_hash_map;
 
-mod ast;
-mod grammar;
+pub mod ast;
+pub mod grammar;
 pub mod types;
 
 use types::Context;

@@ -8,7 +8,7 @@ libc = "0.2"
 rvs = { version = "0.1", path = ".." }
 
 [lib]
-name = "rvsc"
+name = "rvs"
 # NOTE: Only have rlib to allow doc-tests to be run.  Doc-tests do not
 # work for cdylib.
 crate-type = ["cdylib", "rlib"]

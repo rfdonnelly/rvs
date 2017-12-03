@@ -8,25 +8,24 @@
 //! use rvsc::*;
 //! use std::ffi::CString;
 //!
-//! // Create a new context
+//! // Create a new context and error
 //! let context = rvs_context_new();
+//! let error = rvs_error_new();
 //!
 //! // Define a variable "a" as a constant value 5.
-//! let result_code = rvs_parse(context, CString::new("a=5;").unwrap().as_ptr());
-//! assert_eq!(result_code, 0);
+//! rvs_parse(context, CString::new("a=5;").unwrap().as_ptr(), error);
+//! assert_eq!(rvs_error_code(error), ErrorKind::None.code());
 //!
 //! // Find the variable "a"
-//! let mut handle = 0;
-//! let result_code = rvs_find(context, CString::new("a").unwrap().as_ptr(), &mut handle);
-//! assert_eq!(result_code, 0);
+//! let handle = rvs_find(context, CString::new("a").unwrap().as_ptr());
+//! assert!(handle != 0);
 //!
 //! // Evaluate the variable "a"
-//! let mut result = 0;
-//! let result_code = rvs_next(context, handle, &mut result);
-//! assert_eq!(result_code, 0);
+//! let result = rvs_next(context, handle);
 //! assert_eq!(result, 5);
 //!
-//! // Free the context
+//! // Free the error and context
+//! rvs_error_free(error);
 //! rvs_context_free(context);
 //! ```
 
@@ -36,7 +35,6 @@ use libc::c_char;
 use std::ffi::CStr;
 use std::path::Path;
 use std::fs::File;
-use std::error::Error;
 use std::io::prelude::*;
 
 use rvs::types::RvC;
@@ -44,24 +42,10 @@ use rvs::types::Context;
 use rvs::types::Seed;
 use rvs::parse_rvs;
 
+use error::Error;
+use error::ErrorKind;
+
 type SequenceHandle = uint32_t;
-type ResultCodeRaw = uint32_t;
-
-enum ResultCode {
-    Success,
-    NotFound,
-    ParseError,
-}
-
-impl ResultCode {
-    fn value(&self) -> ResultCodeRaw {
-        match *self {
-            ResultCode::Success => 0,
-            ResultCode::NotFound => 1,
-            ResultCode::ParseError => 2,
-        }
-    }
-}
 
 /// Allocates and returns a new context.
 ///
@@ -146,7 +130,11 @@ pub extern fn rvs_seed(context: *mut Context, seed: u32) {
 ///
 /// "example.rvs; a = 5;"
 #[no_mangle]
-pub extern fn rvs_parse(context: *mut Context, s: *const c_char) -> ResultCodeRaw {
+pub extern fn rvs_parse(
+    context: *mut Context,
+    s: *const c_char,
+    error: *mut Error
+) {
     assert!(!context.is_null());
     assert!(!s.is_null());
 
@@ -167,13 +155,13 @@ pub extern fn rvs_parse(context: *mut Context, s: *const c_char) -> ResultCodeRa
                     }
 
                     let mut file = match File::open(&path) {
-                        Err(e) => panic!("could not open {}: {}", path.display(), e.description()),
+                        Err(e) => panic!("could not open {}: {}", path.display(), ::std::error::Error::description(&e)),
                         Ok(file) => file,
                     };
 
                     let mut contents = String::new();
                     match file.read_to_string(&mut contents) {
-                        Err(e) => panic!("could not read {}: {}", path.display(), e.description()),
+                        Err(e) => panic!("could not read {}: {}", path.display(), ::std::error::Error::description(&e)),
                         Ok(_) => (),
                     };
 
@@ -185,37 +173,42 @@ pub extern fn rvs_parse(context: *mut Context, s: *const c_char) -> ResultCodeRa
             match parse_rvs(&parser_string, &mut context) {
                 Ok(_) => (),
                 Err(e) => {
-                    println!("{}", e);
-                    println!("{}", parser_string.lines().nth(e.line - 1).unwrap());
-                    for _ in 0..e.column-1 { print!(" "); }
-                    println!("^");
-
-                    return ResultCode::ParseError.value()
+                    unsafe {
+                        if !error.is_null() {
+                            *error = Error::new(ErrorKind::Parse(e))
+                        }
+                        // FIXME: Add the following to the error:
+                        // println!("{}", e);
+                        // println!("{}", parser_string.lines().nth(e.line - 1).unwrap());
+                        // for _ in 0..e.column-1 { print!(" "); }
+                        // println!("^");
+                        //
+                        // To do so:
+                        //
+                        // 1. Convert rust-peg ParseError into an Rvs ParseError
+                        // 2. Pass the Rvs ParseError
+                    }
                 },
             }
         }
     }
-
-    ResultCode::Success.value()
 }
 
-/// Returns the handle of a variable via the handle pointer
+/// Returns the handle of a variable
 ///
 /// The callee owns the handle.  The handle is valid until `rvs_context_free()` is called.
 ///
 /// # Errors
 ///
-/// * Returns ResultCode::Success on success
-/// * Returns ResultCode::NotFound if the variable name is not found.
+/// * Returns 0 if variable does not exist
 ///
 /// # Panics
 ///
-/// If any pointer arguments are null.
+/// * If any pointer arguments are null
 #[no_mangle]
-pub extern fn rvs_find(context: *mut Context, id: *const c_char, handle_ptr: *mut SequenceHandle) -> ResultCodeRaw {
+pub extern fn rvs_find(context: *mut Context, id: *const c_char) -> SequenceHandle {
     assert!(!context.is_null());
     assert!(!id.is_null());
-    assert!(!handle_ptr.is_null());
 
     let id_cstr = unsafe { CStr::from_ptr(id) };
     let id_rstr = id_cstr.to_str().unwrap();
@@ -223,11 +216,9 @@ pub extern fn rvs_find(context: *mut Context, id: *const c_char, handle_ptr: *mu
     let context = unsafe { &mut *context };
     if let Some(handle) = context.handles.get(id_rstr) {
         let handle = *handle as SequenceHandle;
-        unsafe { *handle_ptr = handle + 1; };
-
-        ResultCode::Success.value()
+        handle + 1
     } else {
-        ResultCode::NotFound.value()
+        0
     }
 }
 
@@ -235,87 +226,71 @@ pub extern fn rvs_find(context: *mut Context, id: *const c_char, handle_ptr: *mu
 ///
 /// # Errors
 ///
-/// * Returns ResultCode::Success on success
-/// * Returns ResultCode::NotFound if the handle is not valid
+/// Returns 0 if handle is invalid.
 ///
 /// # Panics
 ///
-/// If any pointer arguments are null.
+/// * If any pointer arguments are null
+/// * If handle doesn't exist
 #[no_mangle]
-pub extern fn rvs_next(context: *mut Context, handle: SequenceHandle, result_ptr: *mut u32) -> ResultCodeRaw {
+pub extern fn rvs_next(context: *mut Context, handle: SequenceHandle) -> u32 {
     assert!(!context.is_null());
-    assert!(!result_ptr.is_null());
 
     let context = unsafe { &mut *context };
-    let idx = match handle_to_idx(&context.variables, handle) {
-        Some(x) => x,
-        None => { return ResultCode::NotFound.value(); },
-    };
+    assert!(handle > 0 && handle <= (context.variables.len() as u32));
 
-    let value = context.variables[idx].next();
-    unsafe { *result_ptr = value; };
-
-    ResultCode::Success.value()
+    match handle_to_idx(&context.variables, handle) {
+        Some(idx) => context.variables[idx].next(),
+        None => 0,
+    }
 }
 
-/// Returns the previous value of a variable via the result pointer
-///
-/// If `rvs_next()` has not been called on the same variable handle previously, the result
-/// with be `0`.
+/// Returns the previous value of a variable
 ///
 /// # Errors
 ///
-/// * Returns ResultCode::Success on success
-/// * Returns ResultCode::NotFound if the handle is not valid
+/// * Returns 0 if handle is invalid
+/// * Returns 0 if `rvs_next` has not been called
 ///
 /// # Panics
 ///
-/// If any pointer arguments are null.
+/// * If any pointer arguments are null
+/// * If handle doesn't exist
 #[no_mangle]
-pub extern fn rvs_prev(context: *mut Context, handle: SequenceHandle, result_ptr: *mut u32) -> ResultCodeRaw {
+pub extern fn rvs_prev(context: *mut Context, handle: SequenceHandle) -> u32 {
     assert!(!context.is_null());
-    assert!(!result_ptr.is_null());
 
     let context = unsafe { &mut *context };
-    let idx = match handle_to_idx(&context.variables, handle) {
-        Some(x) => x,
-        None => { return ResultCode::NotFound.value(); },
-    };
+    assert!(handle > 0 && handle <= (context.variables.len() as u32));
 
-    let value = context.variables[idx].prev();
-    unsafe { *result_ptr = value; };
-
-    ResultCode::Success.value()
+    match handle_to_idx(&context.variables, handle) {
+        Some(idx) => context.variables[idx].prev(),
+        None => 0,
+    }
 }
 
 /// Returns the done value of a variable via the result pointer
 ///
-/// If `rvs_next()` has not been called on the same variable handle previously, the result
-/// with be `0`.
-///
 /// # Errors
 ///
-/// * Returns ResultCode::Success on success
-/// * Returns ResultCode::NotFound if the handle is not valid
+/// * Returns false if handle is invalid
+/// * Returns false if `rvs_next` has not been called
 ///
 /// # Panics
 ///
-/// If any pointer arguments are null.
+/// * If any pointer arguments are null
+/// * If handle doesn't exist
 #[no_mangle]
-pub extern fn rvs_done(context: *mut Context, handle: SequenceHandle, result_ptr: *mut bool) -> ResultCodeRaw {
+pub extern fn rvs_done(context: *mut Context, handle: SequenceHandle) -> bool {
     assert!(!context.is_null());
-    assert!(!result_ptr.is_null());
 
     let context = unsafe { &mut *context };
-    let idx = match handle_to_idx(&context.variables, handle) {
-        Some(x) => x,
-        None => { return ResultCode::NotFound.value(); },
-    };
+    assert!(handle > 0 && handle <= (context.variables.len() as u32));
 
-    let value = context.variables[idx].done();
-    unsafe { *result_ptr = value; };
-
-    ResultCode::Success.value()
+    match handle_to_idx(&context.variables, handle) {
+        Some(idx) => context.variables[idx].done(),
+        None => false,
+    }
 }
 
 fn handle_to_idx(variables: &Vec<Box<RvC>>, handle: SequenceHandle) -> Option<usize> {
@@ -333,16 +308,17 @@ mod tests {
 
     use std::ffi::CString;
 
+    use error::{
+        rvs_error_new,
+        rvs_error_free,
+        rvs_error_code,
+    };
+
     fn next_by_name(context: *mut Context, name: &str) -> u32 {
-        let mut handle = 0;
-        let result_code = rvs_find(context, CString::new(name).unwrap().as_ptr(), &mut handle);
-        assert_eq!(result_code, ResultCode::Success.value());
+        let handle = rvs_find(context, CString::new(name).unwrap().as_ptr());
+        assert!(handle != 0);
 
-        let mut value = 0;
-        let result_code = rvs_next(context, handle, &mut value);
-        assert_eq!(result_code, ResultCode::Success.value());
-
-        value
+        rvs_next(context, handle)
     }
 
     mod rvs_seed {
@@ -350,20 +326,19 @@ mod tests {
 
         fn next(seed: u32, s: &str) -> u32 {
             let context = rvs_context_new();
+            let error = rvs_error_new();
             rvs_seed(context, seed);
 
             let s = format!("a = {};", s);
-            let result_code = rvs_parse(context, CString::new(s).unwrap().as_ptr());
-            assert_eq!(result_code, ResultCode::Success.value());
+            rvs_parse(context, CString::new(s).unwrap().as_ptr(), error);
+            assert_eq!(rvs_error_code(error), ErrorKind::None.code());
 
-            let mut handle = 0;
-            let result_code = rvs_find(context, CString::new("a").unwrap().as_ptr(), &mut handle);
-            assert_eq!(result_code, ResultCode::Success.value());
+            let handle = rvs_find(context, CString::new("a").unwrap().as_ptr());
+            assert!(handle != 0);
 
-            let mut value = 0;
-            let result_code = rvs_next(context, handle, &mut value);
-            assert_eq!(result_code, ResultCode::Success.value());
+            let value = rvs_next(context, handle);
 
+            rvs_error_free(error);
             rvs_context_free(context);
 
             value
@@ -387,25 +362,39 @@ mod tests {
     mod rvs_parse {
         use super::*;
 
+        // FIXME Cannot test this due to error parameter being mutable while std::ptr::null() is
+        // not.
+        // #[test]
+        // fn null_error_struct() {
+        //     use std::ptr;
+        //
+        //     let context = rvs_context_new();
+        //     rvs_parse(context, CString::new("a=5;").unwrap().as_ptr(), ptr::null());
+        //     assert_eq!(next_by_name(context, "a"), 5);
+        // }
+
         #[test]
         fn require() {
             let context = rvs_context_new();
+            let error = rvs_error_new();
 
-            let result_code = rvs_parse(context, CString::new("require '../examples/require.rvs'").unwrap().as_ptr());
-            assert_eq!(result_code, ResultCode::Success.value());
+            rvs_parse(context, CString::new("require '../examples/require.rvs'").unwrap().as_ptr(), error);
+            assert_eq!(rvs_error_code(error), ErrorKind::None.code());
 
             assert_eq!(next_by_name(context, "a"), 5);
             assert_eq!(next_by_name(context, "b"), 1);
 
+            rvs_error_free(error);
             rvs_context_free(context);
         }
 
         #[test]
         fn basic() {
             let context = rvs_context_new();
+            let error = rvs_error_new();
 
-            let result_code = rvs_parse(context, CString::new("a=5;").unwrap().as_ptr());
-            assert_eq!(result_code, ResultCode::Success.value());
+            rvs_parse(context, CString::new("a=5;").unwrap().as_ptr(), error);
+            assert_eq!(rvs_error_code(error), ErrorKind::None.code());
 
             let handles = unsafe { &mut (*context).handles };
             let variables = unsafe { &mut (*context).variables };
@@ -414,15 +403,17 @@ mod tests {
             let value = variables[*id].next();
             assert_eq!(value, 5);
 
+            rvs_error_free(error);
             rvs_context_free(context);
         }
 
         #[test]
         fn range() {
             let context = rvs_context_new();
+            let error = rvs_error_new();
 
-            let result_code = rvs_parse(context, CString::new("a=[0,1];").unwrap().as_ptr());
-            assert_eq!(result_code, ResultCode::Success.value());
+            rvs_parse(context, CString::new("a=[0,1];").unwrap().as_ptr(), error);
+            assert_eq!(rvs_error_code(error), ErrorKind::None.code());
 
             let handles = unsafe { &mut (*context).handles };
             let variables = unsafe { &mut (*context).variables };
@@ -431,65 +422,69 @@ mod tests {
             let value = variables[*id].next();
             assert!(value == 0 || value == 1);
 
+            rvs_error_free(error);
             rvs_context_free(context);
         }
 
         #[test]
         fn parse_error() {
+            use rvs::grammar::ParseError;
+
             let context = rvs_context_new();
+            let error = rvs_error_new();
 
-            let result_code = rvs_parse(context, CString::new("a = 1;\n1 = b;").unwrap().as_ptr());
-            assert_eq!(result_code, ResultCode::ParseError.value());
+            rvs_parse(context, CString::new("a = 1;\n1 = b;").unwrap().as_ptr(), error);
+            // FIXME: Check error message
+            // println!("{}", unsafe { *error });
+            // assert_eq!(rvs_error_code(error), ErrorKind::Parse(ParseError::new()).code());
+            assert!(rvs_error_code(error) != ErrorKind::None.code());
 
+            rvs_error_free(error);
             rvs_context_free(context);
         }
 
         #[test]
         fn file() {
             let context = rvs_context_new();
+            let error = rvs_error_new();
 
-            let result_code = rvs_parse(context, CString::new("../examples/basic.rvs;b = 3").unwrap().as_ptr());
-            assert_eq!(result_code, ResultCode::Success.value());
+            rvs_parse(context, CString::new("../examples/basic.rvs;b = 3").unwrap().as_ptr(), error);
+            assert_eq!(rvs_error_code(error), ErrorKind::None.code());
 
-            let mut handle = 0;
-            let mut value = 0;
+            let handle = rvs_find(context, CString::new("a").unwrap().as_ptr());
+            assert!(handle != 0);
 
-            let result_code = rvs_find(context, CString::new("a").unwrap().as_ptr(), &mut handle);
-            assert_eq!(result_code, ResultCode::Success.value());
-
-            let result_code = rvs_next(context, handle, &mut value);
-            assert_eq!(result_code, ResultCode::Success.value());
+            let value = rvs_next(context, handle);
             assert_eq!(value, 5);
 
-            let result_code = rvs_find(context, CString::new("b").unwrap().as_ptr(), &mut handle);
-            assert_eq!(result_code, ResultCode::Success.value());
+            let handle = rvs_find(context, CString::new("b").unwrap().as_ptr());
+            assert!(handle != 0);
 
-            let result_code = rvs_next(context, handle, &mut value);
-            assert_eq!(result_code, ResultCode::Success.value());
+            let value = rvs_next(context, handle);
             assert_eq!(value, 3);
 
+            rvs_error_free(error);
             rvs_context_free(context);
         }
 
         #[test]
         fn override_rv() {
             let context = rvs_context_new();
+            let error = rvs_error_new();
 
-            let result_code = rvs_parse(context, CString::new("a = 0;a = 1").unwrap().as_ptr());
-            assert_eq!(result_code, ResultCode::Success.value());
+            rvs_parse(context, CString::new("a = 0;a = 1").unwrap().as_ptr(), error);
+            assert_eq!(rvs_error_code(error), ErrorKind::None.code());
 
-            let result_code = rvs_parse(context, CString::new("a = 2").unwrap().as_ptr());
-            assert_eq!(result_code, ResultCode::Success.value());
+            rvs_parse(context, CString::new("a = 2").unwrap().as_ptr(), error);
+            assert_eq!(rvs_error_code(error), ErrorKind::None.code());
 
-            let mut handle = 0;
-            let result_code = rvs_find(context, CString::new("a").unwrap().as_ptr(), &mut handle);
-            assert_eq!(result_code, ResultCode::Success.value());
+            let handle = rvs_find(context, CString::new("a").unwrap().as_ptr());
+            assert!(handle != 0);
 
-            let mut value = 0;
-            let result_code = rvs_next(context, handle, &mut value);
-            assert_eq!(result_code, ResultCode::Success.value());
+            let value = rvs_next(context, handle);
             assert_eq!(value, 2);
 
+            rvs_error_free(error);
             rvs_context_free(context);
         }
     }
@@ -501,9 +496,8 @@ mod tests {
         fn not_found() {
             let context = rvs_context_new();
 
-            let mut handle: SequenceHandle = 0;
-            let result_code = rvs_find(context, CString::new("a").unwrap().as_ptr(), &mut handle);
-            assert_eq!(result_code, ResultCode::NotFound.value());
+            let handle = rvs_find(context, CString::new("a").unwrap().as_ptr());
+            assert_eq!(handle, 0);
 
             rvs_context_free(context);
         }
@@ -511,15 +505,15 @@ mod tests {
         #[test]
         fn found() {
             let context = rvs_context_new();
+            let error = rvs_error_new();
 
-            let result_code = rvs_parse(context, CString::new("a=5;").unwrap().as_ptr());
-            assert_eq!(result_code, 0);
+            rvs_parse(context, CString::new("a=5;").unwrap().as_ptr(), error);
+            assert_eq!(rvs_error_code(error), ErrorKind::None.code());
 
-            let mut handle: SequenceHandle = 0;
-            let result_code = rvs_find(context, CString::new("a").unwrap().as_ptr(), &mut handle);
-            assert_eq!(handle, 1);
-            assert_eq!(result_code, ResultCode::Success.value());
+            let handle = rvs_find(context, CString::new("a").unwrap().as_ptr());
+            assert!(handle != 0);
 
+            rvs_error_free(error);
             rvs_context_free(context);
         }
     }
@@ -530,30 +524,28 @@ mod tests {
         #[test]
         fn found() {
             let context = rvs_context_new();
+            let error = rvs_error_new();
 
-            let result_code = rvs_parse(context, CString::new("a=5;").unwrap().as_ptr());
-            assert_eq!(result_code, ResultCode::Success.value());
+            rvs_parse(context, CString::new("a=5;").unwrap().as_ptr(), error);
+            assert_eq!(rvs_error_code(error), ErrorKind::None.code());
 
-            let mut handle: SequenceHandle = 0;
-            let result_code = rvs_find(context, CString::new("a").unwrap().as_ptr(), &mut handle);
-            assert_eq!(result_code, ResultCode::Success.value());
+            let handle = rvs_find(context, CString::new("a").unwrap().as_ptr());
+            assert!(handle != 0);
 
-            let mut value: u32 = 0;
-            let result_code = rvs_next(context, handle, &mut value);
-            assert_eq!(result_code, ResultCode::Success.value());
+            let value = rvs_next(context, handle);
             assert_eq!(value, 5);
 
+            rvs_error_free(error);
             rvs_context_free(context);
         }
 
         #[test]
+        #[should_panic]
         fn not_found() {
             let context = rvs_context_new();
 
             let handle = 1;
-            let mut value: u32 = 0;
-            let result_code = rvs_next(context, handle, &mut value);
-            assert_eq!(result_code, ResultCode::NotFound.value());
+            let value = rvs_next(context, handle);
             assert_eq!(value, 0);
 
             rvs_context_free(context);
