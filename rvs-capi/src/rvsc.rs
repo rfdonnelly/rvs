@@ -125,16 +125,6 @@ pub extern fn rvs_parse(
                         if !error.is_null() {
                             *error = Error::new(ErrorKind::Parse(e))
                         }
-                        // FIXME: Add the following to the error:
-                        // println!("{}", e);
-                        // println!("{}", parser_string.lines().nth(e.line - 1).unwrap());
-                        // for _ in 0..e.column-1 { print!(" "); }
-                        // println!("^");
-                        //
-                        // To do so:
-                        //
-                        // 1. Convert rust-peg ParseError into an Rvs ParseError
-                        // 2. Pass the Rvs ParseError
                     }
                 },
             }

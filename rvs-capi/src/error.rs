@@ -2,15 +2,15 @@ use std::fmt;
 use std::ffi::CString;
 use libc::c_char;
 
-use rvs::grammar::ParseError;
+use rvs::error::ParseError;
 
-#[derive(PartialEq, Debug, Clone)]
+#[derive(Debug)]
 pub struct Error {
     pub message: Option<CString>,
     pub kind: ErrorKind,
 }
 
-#[derive(PartialEq, Debug, Clone)]
+#[derive(Debug)]
 pub enum ErrorKind {
     None,
     Parse(ParseError),
