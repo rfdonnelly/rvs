@@ -11,7 +11,7 @@ use error::ParseError;
 use error::ParseResult;
 
 pub fn parse_rvs(s: &str, context: &mut Context) -> ParseResult<()> {
-    match grammar::items(s) {
+    match grammar::items(s, &context.requires) {
         Ok(items) => {
             context.transform_items(&items);
 
@@ -150,9 +150,54 @@ mod tests {
     mod examples {
         use super::*;
 
+        use std::env::current_dir;
+
+        mod require {
+            use super::*;
+
+            /// Verify search path priority
+            #[test]
+            fn same_filename_different_directory() {
+                let mut context = Context::new();
+                let fixtures = current_dir().unwrap().join("fixtures/require/same_filename_different_directory");
+                context.requires.add_search_path(&fixtures.join("a"));
+                context.requires.add_search_path(&fixtures.join("b"));
+
+                parse_rvs("require 'a.rvs';", &mut context).unwrap();
+
+                assert!(context.get_variable("a").is_some());
+                assert!(context.get_variable("b").is_none());
+            }
+
+            #[test]
+            fn source_relative() {
+                let mut context = Context::new();
+                let fixtures = current_dir().unwrap().join("fixtures/require/source_relative");
+                context.requires.add_search_path(&fixtures);
+                context.requires.add_search_path(&fixtures.join("path"));
+
+                parse_rvs("require 'a.rvs';", &mut context).unwrap();
+
+                assert!(context.get_variable("a").is_some());
+                assert!(context.get_variable("b").is_some());
+            }
+
+            #[test]
+            fn require_is_idempotent() {
+                let mut context = Context::new();
+                let fixtures = current_dir().unwrap().join("fixtures/require/require_is_idempotent");
+                context.requires.add_search_path(&fixtures);
+
+                parse_rvs("require 'a.rvs';", &mut context).unwrap();
+
+                assert_eq!(context.get_variable("a").unwrap().next(), 1);
+            }
+        }
+
         #[test]
         fn readme() {
             let mut context = Context::new();
+            context.requires.add_search_path(&::std::env::current_dir().unwrap());
             assert!(parse_rvs("require 'examples/readme.rvs';", &mut context).is_ok());
 
             {

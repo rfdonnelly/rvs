@@ -10,9 +10,15 @@ use ast::Function;
 use ast::Node;
 use ast::Item;
 
+#![arguments(_require_paths: &RequirePaths)]
+
 require -> Item
     = "require" _ s:string ";" {
         let path = Path::new(&s);
+        let path = match _require_paths.find(&path) {
+            Ok(path) => path,
+            Err(e) => panic!("could not find {}: {}", path.display(), e.description()),
+        };
         let mut file = match File::open(&path) {
             Ok(file) => file,
             Err(e) => panic!("could not open {}: {}", path.display(), e.description()),
@@ -22,7 +28,7 @@ require -> Item
             Ok(_) => (),
             Err(e) => panic!("could not read {}: {}", path.display(), e.description()),
         }
-        Item::Multiple(items(&contents).unwrap())
+        Item::Multiple(items(&contents, _require_paths).unwrap())
     }
 
 pub identifier -> &'input str

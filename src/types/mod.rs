@@ -15,6 +15,7 @@ use rand::Sample as RandSample;
 use ast::Node;
 use ast::Function;
 use ast::Item;
+use grammar::RequirePaths;
 
 pub use self::value::Value;
 pub use self::expr::Expr;
@@ -103,6 +104,7 @@ pub struct Context {
     pub handles: LinkedHashMap<String, usize>,
     pub enums: LinkedHashMap<String, Enum>,
     pub seed: Seed,
+    pub requires: RequirePaths,
 }
 
 impl Context {
@@ -112,6 +114,7 @@ impl Context {
             handles: LinkedHashMap::new(),
             enums: LinkedHashMap::new(),
             seed: Seed::from_u32(0),
+            requires: RequirePaths::new(),
         }
     }
 
