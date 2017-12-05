@@ -2,8 +2,10 @@ include!(concat!(env!("OUT_DIR"), "/grammar.rs"));
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+
     mod atom {
-        use super::super::*;
+        use super::*;
 
         #[test]
         fn good() {
@@ -21,7 +23,7 @@ mod tests {
     }
 
     mod expr {
-        use super::super::*;
+        use super::*;
 
         #[test]
         fn good() {
@@ -39,7 +41,7 @@ mod tests {
     }
 
     mod identifier {
-        use grammar::*;
+        use super::*;
 
         #[test]
         fn good() {
@@ -59,7 +61,7 @@ mod tests {
     }
 
     mod number {
-        use grammar::*;
+        use super::*;
 
         #[test]
         fn good() {
@@ -77,7 +79,7 @@ mod tests {
     }
 
     mod hex_number {
-        use grammar::*;
+        use super::*;
 
         #[test]
         fn good() {
@@ -96,7 +98,7 @@ mod tests {
     }
 
     mod assignment {
-        use super::super::*;
+        use super::*;
 
         #[test]
         fn good() {
@@ -129,7 +131,7 @@ mod tests {
     }
 
     mod items {
-        use super::super::*;
+        use super::*;
 
         #[test]
         fn good() {
@@ -161,7 +163,7 @@ mod tests {
     }
 
     mod range {
-        use super::super::*;
+        use super::*;
 
         #[test]
         fn ast() {
