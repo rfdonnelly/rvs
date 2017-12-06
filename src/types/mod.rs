@@ -70,7 +70,7 @@ impl fmt::Display for RvC {
 }
 
 pub struct Seed {
-    pub value: [u32; 4],
+    pub value: [u64; 2],
 }
 
 impl Seed {
@@ -86,15 +86,22 @@ impl Seed {
     ///
     ///    This is done by seeding an Rng with the LQS then using the Rng to generate the HQS.
     pub fn from_u32(seed: u32) -> Seed {
-        let mut rng = XorShiftRng::from_seed([
+        let mut rng = XorShiftRng::from_seed(Seed::from_u32_array([
             seed,
             seed ^ 0xaaaa_aaaa,
             seed ^ 0x5555_5555,
             !seed,
-        ]);
+        ]).value);
 
+        Seed::from_u32_array([rng.gen(), rng.gen(), rng.gen(), rng.gen()])
+    }
+
+    pub fn from_u32_array(x: [u32; 4]) -> Seed {
         Seed {
-            value: [rng.gen(), rng.gen(), rng.gen(), rng.gen()],
+            value: [
+                ((x[1] as u64) << 32) | (x[0] as u64),
+                ((x[3] as u64) << 32) | (x[2] as u64),
+            ]
         }
     }
 }
