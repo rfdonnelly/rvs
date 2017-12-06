@@ -10,7 +10,9 @@ package rvs_pkg;
     import "DPI-C" function rvs_context rvs_context_new();
     import "DPI-C" function void rvs_context_free(rvs_context ctxt);
     import "DPI-C" function void rvs_seed(rvs_context ctxt, u32_t seed);
+    import "DPI-C" function void rvs_search_path(rvs_context ctxt, string path, rvs_error error);
     import "DPI-C" function void rvs_parse(rvs_context ctxt, string s, rvs_error error);
+
     import "DPI-C" function rvs_handle rvs_find(rvs_context ctxt, string name);
     import "DPI-C" function rvs_result rvs_next(rvs_context ctxt, rvs_handle handle);
     import "DPI-C" function rvs_result rvs_prev(rvs_context ctxt, rvs_handle handle);

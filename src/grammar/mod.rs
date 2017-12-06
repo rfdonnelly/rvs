@@ -91,6 +91,40 @@ impl RequirePaths {
         }
     }
 
+    /// Sets the search path used for `require`
+    ///
+    /// The string must be a colon separated list of paths.
+    ///
+    /// # Errors
+    ///
+    /// Error will be returned for parsed paths that do not exist.  If the search path string contains
+    /// a mix of paths that do and do not exist, the paths that do exist will be added to the internal
+    /// search path.
+    pub fn set_search_path(&mut self, paths: &str) -> io::Result<()> {
+        let mut error_paths: Vec<PathBuf> = Vec::new();
+
+        for path in paths.split(':') {
+            let path = Path::new(path);
+
+            if path.exists() {
+                self.add_search_path(&path);
+            } else {
+                error_paths.push(path.to_path_buf());
+            }
+        }
+
+        if error_paths.len() > 0 {
+            Err(io::Error::new(io::ErrorKind::NotFound,
+                               format!("Paths not found:\n{}",
+                                       error_paths.iter()
+                                       .map(|path| format!("   {:?}", path))
+                                       .collect::<Vec<String>>()
+                                       .join("\n"))))
+        } else {
+            Ok(())
+        }
+    }
+
     pub fn add_search_path(&mut self, path: &Path) {
         self.search_paths.push(path.to_path_buf());
     }

@@ -14,6 +14,7 @@ pub struct Error {
 pub enum ErrorKind {
     None,
     Parse(ParseError),
+    Io(::std::io::Error),
 }
 
 impl Error {
@@ -28,6 +29,7 @@ impl Error {
         match self.kind {
             ErrorKind::None => false,
             ErrorKind::Parse(_) => true,
+            ErrorKind::Io(_) => true,
         }
     }
 }
@@ -37,6 +39,7 @@ impl fmt::Display for Error {
         match self.kind {
             ErrorKind::None => write!(f, "no error"),
             ErrorKind::Parse(ref e) => e.fmt(f),
+            ErrorKind::Io(ref e) => e.fmt(f),
         }
     }
 }
@@ -46,6 +49,7 @@ impl ErrorKind {
         match *self {
             ErrorKind::None => 0,
             ErrorKind::Parse(_) => 1,
+            ErrorKind::Io(_) => 2,
         }
     }
 }

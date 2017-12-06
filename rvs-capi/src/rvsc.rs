@@ -37,6 +37,41 @@ pub extern fn rvs_context_free(context: *mut Context) {
     unsafe { Box::from_raw(context); }
 }
 
+/// Sets the search path used for `require`
+///
+/// The string must be a colon separated list of paths.
+///
+/// # Errors
+///
+/// Error will be reported for parsed paths that do not exist.  If the search path string contains
+/// a mix of paths that do and do not exist, the paths that do exist will be added to the internal
+/// search path.
+///
+/// # Panics
+///
+/// If any pointer arguments are null.
+#[no_mangle]
+pub extern fn rvs_search_path(
+    context: *mut Context,
+    path: *const c_char,
+    error: *mut Error
+) {
+    assert!(!context.is_null());
+
+    let context = unsafe { &mut *context };
+    let c_str = unsafe { CStr::from_ptr(path) };
+    let r_str = c_str.to_str().unwrap();
+
+    if let Err(e) = context.requires.set_search_path(&r_str) {
+        if !error.is_null() {
+            unsafe {
+                *error = Error::new(ErrorKind::Io(e))
+            }
+        }
+    }
+}
+
+
 /// Sets the seed for all future calls to `rvs_parse()`.
 ///
 /// Should be called before `rvs_parse()`.
@@ -118,15 +153,12 @@ pub extern fn rvs_parse(
                     entry.to_owned() + ";"
                 };
 
-            match parse_rvs(&parser_string, &mut context) {
-                Ok(_) => (),
-                Err(e) => {
+            if let Err(e) = parse_rvs(&parser_string, &mut context) {
+                if !error.is_null() {
                     unsafe {
-                        if !error.is_null() {
-                            *error = Error::new(ErrorKind::Parse(e))
-                        }
+                        *error = Error::new(ErrorKind::Parse(e))
                     }
-                },
+                }
             }
         }
     }
@@ -315,6 +347,15 @@ mod tests {
         fn require() {
             let context = rvs_context_new();
             let error = rvs_error_new();
+
+            let search_path = ::std::env::current_dir()
+                .unwrap()
+                .join("../examples");
+            let search_path = search_path
+                .to_str()
+                .unwrap();
+            rvs_search_path(context, CString::new(search_path).unwrap().as_ptr(), error);
+            assert_eq!(rvs_error_code(error), ErrorKind::None.code());
 
             rvs_parse(context, CString::new("require '../examples/require.rvs'").unwrap().as_ptr(), error);
             assert_eq!(rvs_error_code(error), ErrorKind::None.code());
