@@ -70,9 +70,9 @@ impl RequirePaths {
         } else {
             // Relative to current source file
             if let Some(current) = self.stack.last() {
-                let path = current.parent().unwrap().join(path);
-                if path.exists() {
-                    return Ok(path);
+                let parent = current.parent().unwrap().join(path);
+                if parent.exists() {
+                    return Ok(parent);
                 }
             }
 

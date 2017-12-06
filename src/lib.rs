@@ -11,7 +11,7 @@ use error::ParseError;
 use error::ParseResult;
 
 pub fn parse_rvs(s: &str, context: &mut Context) -> ParseResult<()> {
-    match grammar::items(s, &context.requires) {
+    match grammar::items(s, &mut context.requires) {
         Ok(items) => {
             context.transform_items(&items);
 
@@ -190,7 +190,7 @@ mod tests {
 
                 parse_rvs("require 'a.rvs';", &mut context).unwrap();
 
-                assert_eq!(context.get_variable("a").unwrap().next(), 1);
+                assert_eq!(context.get_variable("a").unwrap().next(), 2);
             }
         }
 

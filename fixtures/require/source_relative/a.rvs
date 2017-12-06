@@ -1,6 +1,5 @@
-require 'path/b.rvs';
+// Path is relative to both the current file and the search path.  It is
+// insuffient to test source relative behavior.
+require 'a/b.rvs';
 
 a = 0;
-
-
-
