@@ -108,6 +108,7 @@ weighted = {
     * Logic operators
       * [x] &, |, ^
       * [x] <<, >>
+      * [x] ~
   * [x] Whitespace
   * [x] Comments
   * [x] Require/Include/Import/Etc

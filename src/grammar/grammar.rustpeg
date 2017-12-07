@@ -6,6 +6,7 @@ use std::error::Error;
 use std::io::prelude::*;
 
 use ast::Opcode;
+use ast::UnaryOpcode;
 use ast::Function;
 use ast::Node;
 use ast::Item;
@@ -84,6 +85,13 @@ op_div = _ "/" _
 op_mod = _ "%" _
 
 pub expr -> Box<Node>
+    = unary_expr
+    / binary_expr
+
+pub unary_expr -> Box<Node>
+    = "~" _ a:expr { Box::new(Node::UnaryOperation(UnaryOpcode::Neg, a)) }
+
+pub binary_expr -> Box<Node>
     = #infix<atom> {
         #L  x op_or  y { Box::new(Node::Operation(x, Opcode::Or, y)) }
         #L  x op_xor y { Box::new(Node::Operation(x, Opcode::Xor, y)) }

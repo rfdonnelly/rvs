@@ -19,6 +19,7 @@ use grammar::RequirePaths;
 
 pub use self::value::Value;
 pub use self::expr::Expr;
+pub use self::expr::Unary;
 pub use self::pattern::Pattern;
 pub use self::range::RangeSequence;
 pub use self::sample::Sample;
@@ -234,6 +235,14 @@ impl Context {
                 self.transform_function(rng, function, args)
             }
             Node::Number(x) => Box::new(Value::new(x)),
+            Node::UnaryOperation(ref op, ref a) => {
+                Box::new(
+                    Unary::new(
+                        op.clone(),
+                        self.transform_expr(rng, a)
+                        )
+                    )
+            },
             Node::Operation(ref bx, ref op, ref by) => {
                 Box::new(
                     Expr::new(

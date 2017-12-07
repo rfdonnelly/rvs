@@ -14,6 +14,11 @@ pub enum Opcode {
     Mod,
 }
 
+#[derive(PartialEq, Debug, Clone)]
+pub enum UnaryOpcode {
+    Neg,
+}
+
 #[derive(PartialEq, Debug)]
 pub enum Function {
     Pattern,
@@ -26,6 +31,7 @@ pub enum Function {
 pub enum Node {
     Identifier(String),
     Number(u32),
+    UnaryOperation(UnaryOpcode, Box<Node>),
     Operation(Box<Node>, Opcode, Box<Node>),
     Assignment(Box<Node>, Box<Node>),
     Enum(String, Vec<Box<Node>>),
@@ -63,6 +69,16 @@ impl fmt::Display for Opcode {
             Opcode::Mul => "*",
             Opcode::Div => "/",
             Opcode::Mod => "%",
+        };
+
+        write!(f, "{}", operator)
+    }
+}
+
+impl fmt::Display for UnaryOpcode {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let operator = match *self {
+            UnaryOpcode::Neg => "~",
         };
 
         write!(f, "{}", operator)

@@ -3,6 +3,7 @@ use std::fmt::Write;
 use rand::Rng;
 
 use ast::Opcode;
+use ast::UnaryOpcode;
 use types::Rv;
 use types::RvData;
 
@@ -11,6 +12,12 @@ pub struct Expr {
     operation: Opcode,
     l: Box<Rv>,
     r: Box<Rv>,
+}
+
+pub struct Unary {
+    data: RvData,
+    operation: UnaryOpcode,
+    operand: Box<Rv>,
 }
 
 impl Expr {
@@ -63,6 +70,44 @@ impl fmt::Display for Expr {
         f.write_char(' ')?;
         self.r.fmt(f)?;
         f.write_char(')')
+    }
+}
+
+impl Unary {
+    pub fn new(operation: UnaryOpcode, operand: Box<Rv>) -> Unary {
+        Unary {
+            data: RvData {
+                prev: 0,
+                done: false,
+            },
+            operation,
+            operand,
+        }
+    }
+}
+
+impl Rv for Unary {
+    fn next(&mut self, rng: &mut Rng) -> u32 {
+        let operand = self.operand.next(rng);
+
+        self.data.done = self.operand.done();
+
+        self.data.prev = match self.operation {
+            UnaryOpcode::Neg => !operand,
+        };
+
+        self.data.prev
+    }
+
+    fn data(&self) -> &RvData {
+        &self.data
+    }
+}
+
+impl fmt::Display for Unary {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        self.operation.fmt(f)?;
+        self.operand.fmt(f)
     }
 }
 
