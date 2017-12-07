@@ -1,0 +1,11 @@
+[package]
+name = "rvs-repl"
+version = "0.1.0"
+authors = ["Rob Donnelly <rfdonnelly@gmail.com>"]
+
+[dependencies]
+rvs = { version = "0.1", path = ".." }
+
+[[bin]]
+name = "rvs"
+path = "src/main.rs"
