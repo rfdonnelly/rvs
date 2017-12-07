@@ -27,9 +27,9 @@ fn main() {
                 .iter()
                 .map(|_| (rv.next(), rv.done()))
                 .map(|(next, done)| if done {
-                         format!("{} <done>", next)
+                         format!("0x{:x} <done>", next)
                     } else {
-                         format!("{}", next)
+                         format!("0x{:x}", next)
                     })
                 .collect();
             let values = values.join(", ");
