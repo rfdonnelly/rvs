@@ -15,6 +15,9 @@ fn main() {
         io::stdout().flush().unwrap();
 
         let s = read_statement().unwrap();
+        if s.is_empty() {
+            return;
+        }
         if let Err(e) = parse_rvs(&s, &mut context) {
             println!("error: {}", e);
         }
