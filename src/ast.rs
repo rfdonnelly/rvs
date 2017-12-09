@@ -1,7 +1,7 @@
 use std::fmt;
 
 #[derive(PartialEq, Debug, Clone)]
-pub enum Opcode {
+pub enum BinaryOpcode {
     Or,
     Xor,
     And,
@@ -32,7 +32,7 @@ pub enum Node {
     Identifier(String),
     Number(u32),
     UnaryOperation(UnaryOpcode, Box<Node>),
-    Operation(Box<Node>, Opcode, Box<Node>),
+    BinaryOperation(Box<Node>, BinaryOpcode, Box<Node>),
     Assignment(Box<Node>, Box<Node>),
     Enum(String, Vec<Box<Node>>),
     EnumItem(String, Option<Box<Node>>),
@@ -56,19 +56,19 @@ pub enum Item {
     Multiple(Vec<Item>),
 }
 
-impl fmt::Display for Opcode {
+impl fmt::Display for BinaryOpcode {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let operator = match *self {
-            Opcode::Or => "|",
-            Opcode::Xor => "^",
-            Opcode::And => "&",
-            Opcode::Shl => "<<",
-            Opcode::Shr => ">>",
-            Opcode::Add => "+",
-            Opcode::Sub => "-",
-            Opcode::Mul => "*",
-            Opcode::Div => "/",
-            Opcode::Mod => "%",
+            BinaryOpcode::Or => "|",
+            BinaryOpcode::Xor => "^",
+            BinaryOpcode::And => "&",
+            BinaryOpcode::Shl => "<<",
+            BinaryOpcode::Shr => ">>",
+            BinaryOpcode::Add => "+",
+            BinaryOpcode::Sub => "-",
+            BinaryOpcode::Mul => "*",
+            BinaryOpcode::Div => "/",
+            BinaryOpcode::Mod => "%",
         };
 
         write!(f, "{}", operator)

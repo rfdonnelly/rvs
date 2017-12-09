@@ -180,15 +180,15 @@ mod tests {
         #[test]
         fn good() {
             assert_eq!(expr("1+2", &mut RequirePaths::new()), Ok(
-                Box::new(Node::Operation(
+                Box::new(Node::BinaryOperation(
                     Box::new(Node::Number(1)),
-                    Opcode::Add,
+                    BinaryOpcode::Add,
                     Box::new(Node::Number(2))
                 ))
             ));
 
             assert_eq!(format!("{:?}", expr("1+2*3", &mut RequirePaths::new())),
-            "Ok(Operation(Number(1), Add, Operation(Number(2), Mul, Number(3))))");
+            "Ok(BinaryOperation(Number(1), Add, BinaryOperation(Number(2), Mul, Number(3))))");
         }
     }
 

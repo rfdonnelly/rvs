@@ -243,7 +243,7 @@ impl Context {
                         )
                     )
             },
-            Node::Operation(ref bx, ref op, ref by) => {
+            Node::BinaryOperation(ref bx, ref op, ref by) => {
                 Box::new(
                     Binary::new(
                         self.transform_expr(rng, bx),

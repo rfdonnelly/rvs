@@ -2,14 +2,14 @@ use std::fmt;
 use std::fmt::Write;
 use rand::Rng;
 
-use ast::Opcode;
+use ast::BinaryOpcode;
 use ast::UnaryOpcode;
 use types::Rv;
 use types::RvData;
 
 pub struct Binary {
     data: RvData,
-    operation: Opcode,
+    operation: BinaryOpcode,
     l: Box<Rv>,
     r: Box<Rv>,
 }
@@ -21,7 +21,7 @@ pub struct Unary {
 }
 
 impl Binary {
-    pub fn new(l: Box<Rv>, operation: Opcode, r: Box<Rv>) -> Binary {
+    pub fn new(l: Box<Rv>, operation: BinaryOpcode, r: Box<Rv>) -> Binary {
         Binary {
             data: RvData {
                 prev: 0,
@@ -41,16 +41,16 @@ impl Rv for Binary {
         self.data.done = self.l.done() || self.r.done();
 
         self.data.prev = match self.operation {
-            Opcode::Or => l | r,
-            Opcode::Xor => l ^ r,
-            Opcode::And => l & r,
-            Opcode::Shl => l << r,
-            Opcode::Shr => l >> r,
-            Opcode::Add => l + r,
-            Opcode::Sub => l - r,
-            Opcode::Mul => l * r,
-            Opcode::Div => l / r,
-            Opcode::Mod => l % r,
+            BinaryOpcode::Or => l | r,
+            BinaryOpcode::Xor => l ^ r,
+            BinaryOpcode::And => l & r,
+            BinaryOpcode::Shl => l << r,
+            BinaryOpcode::Shr => l >> r,
+            BinaryOpcode::Add => l + r,
+            BinaryOpcode::Sub => l - r,
+            BinaryOpcode::Mul => l * r,
+            BinaryOpcode::Div => l / r,
+            BinaryOpcode::Mod => l % r,
         };
 
         self.data.prev
@@ -126,7 +126,7 @@ mod tests {
 
         let mut binary = Binary::new(
             v0,
-            Opcode::Add,
+            BinaryOpcode::Add,
             v1,
         );
 

@@ -5,7 +5,7 @@ use std::fs::File;
 use std::error::Error;
 use std::io::prelude::*;
 
-use ast::Opcode;
+use ast::BinaryOpcode;
 use ast::UnaryOpcode;
 use ast::Function;
 use ast::Node;
@@ -93,16 +93,16 @@ pub unary_expr -> Box<Node>
 
 pub binary_expr -> Box<Node>
     = #infix<atom> {
-        #L  x op_or  y { Box::new(Node::Operation(x, Opcode::Or, y)) }
-        #L  x op_xor y { Box::new(Node::Operation(x, Opcode::Xor, y)) }
-        #L  x op_and y { Box::new(Node::Operation(x, Opcode::And, y)) }
-        #L  x op_shl y { Box::new(Node::Operation(x, Opcode::Shl, y)) }
-            x op_shr y { Box::new(Node::Operation(x, Opcode::Shr, y)) }
-        #L  x op_add y { Box::new(Node::Operation(x, Opcode::Add, y)) }
-            x op_sub y { Box::new(Node::Operation(x, Opcode::Sub, y)) }
-        #L  x op_mul y { Box::new(Node::Operation(x, Opcode::Mul, y)) }
-            x op_div y { Box::new(Node::Operation(x, Opcode::Div, y)) }
-            x op_mod y { Box::new(Node::Operation(x, Opcode::Mod, y)) }
+        #L  x op_or  y { Box::new(Node::BinaryOperation(x, BinaryOpcode::Or, y)) }
+        #L  x op_xor y { Box::new(Node::BinaryOperation(x, BinaryOpcode::Xor, y)) }
+        #L  x op_and y { Box::new(Node::BinaryOperation(x, BinaryOpcode::And, y)) }
+        #L  x op_shl y { Box::new(Node::BinaryOperation(x, BinaryOpcode::Shl, y)) }
+            x op_shr y { Box::new(Node::BinaryOperation(x, BinaryOpcode::Shr, y)) }
+        #L  x op_add y { Box::new(Node::BinaryOperation(x, BinaryOpcode::Add, y)) }
+            x op_sub y { Box::new(Node::BinaryOperation(x, BinaryOpcode::Sub, y)) }
+        #L  x op_mul y { Box::new(Node::BinaryOperation(x, BinaryOpcode::Mul, y)) }
+            x op_div y { Box::new(Node::BinaryOperation(x, BinaryOpcode::Div, y)) }
+            x op_mod y { Box::new(Node::BinaryOperation(x, BinaryOpcode::Mod, y)) }
     }
 
 pub item -> Item
