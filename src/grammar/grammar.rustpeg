@@ -23,12 +23,12 @@ require -> Item
         if _require_paths.enter_require(&path) {
             let mut file = match File::open(&path) {
                 Ok(file) => file,
-                    Err(e) => panic!("could not open {}: {}", path.display(), e.description()),
+                Err(e) => panic!("could not open {}: {}", path.display(), e.description()),
             };
             let mut contents = String::new();
             match file.read_to_string(&mut contents) {
                 Ok(_) => (),
-                    Err(e) => panic!("could not read {}: {}", path.display(), e.description()),
+                Err(e) => panic!("could not read {}: {}", path.display(), e.description()),
             }
             let result = Item::Multiple(items(&contents, _require_paths).unwrap());
             _require_paths.leave_require();
@@ -73,6 +73,13 @@ function -> Box<Node>
     / sample
     / weighted_sample
 
+pub expr -> Box<Node>
+    = unary_expr
+    / binary_expr
+
+pub unary_expr -> Box<Node>
+    = "~" _ a:expr { Box::new(Node::UnaryOperation(UnaryOpcode::Neg, a)) }
+
 op_or  = _ "|" _
 op_xor = _ "^" _
 op_and = _ "&" _
@@ -83,13 +90,6 @@ op_sub = _ "-" _
 op_mul = _ "*" _
 op_div = _ "/" _
 op_mod = _ "%" _
-
-pub expr -> Box<Node>
-    = unary_expr
-    / binary_expr
-
-pub unary_expr -> Box<Node>
-    = "~" _ a:expr { Box::new(Node::UnaryOperation(UnaryOpcode::Neg, a)) }
 
 pub binary_expr -> Box<Node>
     = #infix<atom> {
