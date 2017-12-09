@@ -140,7 +140,6 @@ mod tests {
         use super::*;
 
         use std::fs;
-        use std::env;
 
         #[test]
         fn basic() {
