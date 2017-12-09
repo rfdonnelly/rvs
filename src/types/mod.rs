@@ -1,5 +1,5 @@
 pub mod value;
-pub mod operator;
+pub mod operation;
 pub mod pattern;
 pub mod range;
 pub mod sample;
@@ -18,8 +18,8 @@ use ast::Item;
 use grammar::RequirePaths;
 
 pub use self::value::Value;
-pub use self::operator::Unary;
-pub use self::operator::Binary;
+pub use self::operation::Unary;
+pub use self::operation::Binary;
 pub use self::pattern::Pattern;
 pub use self::range::RangeSequence;
 pub use self::sample::Sample;
