@@ -4,6 +4,7 @@ pub mod pattern;
 pub mod range;
 pub mod sample;
 pub mod weightedsample;
+pub mod method;
 
 use std::fmt;
 use std::rc::Rc;
@@ -27,6 +28,7 @@ pub use self::pattern::Pattern;
 pub use self::range::RangeSequence;
 pub use self::sample::Sample;
 pub use self::weightedsample::WeightedSample;
+pub use self::method::Next;
 
 pub struct ExprData {
     prev: u32,
@@ -171,8 +173,10 @@ impl Variables {
         Some(Rc::clone(variable))
     }
 
-    pub fn get_index(&self, k: &str) -> Option<&usize> {
-        self.indexes.get(k)
+    pub fn get_index(&self, k: &str) -> Option<usize> {
+        let index = self.indexes.get(k)?;
+
+        Some(*index)
     }
 
     pub fn get_by_index(&self, index: usize) -> Option<RvRef> {
@@ -359,11 +363,41 @@ impl Context {
                                 )))
                 }
             },
+            ast::Node::VariableMethodCall(ref name, ref method) => {
+                self.transform_variable_method_call(name, method)
+            },
             _ => {
                 Err(TransformError::new(format!(
                     "Expected (Function|Number|UnaryOperation|BinaryOperation|EnumItemInst) but found {:?}",
                     *node)))
             }
+        }
+    }
+
+    pub fn transform_variable_method_call(
+        &self,
+        name: &str,
+        method: &ast::Method
+    ) -> TransformResult<Box<Expr>> {
+        match self.variables.get(name) {
+            Some(_) => {
+                match *method {
+                    ast::Method::Next => {
+                        Ok(Box::new(Next::new(name)))
+                    },
+                    ast::Method::Prev => {
+                        Ok(Box::new(Value::new(0)))
+                    },
+                    ast::Method::Copy => {
+                        Ok(Box::new(Value::new(0)))
+                    },
+                }
+            },
+            None => {
+                Err(TransformError::new(format!(
+                            "Could not find variable '{}'", name
+                            )))
+            },
         }
     }
 

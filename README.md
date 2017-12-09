@@ -77,7 +77,7 @@ weighted = {
     * [ ] Structs
   * Types
     * Meta Types
-      * [ ] Next - Returns the next value of a variable. Syntax: `<identifier>`
+      * [x] Next - Returns the next value of a variable. Syntax: `<identifier>`
       * [ ] Copy - Returns a copy of a variable. Syntax: `<identifier>.copy`
       * [ ] Prev - Returns the last value of a variable. Syntax:
             `<identifier>.prev`

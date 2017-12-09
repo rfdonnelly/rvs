@@ -25,7 +25,7 @@ fn main() {
         let mut rv = rv.borrow_mut();
         let values: Vec<String> = vec![(0, false); 15]
             .iter()
-            .map(|_| (rv.next(), rv.done()))
+            .map(|_| (rv.next(&context), rv.done()))
             .map(|(next, done)| if done {
                 format!("0x{:x} <done>", next)
             } else {

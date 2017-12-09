@@ -7,6 +7,7 @@ use std::io::prelude::*;
 
 use path::RequirePaths;
 
+use ast::Method;
 use ast::BinaryOpcode;
 use ast::UnaryOpcode;
 use ast::Function;
@@ -68,6 +69,25 @@ atom -> Box<Node>
     / number
     / function
     / enum_item_inst
+    / variable
+
+variable -> Box<Node>
+    = a:identifier b:variable_method_call? {
+        let method = if let Some(method) = b {
+            method
+        } else {
+            Method::Next
+        };
+
+        Box::new(Node::VariableMethodCall(a.to_owned(), method))
+    }
+
+variable_method_call -> Method
+    = "." a:variable_method { a }
+
+variable_method -> Method
+    = "prev" { Method::Prev }
+    / "copy" { Method::Copy }
 
 function -> Box<Node>
     = pattern
