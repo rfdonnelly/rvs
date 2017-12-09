@@ -1,5 +1,5 @@
 pub mod value;
-pub mod expr;
+pub mod operator;
 pub mod pattern;
 pub mod range;
 pub mod sample;
@@ -18,8 +18,8 @@ use ast::Item;
 use grammar::RequirePaths;
 
 pub use self::value::Value;
-pub use self::expr::Expr;
-pub use self::expr::Unary;
+pub use self::operator::Unary;
+pub use self::operator::Binary;
 pub use self::pattern::Pattern;
 pub use self::range::RangeSequence;
 pub use self::sample::Sample;
@@ -245,7 +245,7 @@ impl Context {
             },
             Node::Operation(ref bx, ref op, ref by) => {
                 Box::new(
-                    Expr::new(
+                    Binary::new(
                         self.transform_expr(rng, bx),
                         op.clone(),
                         self.transform_expr(rng, by)

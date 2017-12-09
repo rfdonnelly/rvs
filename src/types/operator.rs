@@ -7,7 +7,7 @@ use ast::UnaryOpcode;
 use types::Rv;
 use types::RvData;
 
-pub struct Expr {
+pub struct Binary {
     data: RvData,
     operation: Opcode,
     l: Box<Rv>,
@@ -20,9 +20,9 @@ pub struct Unary {
     operand: Box<Rv>,
 }
 
-impl Expr {
-    pub fn new(l: Box<Rv>, operation: Opcode, r: Box<Rv>) -> Expr {
-        Expr {
+impl Binary {
+    pub fn new(l: Box<Rv>, operation: Opcode, r: Box<Rv>) -> Binary {
+        Binary {
             data: RvData {
                 prev: 0,
                 done: false,
@@ -34,7 +34,7 @@ impl Expr {
     }
 }
 
-impl Rv for Expr {
+impl Rv for Binary {
     fn next(&mut self, rng: &mut Rng) -> u32 {
         let (l, r) = (self.l.next(rng), self.r.next(rng));
 
@@ -61,7 +61,7 @@ impl Rv for Expr {
     }
 }
 
-impl fmt::Display for Expr {
+impl fmt::Display for Binary {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.write_char('(')?;
         self.l.fmt(f)?;
@@ -119,18 +119,18 @@ mod tests {
     use types::Seed;
 
     #[test]
-    fn expr() {
+    fn binary() {
         let mut rng = new_rng(&Seed::from_u32(0));
         let v0 = Box::new(Value::new(1));
         let v1 = Box::new(Value::new(2));
 
-        let mut expr = Expr::new(
+        let mut binary = Binary::new(
             v0,
             Opcode::Add,
             v1,
         );
 
-        assert_eq!(expr.next(&mut rng), 3);
-        assert_eq!(expr.next(&mut rng), 3);
+        assert_eq!(binary.next(&mut rng), 3);
+        assert_eq!(binary.next(&mut rng), 3);
     }
 }
