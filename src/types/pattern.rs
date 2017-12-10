@@ -2,10 +2,10 @@ use std::fmt;
 use rand::Rng;
 
 use types::Expr;
-use types::RvData;
+use types::ExprData;
 
 pub struct Pattern {
-    data: RvData,
+    data: ExprData,
     index: usize,
     children: Vec<Box<Expr>>,
 }
@@ -13,7 +13,7 @@ pub struct Pattern {
 impl Pattern {
     pub fn new(children: Vec<Box<Expr>>) -> Pattern {
         Pattern {
-            data: RvData {
+            data: ExprData {
                 prev: 0,
                 done: false,
             },
@@ -30,7 +30,7 @@ impl Expr for Pattern {
         self.data.prev
     }
 
-    fn data(&self) -> &RvData {
+    fn data(&self) -> &ExprData {
         &self.data
     }
 }

@@ -5,17 +5,17 @@ use rand::Rng;
 use ast::BinaryOpcode;
 use ast::UnaryOpcode;
 use types::Expr;
-use types::RvData;
+use types::ExprData;
 
 pub struct Binary {
-    data: RvData,
+    data: ExprData,
     operation: BinaryOpcode,
     l: Box<Expr>,
     r: Box<Expr>,
 }
 
 pub struct Unary {
-    data: RvData,
+    data: ExprData,
     operation: UnaryOpcode,
     operand: Box<Expr>,
 }
@@ -23,7 +23,7 @@ pub struct Unary {
 impl Binary {
     pub fn new(l: Box<Expr>, operation: BinaryOpcode, r: Box<Expr>) -> Binary {
         Binary {
-            data: RvData {
+            data: ExprData {
                 prev: 0,
                 done: false,
             },
@@ -56,7 +56,7 @@ impl Expr for Binary {
         self.data.prev
     }
 
-    fn data(&self) -> &RvData {
+    fn data(&self) -> &ExprData {
         &self.data
     }
 }
@@ -76,7 +76,7 @@ impl fmt::Display for Binary {
 impl Unary {
     pub fn new(operation: UnaryOpcode, operand: Box<Expr>) -> Unary {
         Unary {
-            data: RvData {
+            data: ExprData {
                 prev: 0,
                 done: false,
             },
@@ -99,7 +99,7 @@ impl Expr for Unary {
         self.data.prev
     }
 
-    fn data(&self) -> &RvData {
+    fn data(&self) -> &ExprData {
         &self.data
     }
 }

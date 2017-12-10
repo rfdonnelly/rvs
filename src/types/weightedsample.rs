@@ -5,10 +5,10 @@ use rand::sequences::WeightedChoice;
 use rand::Distribution;
 
 use types::Expr;
-use types::RvData;
+use types::ExprData;
 
 pub struct WeightedSample {
-    data: RvData,
+    data: ExprData,
     children: Vec<(u32, Box<Expr>)>,
     weighted_choice: WeightedChoice<usize>,
 }
@@ -23,7 +23,7 @@ impl WeightedSample {
         let weighted_choice = WeightedChoice::new(weights);
 
         WeightedSample {
-            data: RvData {
+            data: ExprData {
                 prev: 0,
                 done: false,
             },
@@ -41,7 +41,7 @@ impl Expr for WeightedSample {
         self.data.prev
     }
 
-    fn data(&self) -> &RvData {
+    fn data(&self) -> &ExprData {
         &self.data
     }
 }

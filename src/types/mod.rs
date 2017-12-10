@@ -25,7 +25,7 @@ pub use self::range::RangeSequence;
 pub use self::sample::Sample;
 pub use self::weightedsample::WeightedSample;
 
-pub struct RvData {
+pub struct ExprData {
     prev: u32,
     done: bool,
 }
@@ -41,7 +41,7 @@ pub trait Expr: fmt::Display {
         self.data().done
     }
 
-    fn data(&self) -> &RvData;
+    fn data(&self) -> &ExprData;
 }
 
 /// Random Variable Container

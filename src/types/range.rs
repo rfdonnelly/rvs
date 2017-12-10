@@ -5,10 +5,10 @@ use rand::distributions::range::RangeInt;
 use rand::distributions::Distribution;
 
 use types::Expr;
-use types::RvData;
+use types::ExprData;
 
 pub struct RangeSequence {
-    data: RvData,
+    data: ExprData,
     l: u32,
     r: u32,
     range: Range<RangeInt<u32>>,
@@ -18,7 +18,7 @@ impl RangeSequence {
     pub fn new(l: u32, r: u32) -> RangeSequence {
         // FIXME: Range::new may panic.
         RangeSequence {
-            data: RvData {
+            data: ExprData {
                 prev: 0,
                 done: false,
             },
@@ -36,7 +36,7 @@ impl Expr for RangeSequence {
         self.data.prev
     }
 
-    fn data(&self) -> &RvData {
+    fn data(&self) -> &ExprData {
         &self.data
     }
 }

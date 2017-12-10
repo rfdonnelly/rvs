@@ -2,16 +2,16 @@ use std::fmt;
 use rand::Rng;
 
 use types::Expr;
-use types::RvData;
+use types::ExprData;
 
 pub struct Value {
-    data: RvData,
+    data: ExprData,
 }
 
 impl Value {
     pub fn new(value: u32) -> Value {
         Value {
-            data: RvData {
+            data: ExprData {
                 prev: value,
                 done: false,
             },
@@ -26,7 +26,7 @@ impl Expr for Value {
         self.data.prev
     }
 
-    fn data(&self) -> &RvData {
+    fn data(&self) -> &ExprData {
         &self.data
     }
 }
