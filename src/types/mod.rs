@@ -150,13 +150,13 @@ impl Variables {
         self.indexes.get(k)
     }
 
-    pub fn get_variable_by_index(&mut self, index: usize) -> Option<&mut Rv> {
+    pub fn get_by_index(&mut self, index: usize) -> Option<&mut Rv> {
         let variable = self.refs.get_mut(index)?;
 
         Some(&mut *variable)
     }
 
-    pub fn get_variable(&mut self, k: &str) -> Option<&mut Rv> {
+    pub fn get(&mut self, k: &str) -> Option<&mut Rv> {
         let index = self.indexes.get(k)?;
         let variable = self.refs.get_mut(*index)?;
         Some(&mut *variable)
@@ -199,8 +199,8 @@ impl Context {
         }
     }
 
-    pub fn get_variable(&mut self, name: &str) -> Option<&mut Rv> {
-        self.variables.get_variable(name)
+    pub fn get(&mut self, name: &str) -> Option<&mut Rv> {
+        self.variables.get(name)
     }
 }
 

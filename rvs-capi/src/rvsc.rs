@@ -225,7 +225,7 @@ pub extern fn rvs_next(context: *mut Context, handle: SequenceHandleRaw) -> u32 
 
     let context = unsafe { &mut *context };
     let handle = SequenceHandle(handle);
-    match context.variables.get_variable_by_index(handle.into()) {
+    match context.variables.get_by_index(handle.into()) {
         Some(variable) => variable.next(),
         None => 0,
     }
@@ -249,7 +249,7 @@ pub extern fn rvs_prev(context: *mut Context, handle: SequenceHandleRaw) -> u32 
     let context = unsafe { &mut *context };
     let handle = SequenceHandle(handle);
 
-    match context.variables.get_variable_by_index(handle.into()) {
+    match context.variables.get_by_index(handle.into()) {
         Some(variable) => variable.prev(),
         None => 0,
     }
@@ -273,7 +273,7 @@ pub extern fn rvs_done(context: *mut Context, handle: SequenceHandleRaw) -> bool
     let context = unsafe { &mut *context };
     let handle = SequenceHandle(handle);
 
-    match context.variables.get_variable_by_index(handle.into()) {
+    match context.variables.get_by_index(handle.into()) {
         Some(variable) => variable.done(),
         None => false,
     }
@@ -382,7 +382,7 @@ mod tests {
             rvs_parse(context, CString::new("a=5;").unwrap().as_ptr(), error);
             assert_eq!(rvs_error_code(error), ErrorKind::None.code());
 
-            let variable = unsafe { (*context).variables.get_variable("a").unwrap() };
+            let variable = unsafe { (*context).variables.get("a").unwrap() };
             let value = variable.next();
             assert_eq!(value, 5);
 
@@ -398,7 +398,7 @@ mod tests {
             rvs_parse(context, CString::new("a=[0,1];").unwrap().as_ptr(), error);
             assert_eq!(rvs_error_code(error), ErrorKind::None.code());
 
-            let variable = unsafe { (*context).variables.get_variable("a").unwrap() };
+            let variable = unsafe { (*context).variables.get("a").unwrap() };
             let value = variable.next();
             assert!(value == 0 || value == 1);
 
