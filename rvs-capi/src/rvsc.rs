@@ -383,11 +383,8 @@ mod tests {
             rvs_parse(context, CString::new("a=5;").unwrap().as_ptr(), error);
             assert_eq!(rvs_error_code(error), ErrorKind::None.code());
 
-            let handles = unsafe { &mut (*context).handles };
-            let variables = unsafe { &mut (*context).variables };
-            assert!(handles.contains_key("a"));
-            let id = handles.get("a").unwrap();
-            let value = variables[*id].next();
+            let variable = unsafe { (*context).variables.get_variable("a").unwrap() };
+            let value = variable.next();
             assert_eq!(value, 5);
 
             rvs_error_free(error);
@@ -402,11 +399,8 @@ mod tests {
             rvs_parse(context, CString::new("a=[0,1];").unwrap().as_ptr(), error);
             assert_eq!(rvs_error_code(error), ErrorKind::None.code());
 
-            let handles = unsafe { &mut (*context).handles };
-            let variables = unsafe { &mut (*context).variables };
-            assert!(handles.contains_key("a"));
-            let id = handles.get("a").unwrap();
-            let value = variables[*id].next();
+            let variable = unsafe { (*context).variables.get_variable("a").unwrap() };
+            let value = variable.next();
             assert!(value == 0 || value == 1);
 
             rvs_error_free(error);
@@ -527,7 +521,6 @@ mod tests {
         }
 
         #[test]
-        #[should_panic]
         fn not_found() {
             let context = rvs_context_new();
 
