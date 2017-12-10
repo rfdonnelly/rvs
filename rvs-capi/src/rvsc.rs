@@ -195,11 +195,11 @@ pub extern fn rvs_parse(
 ///
 /// * If any pointer arguments are null
 #[no_mangle]
-pub extern fn rvs_find(context: *mut Context, id: *const c_char) -> SequenceHandleRaw {
+pub extern fn rvs_find(context: *mut Context, name: *const c_char) -> SequenceHandleRaw {
     assert!(!context.is_null());
-    assert!(!id.is_null());
+    assert!(!name.is_null());
 
-    let id_cstr = unsafe { CStr::from_ptr(id) };
+    let id_cstr = unsafe { CStr::from_ptr(name) };
     let id_rstr = id_cstr.to_str().unwrap();
 
     let context = unsafe { &mut *context };
