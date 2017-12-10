@@ -4,24 +4,24 @@ use rand::Rng;
 
 use ast::BinaryOpcode;
 use ast::UnaryOpcode;
-use types::Rv;
+use types::Expr;
 use types::RvData;
 
 pub struct Binary {
     data: RvData,
     operation: BinaryOpcode,
-    l: Box<Rv>,
-    r: Box<Rv>,
+    l: Box<Expr>,
+    r: Box<Expr>,
 }
 
 pub struct Unary {
     data: RvData,
     operation: UnaryOpcode,
-    operand: Box<Rv>,
+    operand: Box<Expr>,
 }
 
 impl Binary {
-    pub fn new(l: Box<Rv>, operation: BinaryOpcode, r: Box<Rv>) -> Binary {
+    pub fn new(l: Box<Expr>, operation: BinaryOpcode, r: Box<Expr>) -> Binary {
         Binary {
             data: RvData {
                 prev: 0,
@@ -34,7 +34,7 @@ impl Binary {
     }
 }
 
-impl Rv for Binary {
+impl Expr for Binary {
     fn next(&mut self, rng: &mut Rng) -> u32 {
         let (l, r) = (self.l.next(rng), self.r.next(rng));
 
@@ -74,7 +74,7 @@ impl fmt::Display for Binary {
 }
 
 impl Unary {
-    pub fn new(operation: UnaryOpcode, operand: Box<Rv>) -> Unary {
+    pub fn new(operation: UnaryOpcode, operand: Box<Expr>) -> Unary {
         Unary {
             data: RvData {
                 prev: 0,
@@ -86,7 +86,7 @@ impl Unary {
     }
 }
 
-impl Rv for Unary {
+impl Expr for Unary {
     fn next(&mut self, rng: &mut Rng) -> u32 {
         let operand = self.operand.next(rng);
 

@@ -4,7 +4,7 @@ use rand::distributions::Range;
 use rand::distributions::range::RangeInt;
 use rand::distributions::Distribution;
 
-use types::Rv;
+use types::Expr;
 use types::RvData;
 
 pub struct RangeSequence {
@@ -29,7 +29,7 @@ impl RangeSequence {
     }
 }
 
-impl Rv for RangeSequence {
+impl Expr for RangeSequence {
     fn next(&mut self, rng: &mut Rng) -> u32 {
         self.data.prev = self.range.sample(rng);
 

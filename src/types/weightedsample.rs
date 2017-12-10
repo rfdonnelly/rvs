@@ -4,17 +4,17 @@ use rand::sequences::Weighted;
 use rand::sequences::WeightedChoice;
 use rand::Distribution;
 
-use types::Rv;
+use types::Expr;
 use types::RvData;
 
 pub struct WeightedSample {
     data: RvData,
-    children: Vec<(u32, Box<Rv>)>,
+    children: Vec<(u32, Box<Expr>)>,
     weighted_choice: WeightedChoice<usize>,
 }
 
 impl WeightedSample {
-    pub fn new(children: Vec<(u32, Box<Rv>)>) -> WeightedSample {
+    pub fn new(children: Vec<(u32, Box<Expr>)>) -> WeightedSample {
         let mut weights = Vec::new();
         for (i, child) in children.iter().enumerate() {
             weights.push(Weighted { weight: child.0, item: i });
@@ -33,7 +33,7 @@ impl WeightedSample {
     }
 }
 
-impl Rv for WeightedSample {
+impl Expr for WeightedSample {
     fn next(&mut self, rng: &mut Rng) -> u32 {
         let index = self.weighted_choice.sample(rng);
         self.data.prev = self.children[index].1.next(rng);

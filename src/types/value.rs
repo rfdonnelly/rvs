@@ -1,7 +1,7 @@
 use std::fmt;
 use rand::Rng;
 
-use types::Rv;
+use types::Expr;
 use types::RvData;
 
 pub struct Value {
@@ -19,7 +19,7 @@ impl Value {
     }
 }
 
-impl Rv for Value {
+impl Expr for Value {
     fn next(&mut self, _rng: &mut Rng) -> u32 {
         self.data.done = true;
 

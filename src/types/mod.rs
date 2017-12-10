@@ -30,7 +30,7 @@ pub struct RvData {
     done: bool,
 }
 
-pub trait Rv: fmt::Display {
+pub trait Expr: fmt::Display {
     fn next(&mut self, rng: &mut Rng) -> u32;
 
     fn prev(&self) -> u32 {
@@ -46,7 +46,7 @@ pub trait Rv: fmt::Display {
 
 /// Random Variable Container
 pub struct RvC {
-    root: Box<Rv>,
+    root: Box<Expr>,
     rng: Box<Rng>,
 }
 
@@ -229,7 +229,7 @@ impl Context {
             );
     }
 
-    pub fn transform_expr(&self, rng: &mut Rng, node: &Node) -> Box<Rv> {
+    pub fn transform_expr(&self, rng: &mut Rng, node: &Node) -> Box<Expr> {
         match *node {
             Node::Function(ref function, ref args) => {
                 self.transform_function(rng, function, args)
@@ -269,7 +269,7 @@ impl Context {
         }
     }
 
-    pub fn transform_function(&self, rng: &mut Rng, function: &Function, args: &Vec<Box<Node>>) -> Box<Rv> {
+    pub fn transform_function(&self, rng: &mut Rng, function: &Function, args: &Vec<Box<Node>>) -> Box<Expr> {
         match *function {
             Function::Pattern => {
                 Box::new(
@@ -289,7 +289,7 @@ impl Context {
                     )
             }
             Function::Sample => {
-                let mut children: Vec<Box<Rv>> = Vec::new();
+                let mut children: Vec<Box<Expr>> = Vec::new();
                 for arg in args.iter() {
                     if let Node::EnumInst(ref name) = **arg {
                         if let Some(entry) = self.enums.get(name) {
