@@ -140,6 +140,12 @@ impl Variables {
         self.indexes.insert(name, self.refs.len() - 1);
     }
 
+    pub fn last_mut(&mut self) -> Option<&mut Rv> {
+        let variable = self.refs.last_mut()?;
+
+        Some(&mut *variable)
+    }
+
     pub fn get_index(&self, k: &str) -> Option<&usize> {
         self.indexes.get(k)
     }
