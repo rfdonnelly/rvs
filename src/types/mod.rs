@@ -107,9 +107,77 @@ impl Seed {
     }
 }
 
+pub struct Variables {
+    refs: Vec<Box<Rv>>,
+    indexes: LinkedHashMap<String, usize>,
+}
+
+pub struct VariablesIter<'a> {
+    iter: ::linked_hash_map::Iter<'a, String, usize>,
+    refs: &'a Vec<Box<Rv>>,
+}
+
+impl<'a> Iterator for VariablesIter<'a> {
+    type Item = (&'a str, &'a Rv);
+
+    fn next(&mut self) -> Option<(&'a str, &'a Rv)> {
+        let next = self.iter.next()?;
+
+        Some((next.0, &*self.refs[*next.1]))
+    }
+}
+
+impl Variables {
+    pub fn new() -> Variables {
+        Variables {
+            refs: Vec::new(),
+            indexes: LinkedHashMap::new(),
+        }
+    }
+
+    pub fn insert(&mut self, name: String, variable: Box<Rv>) {
+        self.refs.push(variable);
+        self.indexes.insert(name, self.refs.len() - 1);
+    }
+
+    pub fn get_index(&self, k: &str) -> Option<&usize> {
+        self.indexes.get(k)
+    }
+
+    pub fn get_variable_by_index(&mut self, index: usize) -> Option<&mut Rv> {
+        let variable = self.refs.get_mut(index)?;
+
+        Some(&mut *variable)
+    }
+
+    pub fn get_variable(&mut self, k: &str) -> Option<&mut Rv> {
+        let index = self.indexes.get(k)?;
+        let variable = self.refs.get_mut(*index)?;
+        Some(&mut *variable)
+    }
+
+    pub fn iter(&self) -> VariablesIter {
+        VariablesIter {
+            iter: self.indexes.iter(),
+            refs: &self.refs,
+        }
+    }
+}
+
+impl fmt::Display for Variables {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        for (name, variable) in self.iter() {
+            write!(f, "{} = ", name)?;
+            variable.fmt(f)?;
+            writeln!(f, ";")?;
+        }
+
+        Ok(())
+    }
+}
+
 pub struct Context {
-    pub variables: Vec<Box<Rv>>,
-    pub handles: LinkedHashMap<String, usize>,
+    pub variables: Variables,
     pub enums: LinkedHashMap<String, Enum>,
     pub seed: Seed,
     pub requires: RequirePaths,
@@ -118,32 +186,21 @@ pub struct Context {
 impl Context {
     pub fn new() -> Context {
         Context {
-            variables: Vec::new(),
-            handles: LinkedHashMap::new(),
+            variables: Variables::new(),
             enums: LinkedHashMap::new(),
             seed: Seed::from_u32(0),
             requires: RequirePaths::new(),
         }
     }
 
-    pub fn get_variable(&mut self, name: &str) -> Option<&mut Box<Rv>> {
-        if let Some(index) = self.handles.get(name) {
-            self.variables.get_mut(*index)
-        } else {
-            None
-        }
+    pub fn get_variable(&mut self, name: &str) -> Option<&mut Rv> {
+        self.variables.get_variable(name)
     }
 }
 
 impl fmt::Display for Context {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        for (id, handle) in self.handles.iter() {
-            write!(f, "{} = ", id)?;
-            self.variables[*handle].fmt(f)?;
-            writeln!(f, ";")?;
-        }
-
-        Ok(())
+        self.variables.fmt(f)
     }
 }
 
@@ -191,12 +248,11 @@ impl Context {
         }
 
         let mut rng = new_rng(&self.seed);
-        let rvc = Box::new(Rv {
+        let rv = Box::new(Rv {
             root: self.transform_expr(&mut rng, &rhs),
             rng: rng,
         });
-        self.variables.push(rvc);
-        self.handles.insert(identifier, self.variables.len() - 1);
+        self.variables.insert(identifier, rv);
     }
 
     pub fn transform_enum(&mut self, name: &String, items: &Vec<Box<Node>>) {
