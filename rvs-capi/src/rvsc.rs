@@ -10,7 +10,6 @@ use std::path::Path;
 use std::fs::File;
 use std::io::prelude::*;
 
-use rvs::types::Rv;
 use rvs::types::Context;
 use rvs::types::Seed;
 use rvs::parse_rvs;
@@ -409,7 +408,7 @@ mod tests {
 
         #[test]
         fn parse_error() {
-            use rvs::grammar::ParseError;
+            // use rvs::grammar::ParseError;
 
             let context = rvs_context_new();
             let error = rvs_error_new();
