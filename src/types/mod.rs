@@ -44,13 +44,13 @@ pub trait Expr: fmt::Display {
     fn data(&self) -> &ExprData;
 }
 
-/// Random Variable Container
-pub struct RvC {
+/// Random Variable
+pub struct Rv {
     root: Box<Expr>,
     rng: Box<Rng>,
 }
 
-impl RvC {
+impl Rv {
     pub fn next(&mut self) -> u32 {
         self.root.next(&mut self.rng)
     }
@@ -64,7 +64,7 @@ impl RvC {
     }
 }
 
-impl fmt::Display for RvC {
+impl fmt::Display for Rv {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         self.root.fmt(f)
     }
@@ -108,7 +108,7 @@ impl Seed {
 }
 
 pub struct Context {
-    pub variables: Vec<Box<RvC>>,
+    pub variables: Vec<Box<Rv>>,
     pub handles: LinkedHashMap<String, usize>,
     pub enums: LinkedHashMap<String, Enum>,
     pub seed: Seed,
@@ -126,7 +126,7 @@ impl Context {
         }
     }
 
-    pub fn get_variable(&mut self, name: &str) -> Option<&mut Box<RvC>> {
+    pub fn get_variable(&mut self, name: &str) -> Option<&mut Box<Rv>> {
         if let Some(index) = self.handles.get(name) {
             self.variables.get_mut(*index)
         } else {
@@ -191,7 +191,7 @@ impl Context {
         }
 
         let mut rng = new_rng(&self.seed);
-        let rvc = Box::new(RvC {
+        let rvc = Box::new(Rv {
             root: self.transform_expr(&mut rng, &rhs),
             rng: rng,
         });

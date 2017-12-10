@@ -10,7 +10,7 @@ use std::path::Path;
 use std::fs::File;
 use std::io::prelude::*;
 
-use rvs::types::RvC;
+use rvs::types::Rv;
 use rvs::types::Context;
 use rvs::types::Seed;
 use rvs::parse_rvs;
@@ -263,7 +263,7 @@ pub extern fn rvs_done(context: *mut Context, handle: SequenceHandle) -> bool {
     }
 }
 
-fn handle_to_idx(variables: &Vec<Box<RvC>>, handle: SequenceHandle) -> Option<usize> {
+fn handle_to_idx(variables: &Vec<Box<Rv>>, handle: SequenceHandle) -> Option<usize> {
     let handle = handle as usize;
     if variables.is_empty() || handle == 0 || handle > variables.len() {
         Option::None
