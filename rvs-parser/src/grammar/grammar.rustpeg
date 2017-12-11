@@ -41,29 +41,29 @@ require -> Item
         }
     }
 
-pub identifier -> &'input str
+identifier -> &'input str
     = #quiet<$([a-zA-Z_] [a-zA-Z0-9_:]*)> / #expected("identifier")
 
 typename -> &'input str
     = #quiet<$([A-Z] [a-zA-Z0-9]*)> / #expected("typename")
 
-pub dec_number -> u32
+dec_number -> u32
     = s:$([0-9] [0-9_]*) {
         let stripped = &str::replace(s, "_", "");
         u32::from_str(stripped).unwrap()
     }
 
-pub hex_number -> u32
+hex_number -> u32
     = "0" [xX] s:$([0-9a-fA-F_]+) {
         let stripped = &str::replace(s, "_", "");
         u32::from_str_radix(stripped, 16).unwrap()
     }
 
-pub number -> Box<Node>
+number -> Box<Node>
     = u:hex_number { Box::new(Node::Number(u)) }
     / u:dec_number { Box::new(Node::Number(u)) }
 
-pub atom -> Box<Node>
+atom -> Box<Node>
     = "(" _ v:expr _ ")" { v }
     / number
     / function
@@ -75,11 +75,11 @@ function -> Box<Node>
     / sample
     / weighted_sample
 
-pub expr -> Box<Node>
+expr -> Box<Node>
     = unary_expr
     / binary_expr
 
-pub unary_expr -> Box<Node>
+unary_expr -> Box<Node>
     = "~" _ a:expr { Box::new(Node::UnaryOperation(UnaryOpcode::Neg, a)) }
 
 op_or  = _ "|" _
@@ -93,7 +93,7 @@ op_mul = _ "*" _
 op_div = _ "/" _
 op_mod = _ "%" _
 
-pub binary_expr -> Box<Node>
+binary_expr -> Box<Node>
     = #infix<atom> {
         #L  x op_or  y { Box::new(Node::BinaryOperation(x, BinaryOpcode::Or, y)) }
         #L  x op_xor y { Box::new(Node::BinaryOperation(x, BinaryOpcode::Xor, y)) }
@@ -107,12 +107,12 @@ pub binary_expr -> Box<Node>
             x op_mod y { Box::new(Node::BinaryOperation(x, BinaryOpcode::Mod, y)) }
     }
 
-pub item -> Item
+item -> Item
     = enum
     / assignment
     / require
 
-pub assignment -> Item
+assignment -> Item
     = lhs:identifier _ "=" _ rhs:expr _ ";" {
         Item::Single(
             Box::new(Node::Assignment(
@@ -171,7 +171,7 @@ pattern -> Box<Node>
         )
     }
 
-pub range -> Box<Node>
+range -> Box<Node>
     = "[" _ a:expr **<2, 2> ("," _) optional_trailing_comma _ "]" {
         Box::new(
             Node::Function(
