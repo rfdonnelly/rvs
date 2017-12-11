@@ -1,0 +1,8 @@
+[package]
+name = "rvs-parser"
+version = "0.1.0"
+authors = ["Rob Donnelly <rfdonnelly@gmail.com>"]
+build = "build.rs"
+
+[build-dependencies]
+peg = { version = "0.5" }

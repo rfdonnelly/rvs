@@ -5,6 +5,8 @@ use std::fs::File;
 use std::error::Error;
 use std::io::prelude::*;
 
+use path::RequirePaths;
+
 use ast::BinaryOpcode;
 use ast::UnaryOpcode;
 use ast::Function;

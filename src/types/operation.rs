@@ -2,26 +2,25 @@ use std::fmt;
 use std::fmt::Write;
 use rand::Rng;
 
-use ast::BinaryOpcode;
-use ast::UnaryOpcode;
+use rvs_parser::ast;
 use types::Expr;
 use types::ExprData;
 
 pub struct Binary {
     data: ExprData,
-    operation: BinaryOpcode,
+    operation: ast::BinaryOpcode,
     l: Box<Expr>,
     r: Box<Expr>,
 }
 
 pub struct Unary {
     data: ExprData,
-    operation: UnaryOpcode,
+    operation: ast::UnaryOpcode,
     operand: Box<Expr>,
 }
 
 impl Binary {
-    pub fn new(l: Box<Expr>, operation: BinaryOpcode, r: Box<Expr>) -> Binary {
+    pub fn new(l: Box<Expr>, operation: ast::BinaryOpcode, r: Box<Expr>) -> Binary {
         Binary {
             data: ExprData {
                 prev: 0,
@@ -41,16 +40,16 @@ impl Expr for Binary {
         self.data.done = self.l.done() || self.r.done();
 
         self.data.prev = match self.operation {
-            BinaryOpcode::Or => l | r,
-            BinaryOpcode::Xor => l ^ r,
-            BinaryOpcode::And => l & r,
-            BinaryOpcode::Shl => l << r,
-            BinaryOpcode::Shr => l >> r,
-            BinaryOpcode::Add => l + r,
-            BinaryOpcode::Sub => l - r,
-            BinaryOpcode::Mul => l * r,
-            BinaryOpcode::Div => l / r,
-            BinaryOpcode::Mod => l % r,
+            ast::BinaryOpcode::Or => l | r,
+            ast::BinaryOpcode::Xor => l ^ r,
+            ast::BinaryOpcode::And => l & r,
+            ast::BinaryOpcode::Shl => l << r,
+            ast::BinaryOpcode::Shr => l >> r,
+            ast::BinaryOpcode::Add => l + r,
+            ast::BinaryOpcode::Sub => l - r,
+            ast::BinaryOpcode::Mul => l * r,
+            ast::BinaryOpcode::Div => l / r,
+            ast::BinaryOpcode::Mod => l % r,
         };
 
         self.data.prev
@@ -74,7 +73,7 @@ impl fmt::Display for Binary {
 }
 
 impl Unary {
-    pub fn new(operation: UnaryOpcode, operand: Box<Expr>) -> Unary {
+    pub fn new(operation: ast::UnaryOpcode, operand: Box<Expr>) -> Unary {
         Unary {
             data: ExprData {
                 prev: 0,
@@ -93,7 +92,7 @@ impl Expr for Unary {
         self.data.done = self.operand.done();
 
         self.data.prev = match self.operation {
-            UnaryOpcode::Neg => !operand,
+            ast::UnaryOpcode::Neg => !operand,
         };
 
         self.data.prev
@@ -126,7 +125,7 @@ mod tests {
 
         let mut binary = Binary::new(
             v0,
-            BinaryOpcode::Add,
+            ast::BinaryOpcode::Add,
             v1,
         );
 

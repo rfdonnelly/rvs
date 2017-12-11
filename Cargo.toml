@@ -2,11 +2,8 @@
 name = "rvs"
 version = "0.1.0"
 authors = ["Rob Donnelly <rfdonnelly@gmail.com>"]
-build = "build.rs"
-
-[build-dependencies]
-peg = { version = "0.5" }
 
 [dependencies]
+rvs-parser = { version = "0.1", path = "rvs-parser" }
 rand = { git = "https://github.com/dhardy/rand" }
 linked-hash-map = "0.5"

@@ -12,10 +12,8 @@ use rand::SeedableRng;
 use rand::prng::XorShiftRng;
 use rand::Sample as RandSample;
 
-use ast::Node;
-use ast::Function;
-use ast::Item;
-use grammar::RequirePaths;
+use rvs_parser::ast;
+use rvs_parser::RequirePaths;
 
 pub use self::value::Value;
 pub use self::operation::Unary;
@@ -225,31 +223,31 @@ impl Enum {
 }
 
 impl Context {
-    pub fn transform_items(&mut self, items: &Vec<Item>) {
+    pub fn transform_items(&mut self, items: &Vec<ast::Item>) {
         for item in items {
             match *item {
-                Item::Single(ref node) => {
+                ast::Item::Single(ref node) => {
                     match **node {
-                        Node::Assignment(ref lhs, ref rhs) => {
+                        ast::Node::Assignment(ref lhs, ref rhs) => {
                             self.transform_assignment(lhs, rhs);
                         },
-                        Node::Enum(ref name, ref items) => {
+                        ast::Node::Enum(ref name, ref items) => {
                             self.transform_enum(name, items);
                         }
                         _ => {},
                     }
                 }
-                Item::Multiple(ref items) => {
+                ast::Item::Multiple(ref items) => {
                     self.transform_items(items)
                 }
             }
         }
     }
 
-    pub fn transform_assignment(&mut self, lhs: &Node, rhs: &Node) {
+    pub fn transform_assignment(&mut self, lhs: &ast::Node, rhs: &ast::Node) {
         let mut identifier: String = "".into();
 
-        if let Node::Identifier(ref x) = *lhs {
+        if let ast::Node::Identifier(ref x) = *lhs {
             identifier = x.clone();
         }
 
@@ -261,16 +259,16 @@ impl Context {
         self.variables.insert(identifier, rv);
     }
 
-    pub fn transform_enum(&mut self, name: &String, items: &Vec<Box<Node>>) {
+    pub fn transform_enum(&mut self, name: &String, items: &Vec<Box<ast::Node>>) {
         let mut enum_items_map = LinkedHashMap::new();
 
         let mut next_implicit_value = 0;
 
         // FIXME Convert to .map()
         for item in items.iter() {
-            if let Node::EnumItem(ref name, ref value) = **item {
+            if let ast::Node::EnumItem(ref name, ref value) = **item {
                 if let Some(ref value) = *value {
-                    if let Node::Number(value) = **value {
+                    if let ast::Node::Number(value) = **value {
                         // FIXME Check for existence
                         enum_items_map.insert(name.to_owned(), value);
                         next_implicit_value = value + 1;
@@ -291,13 +289,13 @@ impl Context {
             );
     }
 
-    pub fn transform_expr(&self, rng: &mut Rng, node: &Node) -> Box<Expr> {
+    pub fn transform_expr(&self, rng: &mut Rng, node: &ast::Node) -> Box<Expr> {
         match *node {
-            Node::Function(ref function, ref args) => {
+            ast::Node::Function(ref function, ref args) => {
                 self.transform_function(rng, function, args)
             }
-            Node::Number(x) => Box::new(Value::new(x)),
-            Node::UnaryOperation(ref op, ref a) => {
+            ast::Node::Number(x) => Box::new(Value::new(x)),
+            ast::Node::UnaryOperation(ref op, ref a) => {
                 Box::new(
                     Unary::new(
                         op.clone(),
@@ -305,7 +303,7 @@ impl Context {
                         )
                     )
             },
-            Node::BinaryOperation(ref bx, ref op, ref by) => {
+            ast::Node::BinaryOperation(ref bx, ref op, ref by) => {
                 Box::new(
                     Binary::new(
                         self.transform_expr(rng, bx),
@@ -314,7 +312,7 @@ impl Context {
                     )
                 )
             },
-            Node::EnumItemInst(ref a, ref b) => {
+            ast::Node::EnumItemInst(ref a, ref b) => {
                 if let Some(entry) = self.enums.get(a) {
                     if let Some(entry) = entry.items.get(b) {
                         Box::new(
@@ -331,9 +329,9 @@ impl Context {
         }
     }
 
-    pub fn transform_function(&self, rng: &mut Rng, function: &Function, args: &Vec<Box<Node>>) -> Box<Expr> {
+    pub fn transform_function(&self, rng: &mut Rng, function: &ast::Function, args: &Vec<Box<ast::Node>>) -> Box<Expr> {
         match *function {
-            Function::Pattern => {
+            ast::Function::Pattern => {
                 Box::new(
                     Pattern::new(
                         args.into_iter()
@@ -342,7 +340,7 @@ impl Context {
                         )
                     )
             }
-            Function::Range => {
+            ast::Function::Range => {
                 let l = self.transform_expr(rng, &args[0]).next(rng);
                 let r = self.transform_expr(rng, &args[1]).next(rng);
 
@@ -350,10 +348,10 @@ impl Context {
                     RangeSequence::new(l, r)
                     )
             }
-            Function::Sample => {
+            ast::Function::Sample => {
                 let mut children: Vec<Box<Expr>> = Vec::new();
                 for arg in args.iter() {
-                    if let Node::EnumInst(ref name) = **arg {
+                    if let ast::Node::EnumInst(ref name) = **arg {
                         if let Some(entry) = self.enums.get(name) {
                             for value in entry.items.values() {
                                 children.push(
@@ -370,12 +368,12 @@ impl Context {
 
                 Box::new(Sample::new(children))
             }
-            Function::WeightedSample => {
+            ast::Function::WeightedSample => {
                 Box::new(
                     WeightedSample::new(
                         args.into_iter()
                         .map(|arg|
-                             if let Node::WeightedPair(ref weight, ref node) = **arg {
+                             if let ast::Node::WeightedPair(ref weight, ref node) = **arg {
                                  (*weight, self.transform_expr(rng, node))
                              } else {
                                  panic!("Expected WeightedPair but found ... FIXME");
@@ -398,8 +396,6 @@ fn new_rng(seed: &Seed) -> Box<Rng> {
 mod tests {
     use super::*;
 
-    use linked_hash_map::Entry::Occupied;
-
     mod transform_expr {
         use super::*;
 
@@ -409,7 +405,7 @@ mod tests {
         fn number() {
             let context = Context::new();
             let mut rng = new_rng(&Seed::from_u32(0));
-            let ast = Node::Number(4);
+            let ast = ast::Node::Number(4);
             let mut variable = context.transform_expr(&mut rng, &ast);
 
             assert_eq!(variable.next(&mut rng), 4);
@@ -419,11 +415,11 @@ mod tests {
         fn range() {
             let context = Context::new();
             let mut rng = new_rng(&Seed::from_u32(0));
-            let ast = Node::Function(
-                Function::Range,
+            let ast = ast::Node::Function(
+                ast::Function::Range,
                 vec![
-                    Box::new(Node::Number(3)),
-                    Box::new(Node::Number(4))
+                    Box::new(ast::Node::Number(3)),
+                    Box::new(ast::Node::Number(4))
                 ]
             );
             let mut variable = context.transform_expr(&mut rng, &ast);
@@ -448,16 +444,16 @@ mod tests {
         #[test]
         fn basic() {
             let items = vec![
-                Item::Single(
-                    Box::new(Node::Assignment(
-                        Box::new(Node::Identifier("a".into())),
-                        Box::new(Node::Number(5))
+                ast::Item::Single(
+                    Box::new(ast::Node::Assignment(
+                        Box::new(ast::Node::Identifier("a".into())),
+                        Box::new(ast::Node::Number(5))
                     ))
                 ),
-                Item::Single(
-                    Box::new(Node::Assignment(
-                        Box::new(Node::Identifier("b".into())),
-                        Box::new(Node::Number(6))
+                ast::Item::Single(
+                    Box::new(ast::Node::Assignment(
+                        Box::new(ast::Node::Identifier("b".into())),
+                        Box::new(ast::Node::Number(6))
                     ))
                 ),
             ];
@@ -465,17 +461,13 @@ mod tests {
             let mut context = Context::new();
             context.transform_items(&items);
 
-            assert!(context.handles.contains_key("a"));
-            if let Occupied(entry) = context.handles.entry("a".into()) {
-                let id = entry.get();
-                let value = context.variables[*id].next();
-                assert_eq!(value, 5);
+            {
+                let variable = context.variables.get("a").unwrap();
+                assert_eq!(variable.next(), 5);
             }
-            assert!(context.handles.contains_key("b"));
-            if let Occupied(entry) = context.handles.entry("b".into()) {
-                let id = entry.get();
-                let value = context.variables[*id].next();
-                assert_eq!(value, 6);
+            {
+                let variable = context.variables.get("b").unwrap();
+                assert_eq!(variable.next(), 6);
             }
         }
     }

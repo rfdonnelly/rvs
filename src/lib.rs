@@ -1,11 +1,12 @@
 extern crate rand;
 extern crate linked_hash_map;
 
-pub mod ast;
-pub mod grammar;
+extern crate rvs_parser;
+
 pub mod types;
 pub mod error;
 
+use rvs_parser::grammar;
 use types::Context;
 use error::ParseError;
 use error::ParseResult;
