@@ -40,7 +40,7 @@ weighted = {
 
 ## Feature Status
 
-* [ ] Rv features
+* [ ] Expr features
   * [x] `next()`
   * [x] `prev()`
   * [x] `done()`
@@ -124,12 +124,12 @@ weighted = {
 ### Extra
 
 * Optimizations
-  * [ ] Convert `HashMap<String, Box<Rv>>` to `HashMap<&str, Box<Rv>>`
+  * [ ] Convert `HashMap<String, Box<Expr>>` to `HashMap<&str, Box<Expr>>`
   * [x] Replace `RangeInclusive` with
     [`rand::distributions::Range::new_inclusive()`](https://github.com/rust-lang-nursery/rand/issues/188)
-* [ ] Separate into multiple crates
-  * [ ] Rvs Library
-  * [ ] DSL (Grammar/Parser, AST)
-  * [ ] Interactive binary
-  * [x] C-API
+* [x] Separate into multiple crates
+  * [x] Rvs Library - rvs
+  * [x] DSL (Grammar/Parser, AST) - rvs-parser
+  * [x] Interactive binary - rvs-repl
+  * [x] C-API - rvs-capi
 * [ ] Implement the `Iterator` trait

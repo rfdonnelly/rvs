@@ -1,17 +1,17 @@
 use std::fmt;
 use rand::Rng;
 
-use types::Rv;
-use types::RvData;
+use types::Expr;
+use types::ExprData;
 
 pub struct Value {
-    data: RvData,
+    data: ExprData,
 }
 
 impl Value {
     pub fn new(value: u32) -> Value {
         Value {
-            data: RvData {
+            data: ExprData {
                 prev: value,
                 done: false,
             },
@@ -19,14 +19,14 @@ impl Value {
     }
 }
 
-impl Rv for Value {
+impl Expr for Value {
     fn next(&mut self, _rng: &mut Rng) -> u32 {
         self.data.done = true;
 
         self.data.prev
     }
 
-    fn data(&self) -> &RvData {
+    fn data(&self) -> &ExprData {
         &self.data
     }
 }

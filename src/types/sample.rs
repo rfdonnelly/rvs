@@ -4,19 +4,19 @@ use rand::distributions::Range;
 use rand::distributions::range::RangeInt;
 use rand::distributions::Distribution;
 
-use types::Rv;
-use types::RvData;
+use types::Expr;
+use types::ExprData;
 
 pub struct Sample {
-    data: RvData,
-    children: Vec<Box<Rv>>,
+    data: ExprData,
+    children: Vec<Box<Expr>>,
     range: Range<RangeInt<usize>>,
 }
 
 impl Sample {
-    pub fn new(children: Vec<Box<Rv>>) -> Sample {
+    pub fn new(children: Vec<Box<Expr>>) -> Sample {
         Sample {
-            data: RvData {
+            data: ExprData {
                 prev: 0,
                 done: false,
             },
@@ -26,7 +26,7 @@ impl Sample {
     }
 }
 
-impl Rv for Sample {
+impl Expr for Sample {
     fn next(&mut self, rng: &mut Rng) -> u32 {
         let idx = self.range.sample(rng);
 
@@ -35,7 +35,7 @@ impl Rv for Sample {
         self.data.prev
     }
 
-    fn data(&self) -> &RvData {
+    fn data(&self) -> &ExprData {
         &self.data
     }
 }

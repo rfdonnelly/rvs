@@ -8,7 +8,6 @@ use rvs::parse_rvs;
 
 fn main() {
     let mut context = Context::new();
-    let mut idx = 0;
 
     loop {
         print!("> ");
@@ -22,22 +21,19 @@ fn main() {
             println!("error: {}", e);
         }
 
-        for rv in context.variables[idx..].iter_mut() {
-            let values: Vec<String> = vec![(0, false); 15]
-                .iter()
-                .map(|_| (rv.next(), rv.done()))
-                .map(|(next, done)| if done {
-                         format!("0x{:x} <done>", next)
-                    } else {
-                         format!("0x{:x}", next)
-                    })
-                .collect();
-            let values = values.join(", ");
+        let rv = context.variables.last_mut().unwrap();
+        let values: Vec<String> = vec![(0, false); 15]
+            .iter()
+            .map(|_| (rv.next(), rv.done()))
+            .map(|(next, done)| if done {
+                format!("0x{:x} <done>", next)
+            } else {
+                format!("0x{:x}", next)
+            })
+        .collect();
+        let values = values.join(", ");
 
-            println!("=> {}", values);
-        }
-
-        idx = context.variables.len();
+        println!("=> {}", values);
     }
 }
 

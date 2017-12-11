@@ -2,28 +2,27 @@ use std::fmt;
 use std::fmt::Write;
 use rand::Rng;
 
-use ast::Opcode;
-use ast::UnaryOpcode;
-use types::Rv;
-use types::RvData;
+use rvs_parser::ast;
+use types::Expr;
+use types::ExprData;
 
-pub struct Expr {
-    data: RvData,
-    operation: Opcode,
-    l: Box<Rv>,
-    r: Box<Rv>,
+pub struct Binary {
+    data: ExprData,
+    operation: ast::BinaryOpcode,
+    l: Box<Expr>,
+    r: Box<Expr>,
 }
 
 pub struct Unary {
-    data: RvData,
-    operation: UnaryOpcode,
-    operand: Box<Rv>,
+    data: ExprData,
+    operation: ast::UnaryOpcode,
+    operand: Box<Expr>,
 }
 
-impl Expr {
-    pub fn new(l: Box<Rv>, operation: Opcode, r: Box<Rv>) -> Expr {
-        Expr {
-            data: RvData {
+impl Binary {
+    pub fn new(l: Box<Expr>, operation: ast::BinaryOpcode, r: Box<Expr>) -> Binary {
+        Binary {
+            data: ExprData {
                 prev: 0,
                 done: false,
             },
@@ -34,34 +33,34 @@ impl Expr {
     }
 }
 
-impl Rv for Expr {
+impl Expr for Binary {
     fn next(&mut self, rng: &mut Rng) -> u32 {
         let (l, r) = (self.l.next(rng), self.r.next(rng));
 
         self.data.done = self.l.done() || self.r.done();
 
         self.data.prev = match self.operation {
-            Opcode::Or => l | r,
-            Opcode::Xor => l ^ r,
-            Opcode::And => l & r,
-            Opcode::Shl => l << r,
-            Opcode::Shr => l >> r,
-            Opcode::Add => l + r,
-            Opcode::Sub => l - r,
-            Opcode::Mul => l * r,
-            Opcode::Div => l / r,
-            Opcode::Mod => l % r,
+            ast::BinaryOpcode::Or => l | r,
+            ast::BinaryOpcode::Xor => l ^ r,
+            ast::BinaryOpcode::And => l & r,
+            ast::BinaryOpcode::Shl => l << r,
+            ast::BinaryOpcode::Shr => l >> r,
+            ast::BinaryOpcode::Add => l + r,
+            ast::BinaryOpcode::Sub => l - r,
+            ast::BinaryOpcode::Mul => l * r,
+            ast::BinaryOpcode::Div => l / r,
+            ast::BinaryOpcode::Mod => l % r,
         };
 
         self.data.prev
     }
 
-    fn data(&self) -> &RvData {
+    fn data(&self) -> &ExprData {
         &self.data
     }
 }
 
-impl fmt::Display for Expr {
+impl fmt::Display for Binary {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.write_char('(')?;
         self.l.fmt(f)?;
@@ -74,9 +73,9 @@ impl fmt::Display for Expr {
 }
 
 impl Unary {
-    pub fn new(operation: UnaryOpcode, operand: Box<Rv>) -> Unary {
+    pub fn new(operation: ast::UnaryOpcode, operand: Box<Expr>) -> Unary {
         Unary {
-            data: RvData {
+            data: ExprData {
                 prev: 0,
                 done: false,
             },
@@ -86,20 +85,20 @@ impl Unary {
     }
 }
 
-impl Rv for Unary {
+impl Expr for Unary {
     fn next(&mut self, rng: &mut Rng) -> u32 {
         let operand = self.operand.next(rng);
 
         self.data.done = self.operand.done();
 
         self.data.prev = match self.operation {
-            UnaryOpcode::Neg => !operand,
+            ast::UnaryOpcode::Neg => !operand,
         };
 
         self.data.prev
     }
 
-    fn data(&self) -> &RvData {
+    fn data(&self) -> &ExprData {
         &self.data
     }
 }
@@ -119,18 +118,18 @@ mod tests {
     use types::Seed;
 
     #[test]
-    fn expr() {
+    fn binary() {
         let mut rng = new_rng(&Seed::from_u32(0));
         let v0 = Box::new(Value::new(1));
         let v1 = Box::new(Value::new(2));
 
-        let mut expr = Expr::new(
+        let mut binary = Binary::new(
             v0,
-            Opcode::Add,
+            ast::BinaryOpcode::Add,
             v1,
         );
 
-        assert_eq!(expr.next(&mut rng), 3);
-        assert_eq!(expr.next(&mut rng), 3);
+        assert_eq!(binary.next(&mut rng), 3);
+        assert_eq!(binary.next(&mut rng), 3);
     }
 }

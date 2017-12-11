@@ -5,7 +5,9 @@ use std::fs::File;
 use std::error::Error;
 use std::io::prelude::*;
 
-use ast::Opcode;
+use path::RequirePaths;
+
+use ast::BinaryOpcode;
 use ast::UnaryOpcode;
 use ast::Function;
 use ast::Node;
@@ -23,12 +25,12 @@ require -> Item
         if _require_paths.enter_require(&path) {
             let mut file = match File::open(&path) {
                 Ok(file) => file,
-                    Err(e) => panic!("could not open {}: {}", path.display(), e.description()),
+                Err(e) => panic!("could not open {}: {}", path.display(), e.description()),
             };
             let mut contents = String::new();
             match file.read_to_string(&mut contents) {
                 Ok(_) => (),
-                    Err(e) => panic!("could not read {}: {}", path.display(), e.description()),
+                Err(e) => panic!("could not read {}: {}", path.display(), e.description()),
             }
             let result = Item::Multiple(items(&contents, _require_paths).unwrap());
             _require_paths.leave_require();
@@ -73,6 +75,13 @@ function -> Box<Node>
     / sample
     / weighted_sample
 
+pub expr -> Box<Node>
+    = unary_expr
+    / binary_expr
+
+pub unary_expr -> Box<Node>
+    = "~" _ a:expr { Box::new(Node::UnaryOperation(UnaryOpcode::Neg, a)) }
+
 op_or  = _ "|" _
 op_xor = _ "^" _
 op_and = _ "&" _
@@ -84,25 +93,18 @@ op_mul = _ "*" _
 op_div = _ "/" _
 op_mod = _ "%" _
 
-pub expr -> Box<Node>
-    = unary_expr
-    / binary_expr
-
-pub unary_expr -> Box<Node>
-    = "~" _ a:expr { Box::new(Node::UnaryOperation(UnaryOpcode::Neg, a)) }
-
 pub binary_expr -> Box<Node>
     = #infix<atom> {
-        #L  x op_or  y { Box::new(Node::Operation(x, Opcode::Or, y)) }
-        #L  x op_xor y { Box::new(Node::Operation(x, Opcode::Xor, y)) }
-        #L  x op_and y { Box::new(Node::Operation(x, Opcode::And, y)) }
-        #L  x op_shl y { Box::new(Node::Operation(x, Opcode::Shl, y)) }
-            x op_shr y { Box::new(Node::Operation(x, Opcode::Shr, y)) }
-        #L  x op_add y { Box::new(Node::Operation(x, Opcode::Add, y)) }
-            x op_sub y { Box::new(Node::Operation(x, Opcode::Sub, y)) }
-        #L  x op_mul y { Box::new(Node::Operation(x, Opcode::Mul, y)) }
-            x op_div y { Box::new(Node::Operation(x, Opcode::Div, y)) }
-            x op_mod y { Box::new(Node::Operation(x, Opcode::Mod, y)) }
+        #L  x op_or  y { Box::new(Node::BinaryOperation(x, BinaryOpcode::Or, y)) }
+        #L  x op_xor y { Box::new(Node::BinaryOperation(x, BinaryOpcode::Xor, y)) }
+        #L  x op_and y { Box::new(Node::BinaryOperation(x, BinaryOpcode::And, y)) }
+        #L  x op_shl y { Box::new(Node::BinaryOperation(x, BinaryOpcode::Shl, y)) }
+            x op_shr y { Box::new(Node::BinaryOperation(x, BinaryOpcode::Shr, y)) }
+        #L  x op_add y { Box::new(Node::BinaryOperation(x, BinaryOpcode::Add, y)) }
+            x op_sub y { Box::new(Node::BinaryOperation(x, BinaryOpcode::Sub, y)) }
+        #L  x op_mul y { Box::new(Node::BinaryOperation(x, BinaryOpcode::Mul, y)) }
+            x op_div y { Box::new(Node::BinaryOperation(x, BinaryOpcode::Div, y)) }
+            x op_mod y { Box::new(Node::BinaryOperation(x, BinaryOpcode::Mod, y)) }
     }
 
 pub item -> Item

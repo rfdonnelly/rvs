@@ -1,11 +1,12 @@
 extern crate rand;
 extern crate linked_hash_map;
 
-pub mod ast;
-pub mod grammar;
+extern crate rvs_parser;
+
 pub mod types;
 pub mod error;
 
+use rvs_parser::grammar;
 use types::Context;
 use error::ParseError;
 use error::ParseResult;
@@ -71,13 +72,13 @@ mod tests {
             assert!(parse_rvs("a=[0,1];\nb=2;", &mut context).is_ok());
 
             {
-                let a = context.get_variable("a").unwrap();
+                let a = context.get("a").unwrap();
                 let result = a.next();
                 assert!(result == 0 || result == 1);
             }
 
             {
-                let b = context.get_variable("b").unwrap();
+                let b = context.get("b").unwrap();
                 let result = b.next();
                 assert_eq!(result, 2);
             }
@@ -110,7 +111,7 @@ mod tests {
             let mut context = Context::new();
             assert!(parse_rvs("a = Sample(1, 2, 4, 8);", &mut context).is_ok());
 
-            let a = context.get_variable("a").unwrap();
+            let a = context.get("a").unwrap();
 
             let expected: HashSet<u32> =
                 [1, 2, 4, 8].iter().cloned().collect();
@@ -132,7 +133,7 @@ mod tests {
             let mut context = Context::new();
             assert!(parse_rvs("a = { 10: 0, 90: 1 };", &mut context).is_ok());
 
-            let a = context.get_variable("a").unwrap();
+            let a = context.get("a").unwrap();
 
             let mut results: HashMap<u32, u32> = HashMap::new();
 
@@ -165,8 +166,8 @@ mod tests {
 
                 parse_rvs("require 'a.rvs';", &mut context).unwrap();
 
-                assert!(context.get_variable("a").is_some());
-                assert!(context.get_variable("b").is_none());
+                assert!(context.get("a").is_some());
+                assert!(context.get("b").is_none());
             }
 
             #[test]
@@ -178,8 +179,8 @@ mod tests {
 
                 parse_rvs("require 'a.rvs';", &mut context).unwrap();
 
-                assert!(context.get_variable("a").is_some());
-                assert!(context.get_variable("b").is_some());
+                assert!(context.get("a").is_some());
+                assert!(context.get("b").is_some());
             }
 
             #[test]
@@ -190,7 +191,7 @@ mod tests {
 
                 parse_rvs("require 'a.rvs';", &mut context).unwrap();
 
-                assert_eq!(context.get_variable("a").unwrap().next(), 2);
+                assert_eq!(context.get("a").unwrap().next(), 2);
             }
         }
 
@@ -201,7 +202,7 @@ mod tests {
             assert!(parse_rvs("require 'examples/readme.rvs';", &mut context).is_ok());
 
             {
-                let pattern = context.get_variable("pattern").unwrap();
+                let pattern = context.get("pattern").unwrap();
                 let expected: Vec<u32> = vec![2, 0, 1, 0, 2, 0, 1, 0];
                 let mut actual: Vec<u32> = Vec::new();
                 for _ in 0..8 {
@@ -211,7 +212,7 @@ mod tests {
             }
 
             {
-                let sample = context.get_variable("sample").unwrap();
+                let sample = context.get("sample").unwrap();
                 let mut results: HashMap<u32, u32> = HashMap::new();
                 for _ in 0..90 {
                     let result = sample.next();
@@ -225,7 +226,7 @@ mod tests {
             }
 
             {
-                let weighted = context.get_variable("weighted").unwrap();
+                let weighted = context.get("weighted").unwrap();
                 let mut results: HashMap<u32, u32> = HashMap::new();
                 for _ in 0..1000 {
                     let result = weighted.next();

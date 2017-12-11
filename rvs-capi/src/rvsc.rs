@@ -10,7 +10,6 @@ use std::path::Path;
 use std::fs::File;
 use std::io::prelude::*;
 
-use rvs::types::RvC;
 use rvs::types::Context;
 use rvs::types::Seed;
 use rvs::parse_rvs;
@@ -18,7 +17,26 @@ use rvs::parse_rvs;
 use error::Error;
 use error::ErrorKind;
 
-type SequenceHandle = uint32_t;
+type SequenceHandleRaw = uint32_t;
+struct SequenceHandle(SequenceHandleRaw);
+
+impl SequenceHandle {
+    pub fn to_raw(self) -> SequenceHandleRaw {
+        self.0
+    }
+}
+
+impl Into<usize> for SequenceHandle {
+    fn into(self) -> usize {
+        (self.to_raw() - 1) as usize
+    }
+}
+
+impl From<usize> for SequenceHandle {
+    fn from(index: usize) -> SequenceHandle {
+        SequenceHandle((index + 1) as uint32_t)
+    }
+}
 
 /// Allocates and returns a new context.
 ///
@@ -176,17 +194,16 @@ pub extern fn rvs_parse(
 ///
 /// * If any pointer arguments are null
 #[no_mangle]
-pub extern fn rvs_find(context: *mut Context, id: *const c_char) -> SequenceHandle {
+pub extern fn rvs_find(context: *mut Context, name: *const c_char) -> SequenceHandleRaw {
     assert!(!context.is_null());
-    assert!(!id.is_null());
+    assert!(!name.is_null());
 
-    let id_cstr = unsafe { CStr::from_ptr(id) };
+    let id_cstr = unsafe { CStr::from_ptr(name) };
     let id_rstr = id_cstr.to_str().unwrap();
 
     let context = unsafe { &mut *context };
-    if let Some(handle) = context.handles.get(id_rstr) {
-        let handle = *handle as SequenceHandle;
-        handle + 1
+    if let Some(index) = context.variables.get_index(id_rstr) {
+        SequenceHandle::from(*index).to_raw()
     } else {
         0
     }
@@ -203,14 +220,13 @@ pub extern fn rvs_find(context: *mut Context, id: *const c_char) -> SequenceHand
 /// * If any pointer arguments are null
 /// * If handle doesn't exist
 #[no_mangle]
-pub extern fn rvs_next(context: *mut Context, handle: SequenceHandle) -> u32 {
+pub extern fn rvs_next(context: *mut Context, handle: SequenceHandleRaw) -> u32 {
     assert!(!context.is_null());
 
     let context = unsafe { &mut *context };
-    assert!(handle > 0 && handle <= (context.variables.len() as u32));
-
-    match handle_to_idx(&context.variables, handle) {
-        Some(idx) => context.variables[idx].next(),
+    let handle = SequenceHandle(handle);
+    match context.variables.get_by_index(handle.into()) {
+        Some(variable) => variable.next(),
         None => 0,
     }
 }
@@ -227,14 +243,14 @@ pub extern fn rvs_next(context: *mut Context, handle: SequenceHandle) -> u32 {
 /// * If any pointer arguments are null
 /// * If handle doesn't exist
 #[no_mangle]
-pub extern fn rvs_prev(context: *mut Context, handle: SequenceHandle) -> u32 {
+pub extern fn rvs_prev(context: *mut Context, handle: SequenceHandleRaw) -> u32 {
     assert!(!context.is_null());
 
     let context = unsafe { &mut *context };
-    assert!(handle > 0 && handle <= (context.variables.len() as u32));
+    let handle = SequenceHandle(handle);
 
-    match handle_to_idx(&context.variables, handle) {
-        Some(idx) => context.variables[idx].prev(),
+    match context.variables.get_by_index(handle.into()) {
+        Some(variable) => variable.prev(),
         None => 0,
     }
 }
@@ -251,24 +267,15 @@ pub extern fn rvs_prev(context: *mut Context, handle: SequenceHandle) -> u32 {
 /// * If any pointer arguments are null
 /// * If handle doesn't exist
 #[no_mangle]
-pub extern fn rvs_done(context: *mut Context, handle: SequenceHandle) -> bool {
+pub extern fn rvs_done(context: *mut Context, handle: SequenceHandleRaw) -> bool {
     assert!(!context.is_null());
 
     let context = unsafe { &mut *context };
-    assert!(handle > 0 && handle <= (context.variables.len() as u32));
+    let handle = SequenceHandle(handle);
 
-    match handle_to_idx(&context.variables, handle) {
-        Some(idx) => context.variables[idx].done(),
+    match context.variables.get_by_index(handle.into()) {
+        Some(variable) => variable.done(),
         None => false,
-    }
-}
-
-fn handle_to_idx(variables: &Vec<Box<RvC>>, handle: SequenceHandle) -> Option<usize> {
-    let handle = handle as usize;
-    if variables.is_empty() || handle == 0 || handle > variables.len() {
-        Option::None
-    } else {
-        Some(handle - 1)
     }
 }
 
@@ -375,11 +382,8 @@ mod tests {
             rvs_parse(context, CString::new("a=5;").unwrap().as_ptr(), error);
             assert_eq!(rvs_error_code(error), ErrorKind::None.code());
 
-            let handles = unsafe { &mut (*context).handles };
-            let variables = unsafe { &mut (*context).variables };
-            assert!(handles.contains_key("a"));
-            let id = handles.get("a").unwrap();
-            let value = variables[*id].next();
+            let variable = unsafe { (*context).variables.get("a").unwrap() };
+            let value = variable.next();
             assert_eq!(value, 5);
 
             rvs_error_free(error);
@@ -394,11 +398,8 @@ mod tests {
             rvs_parse(context, CString::new("a=[0,1];").unwrap().as_ptr(), error);
             assert_eq!(rvs_error_code(error), ErrorKind::None.code());
 
-            let handles = unsafe { &mut (*context).handles };
-            let variables = unsafe { &mut (*context).variables };
-            assert!(handles.contains_key("a"));
-            let id = handles.get("a").unwrap();
-            let value = variables[*id].next();
+            let variable = unsafe { (*context).variables.get("a").unwrap() };
+            let value = variable.next();
             assert!(value == 0 || value == 1);
 
             rvs_error_free(error);
@@ -407,7 +408,7 @@ mod tests {
 
         #[test]
         fn parse_error() {
-            use rvs::grammar::ParseError;
+            // use rvs::grammar::ParseError;
 
             let context = rvs_context_new();
             let error = rvs_error_new();
@@ -519,7 +520,6 @@ mod tests {
         }
 
         #[test]
-        #[should_panic]
         fn not_found() {
             let context = rvs_context_new();
 
