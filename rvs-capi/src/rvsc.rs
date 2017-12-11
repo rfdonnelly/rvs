@@ -12,7 +12,7 @@ use std::io::prelude::*;
 
 use rvs::types::Context;
 use rvs::types::Seed;
-use rvs::parse_rvs;
+use rvs::parse;
 
 use error::Error;
 use error::ErrorKind;
@@ -171,7 +171,7 @@ pub extern fn rvs_parse(
                     entry.to_owned() + ";"
                 };
 
-            if let Err(e) = parse_rvs(&parser_string, &mut context) {
+            if let Err(e) = parse(&parser_string, &mut context) {
                 if !error.is_null() {
                     unsafe {
                         *error = Error::new(ErrorKind::Parse(e))

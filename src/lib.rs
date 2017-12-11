@@ -1,59 +1,18 @@
 extern crate rand;
 extern crate linked_hash_map;
-
 extern crate rvs_parser;
 
 pub mod types;
-pub mod error;
 
-use rvs_parser::grammar;
+pub use rvs_parser::error::ParseResult;
+pub use rvs_parser::error::ParseError;
+
 use types::Context;
-use error::ParseError;
-use error::ParseResult;
 
-pub fn parse_rvs(s: &str, context: &mut Context) -> ParseResult<()> {
-    match grammar::items(s, &mut context.requires) {
-        Ok(items) => {
-            context.transform_items(&items);
-
-            Ok(())
-        },
-        Err(error) => {
-            // FIXME: Improve formatting source code in errors
-            //
-            // Current format:
-            //
-            // error at 2:3: expected `=`
-            // a += b;
-            //   ^
-            //
-            // Example: rustc
-            //
-            // error: expected expression, found `+`
-            //   --> /home/rfdonnelly/repos/rvs/src/lib.rs:28:24
-            //    |
-            // 28 |                 error, +
-            //    |                        ^
-            //
-            // Notable features:
-            //
-            // * Source file path
-            // * Single space above and below source line
-            // * Source line prefixed with line number and '|' separator
-            let mut indent = String::with_capacity(error.column);
-            for _ in 0..error.column - 1 {
-                indent.push_str(" ");
-            }
-            let line = s.lines().nth(error.line - 1).unwrap();
-            let description = format!(
-                "{}\n{}\n{}^",
-                error,
-                line,
-                indent,
-            );
-            Err(ParseError::new(description))
-        }
-    }
+pub fn parse(s: &str, context: &mut Context) -> ParseResult<()> {
+    let items = rvs_parser::parse(s, &mut context.requires)?;
+    context.transform_items(&items);
+    Ok(())
 }
 
 #[cfg(test)]
@@ -63,13 +22,13 @@ mod tests {
     use std::collections::HashSet;
     use std::collections::HashMap;
 
-    mod parse_rvs {
+    mod parse {
         use super::*;
 
         #[test]
         fn basic() {
             let mut context = Context::new();
-            assert!(parse_rvs("a=[0,1];\nb=2;", &mut context).is_ok());
+            assert!(parse("a=[0,1];\nb=2;", &mut context).is_ok());
 
             {
                 let a = context.get("a").unwrap();
@@ -91,14 +50,14 @@ mod tests {
         #[test]
         fn multiple() {
             let mut context = Context::new();
-            assert!(parse_rvs("a=[0,1];b=[2,3];", &mut context).is_ok());
+            assert!(parse("a=[0,1];b=[2,3];", &mut context).is_ok());
             assert_eq!(context.to_string(), "a = [0x0, 0x1];\nb = [0x2, 0x3];\n");
         }
 
         #[test]
         fn precendence() {
             let mut context = Context::new();
-            assert!(parse_rvs("a = (10 + 6) * 8;", &mut context).is_ok());
+            assert!(parse("a = (10 + 6) * 8;", &mut context).is_ok());
             assert_eq!(context.to_string(), "a = ((0xa + 0x6) * 0x8);\n");
         }
     }
@@ -109,7 +68,7 @@ mod tests {
         #[test]
         fn basic() {
             let mut context = Context::new();
-            assert!(parse_rvs("a = Sample(1, 2, 4, 8);", &mut context).is_ok());
+            assert!(parse("a = Sample(1, 2, 4, 8);", &mut context).is_ok());
 
             let a = context.get("a").unwrap();
 
@@ -131,7 +90,7 @@ mod tests {
         #[test]
         fn basic() {
             let mut context = Context::new();
-            assert!(parse_rvs("a = { 10: 0, 90: 1 };", &mut context).is_ok());
+            assert!(parse("a = { 10: 0, 90: 1 };", &mut context).is_ok());
 
             let a = context.get("a").unwrap();
 
@@ -164,7 +123,7 @@ mod tests {
                 context.requires.add_search_path(&fixtures.join("a"));
                 context.requires.add_search_path(&fixtures.join("b"));
 
-                parse_rvs("require 'a.rvs';", &mut context).unwrap();
+                parse("require 'a.rvs';", &mut context).unwrap();
 
                 assert!(context.get("a").is_some());
                 assert!(context.get("b").is_none());
@@ -177,7 +136,7 @@ mod tests {
                 context.requires.add_search_path(&fixtures);
                 context.requires.add_search_path(&fixtures.join("path"));
 
-                parse_rvs("require 'a.rvs';", &mut context).unwrap();
+                parse("require 'a.rvs';", &mut context).unwrap();
 
                 assert!(context.get("a").is_some());
                 assert!(context.get("b").is_some());
@@ -189,7 +148,7 @@ mod tests {
                 let fixtures = current_dir().unwrap().join("fixtures/require/require_is_idempotent");
                 context.requires.add_search_path(&fixtures);
 
-                parse_rvs("require 'a.rvs';", &mut context).unwrap();
+                parse("require 'a.rvs';", &mut context).unwrap();
 
                 assert_eq!(context.get("a").unwrap().next(), 2);
             }
@@ -199,7 +158,7 @@ mod tests {
         fn readme() {
             let mut context = Context::new();
             context.requires.add_search_path(&::std::env::current_dir().unwrap());
-            assert!(parse_rvs("require 'examples/readme.rvs';", &mut context).is_ok());
+            assert!(parse("require 'examples/readme.rvs';", &mut context).is_ok());
 
             {
                 let pattern = context.get("pattern").unwrap();

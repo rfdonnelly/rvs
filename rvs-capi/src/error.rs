@@ -2,7 +2,7 @@ use std::fmt;
 use std::ffi::CString;
 use libc::c_char;
 
-use rvs::error::ParseError;
+use rvs::ParseError;
 
 #[derive(Debug)]
 pub struct Error {

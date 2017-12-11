@@ -4,7 +4,7 @@ use std::io;
 use std::io::prelude::*;
 
 use rvs::types::Context;
-use rvs::parse_rvs;
+use rvs::parse;
 
 fn main() {
     let mut context = Context::new();
@@ -17,7 +17,7 @@ fn main() {
         if s.is_empty() {
             return;
         }
-        if let Err(e) = parse_rvs(&s, &mut context) {
+        if let Err(e) = parse(&s, &mut context) {
             println!("error: {}", e);
         }
 
