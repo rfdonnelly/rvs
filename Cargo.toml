@@ -7,3 +7,6 @@ authors = ["Rob Donnelly <rfdonnelly@gmail.com>"]
 rvs-parser = { version = "0.1", path = "rvs-parser" }
 rand = { git = "https://github.com/dhardy/rand" }
 linked-hash-map = "0.5"
+
+[workspace]
+members = ["rvs-parser", "rvs-capi", "rvs-repl"]
