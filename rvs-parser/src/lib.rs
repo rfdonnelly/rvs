@@ -1,5 +1,5 @@
 pub mod ast;
-pub mod grammar;
+mod grammar;
 pub mod path;
 pub mod error;
 
