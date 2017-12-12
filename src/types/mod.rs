@@ -69,7 +69,7 @@ impl fmt::Display for Rv {
 }
 
 pub struct Seed {
-    pub value: [u64; 2],
+    pub value: [u8; 16],
 }
 
 impl Seed {
@@ -98,9 +98,23 @@ impl Seed {
     pub fn from_u32_array(x: [u32; 4]) -> Seed {
         Seed {
             value: [
-                ((x[1] as u64) << 32) | (x[0] as u64),
-                ((x[3] as u64) << 32) | (x[2] as u64),
-            ]
+                (x[0] >>  0) as u8,
+                (x[0] >>  8) as u8,
+                (x[0] >> 16) as u8,
+                (x[0] >> 24) as u8,
+                (x[1] >>  0) as u8,
+                (x[1] >>  8) as u8,
+                (x[1] >> 16) as u8,
+                (x[1] >> 24) as u8,
+                (x[2] >>  0) as u8,
+                (x[2] >>  8) as u8,
+                (x[2] >> 16) as u8,
+                (x[2] >> 24) as u8,
+                (x[3] >>  0) as u8,
+                (x[3] >>  8) as u8,
+                (x[3] >> 16) as u8,
+                (x[3] >> 24) as u8,
+            ],
         }
     }
 }
