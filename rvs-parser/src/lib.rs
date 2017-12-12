@@ -7,9 +7,9 @@ pub use self::path::RequirePaths;
 pub use error::ParseResult;
 pub use error::ParseError;
 
-pub fn parse(s: &str, require_paths: &mut RequirePaths) -> ParseResult<Vec<ast::Item>> {
+pub fn parse(s: &str, require_paths: &mut RequirePaths) -> ParseResult<Vec<Box<ast::Node>>> {
     match grammar::items(s, require_paths) {
-        Ok(items) => Ok(items),
+        Ok(items) => Ok(flatten(items)),
         Err(error) => {
             // FIXME: Improve formatting source code in errors
             //
@@ -47,4 +47,26 @@ pub fn parse(s: &str, require_paths: &mut RequirePaths) -> ParseResult<Vec<ast::
             Err(ParseError::new(description))
         }
     }
+}
+
+fn flatten_recursive(mut items: Vec<ast::Item>, nodes: &mut Vec<Box<ast::Node>>) {
+    for item in items.drain(..) {
+        match item {
+            ast::Item::Single(node) => nodes.push(node),
+            ast::Item::Multiple(items) => flatten_recursive(items, nodes),
+        }
+    }
+}
+
+/// Strips out all ast::Items while keeping their contents
+///
+/// ast::Items only serve as packaging for ast::Nodes.  `require` adds the packaging.  `flatten`
+/// removes the packaging.  ast::Items are an implementation detail for `require` and only add
+/// noise to the AST.
+fn flatten(items: Vec<ast::Item>) -> Vec<Box<ast::Node>> {
+    let mut nodes: Vec<Box<ast::Node>> = Vec::new();
+
+    flatten_recursive(items, &mut nodes);
+
+    nodes
 }

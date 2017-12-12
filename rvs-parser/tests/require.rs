@@ -15,7 +15,7 @@ fn same_filename_different_directory() {
 
     let items = parse("require 'a.rvs';", &mut require_paths).unwrap();
     assert_eq!(format!("{:?}", items),
-        "[Multiple([Single(Assignment(Identifier(\"a\"), Number(0)))])]");
+        "[Assignment(Identifier(\"a\"), Number(0))]");
 }
 
 #[test]
@@ -27,7 +27,7 @@ fn source_relative() {
 
     let items = parse("require 'a.rvs';", &mut require_paths).unwrap();
     assert_eq!(format!("{:?}", items),
-        "[Multiple([Multiple([Multiple([Single(Assignment(Identifier(\"c\"), Number(0)))]), Single(Assignment(Identifier(\"b\"), Number(0)))]), Single(Assignment(Identifier(\"a\"), Number(0)))])]");
+        "[Assignment(Identifier(\"c\"), Number(0)), Assignment(Identifier(\"b\"), Number(0)), Assignment(Identifier(\"a\"), Number(0))]");
 }
 
 #[test]
@@ -38,5 +38,5 @@ fn require_is_idempotent() {
 
     let items = parse("require 'a.rvs';", &mut require_paths).unwrap();
     assert_eq!(format!("{:?}", items),
-        "[Multiple([Multiple([Single(Assignment(Identifier(\"a\"), Number(1)))]), Single(Assignment(Identifier(\"a\"), Number(2))), Multiple([])])]");
+        "[Assignment(Identifier(\"a\"), Number(1)), Assignment(Identifier(\"a\"), Number(2))]");
 }

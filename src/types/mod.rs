@@ -223,23 +223,16 @@ impl Enum {
 }
 
 impl Context {
-    pub fn transform_items(&mut self, items: &Vec<ast::Item>) {
-        for item in items {
-            match *item {
-                ast::Item::Single(ref node) => {
-                    match **node {
-                        ast::Node::Assignment(ref lhs, ref rhs) => {
-                            self.transform_assignment(lhs, rhs);
-                        },
-                        ast::Node::Enum(ref name, ref items) => {
-                            self.transform_enum(name, items);
-                        }
-                        _ => {},
-                    }
+    pub fn transform_items(&mut self, items: &Vec<Box<ast::Node>>) {
+        for item in items.iter() {
+            match **item {
+                ast::Node::Assignment(ref lhs, ref rhs) => {
+                    self.transform_assignment(lhs, rhs);
+                },
+                ast::Node::Enum(ref name, ref items) => {
+                    self.transform_enum(name, items);
                 }
-                ast::Item::Multiple(ref items) => {
-                    self.transform_items(items)
-                }
+                _ => {},
             }
         }
     }
@@ -435,40 +428,6 @@ mod tests {
 
             assert!(values[&3] > 0);
             assert!(values[&4] > 0);
-        }
-    }
-
-    mod transform_items {
-        use super::*;
-
-        #[test]
-        fn basic() {
-            let items = vec![
-                ast::Item::Single(
-                    Box::new(ast::Node::Assignment(
-                        Box::new(ast::Node::Identifier("a".into())),
-                        Box::new(ast::Node::Number(5))
-                    ))
-                ),
-                ast::Item::Single(
-                    Box::new(ast::Node::Assignment(
-                        Box::new(ast::Node::Identifier("b".into())),
-                        Box::new(ast::Node::Number(6))
-                    ))
-                ),
-            ];
-
-            let mut context = Context::new();
-            context.transform_items(&items);
-
-            {
-                let variable = context.variables.get("a").unwrap();
-                assert_eq!(variable.next(), 5);
-            }
-            {
-                let variable = context.variables.get("b").unwrap();
-                assert_eq!(variable.next(), 6);
-            }
         }
     }
 }
