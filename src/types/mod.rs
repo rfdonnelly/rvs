@@ -86,10 +86,10 @@ impl Seed {
     ///    This is done by seeding an Rng with the LQS then using the Rng to generate the HQS.
     pub fn from_u32(seed: u32) -> Seed {
         let mut rng = XorShiftRng::from_seed(Seed::from_u32_array([
-            seed,
-            seed ^ 0xaaaa_aaaa,
+            seed ^ 0xa5a5_a5a5,
+            seed ^ 0x5a5a_5a5a,
             seed ^ 0x5555_5555,
-            !seed,
+            seed ^ 0xaaaa_aaaa,
         ]).value);
 
         Seed::from_u32_array([rng.gen(), rng.gen(), rng.gen(), rng.gen()])
