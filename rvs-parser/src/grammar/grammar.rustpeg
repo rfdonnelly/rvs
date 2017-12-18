@@ -202,7 +202,7 @@ range -> Box<Node>
     }
 
 sample -> Box<Node>
-    = "Sample(" _ a:(expr / enum_inst) ++ ("," _) optional_trailing_comma _ ")" {
+    = "Sample(" _ a:(enum_inst / expr) ++ ("," _) optional_trailing_comma _ ")" {
         Box::new(
             Node::Function(
                 Function::Sample,
