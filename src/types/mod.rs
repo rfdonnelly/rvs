@@ -15,6 +15,9 @@ use rand::Sample as RandSample;
 use rvs_parser::ast;
 use rvs_parser::RequirePaths;
 
+use error::TransformError;
+use error::TransformResult;
+
 pub use self::value::Value;
 pub use self::operation::Unary;
 pub use self::operation::Binary;
@@ -44,27 +47,34 @@ pub trait Expr: fmt::Display {
 
 /// Random Variable
 pub struct Rv {
-    root: Box<Expr>,
+    expr: Box<Expr>,
     rng: Box<Rng>,
 }
 
 impl Rv {
+    pub fn new(expr: Box<Expr>, rng: Box<Rng>) -> Rv {
+        Rv {
+            expr,
+            rng,
+        }
+    }
+
     pub fn next(&mut self) -> u32 {
-        self.root.next(&mut self.rng)
+        self.expr.next(&mut self.rng)
     }
 
     pub fn prev(&self) -> u32 {
-        self.root.prev()
+        self.expr.prev()
     }
 
     pub fn done(&self) -> bool {
-        self.root.done()
+        self.expr.done()
     }
 }
 
 impl fmt::Display for Rv {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        self.root.fmt(f)
+        self.expr.fmt(f)
     }
 }
 
@@ -147,9 +157,9 @@ impl Variables {
         }
     }
 
-    pub fn insert(&mut self, name: String, variable: Box<Rv>) {
+    pub fn insert(&mut self, name: &str, variable: Box<Rv>) {
         self.refs.push(variable);
-        self.indexes.insert(name, self.refs.len() - 1);
+        self.indexes.insert(name.into(), self.refs.len() - 1);
     }
 
     pub fn last_mut(&mut self) -> Option<&mut Rv> {
@@ -228,45 +238,53 @@ pub struct Enum {
 }
 
 impl Enum {
-    pub fn new(name: String, items: LinkedHashMap<String, u32>) -> Enum {
+    pub fn new(name: &str, items: LinkedHashMap<String, u32>) -> Enum {
         Enum {
-            name,
+            name: name.into(),
             items,
         }
     }
 }
 
 impl Context {
-    pub fn transform_items(&mut self, items: &Vec<Box<ast::Node>>) {
+    pub fn transform_items(&mut self, items: &Vec<Box<ast::Node>>) -> TransformResult<()> {
         for item in items.iter() {
             match **item {
                 ast::Node::Assignment(ref lhs, ref rhs) => {
-                    self.transform_assignment(lhs, rhs);
+                    self.transform_assignment(lhs, rhs)?;
                 },
                 ast::Node::Enum(ref name, ref items) => {
-                    self.transform_enum(name, items);
+                    self.transform_enum(name, items)?;
                 }
-                _ => {},
+                _ => {
+                    return Err(TransformError::new(format!(
+                                "Expected Assignment or Enum but found {:?}", **item)));
+                },
             }
         }
+
+        Ok(())
     }
 
-    pub fn transform_assignment(&mut self, lhs: &ast::Node, rhs: &ast::Node) {
-        let mut identifier: String = "".into();
-
-        if let ast::Node::Identifier(ref x) = *lhs {
-            identifier = x.clone();
-        }
+    pub fn transform_assignment(&mut self, lhs: &ast::Node, rhs: &ast::Node) -> TransformResult<()> {
+        let identifier =
+            if let ast::Node::Identifier(ref identifier) = *lhs {
+                identifier
+            } else {
+                return Err(TransformError::new(format!(
+                        "Expecting identifier but found {:?}", lhs)));
+            };
 
         let mut rng = new_rng(&self.seed);
-        let rv = Box::new(Rv {
-            root: self.transform_expr(&mut rng, &rhs),
-            rng: rng,
-        });
+        let rv = Box::new(Rv::new(
+                self.transform_expr(&mut rng, &rhs)?,
+                rng));
         self.variables.insert(identifier, rv);
+
+        Ok(())
     }
 
-    pub fn transform_enum(&mut self, name: &String, items: &Vec<Box<ast::Node>>) {
+    pub fn transform_enum(&mut self, name: &str, items: &Vec<Box<ast::Node>>) -> TransformResult<()> {
         let mut enum_items_map = LinkedHashMap::new();
 
         let mut next_implicit_value = 0;
@@ -280,80 +298,97 @@ impl Context {
                         enum_items_map.insert(name.to_owned(), value);
                         next_implicit_value = value + 1;
                     } else {
-                        panic!("Expected Number but found...FIXME");
+                        return Err(TransformError::new(format!(
+                                    "Expected Number but found {:?}", **value
+                                    )));
                     }
                 } else {
                     enum_items_map.insert(name.to_owned(), next_implicit_value);
                     next_implicit_value += 1;
                 }
             } else {
-                panic!("Expected EnumItem but found...FIXME");
+                return Err(TransformError::new(format!(
+                            "Expected EnumItem but found {:?}", **item
+                            )));
             }
         }
-        self.enums.insert(
-            name.to_owned(),
-            Enum::new(name.to_owned(), enum_items_map)
-            );
+        self.enums.insert(name.to_owned(), Enum::new(name, enum_items_map));
+
+        Ok(())
     }
 
-    pub fn transform_expr(&self, rng: &mut Rng, node: &ast::Node) -> Box<Expr> {
+    pub fn transform_expr(&self, rng: &mut Rng, node: &ast::Node) -> TransformResult<Box<Expr>> {
         match *node {
             ast::Node::Function(ref function, ref args) => {
                 self.transform_function(rng, function, args)
-            }
-            ast::Node::Number(x) => Box::new(Value::new(x)),
+            },
+            ast::Node::Number(x) => {
+                Ok(Box::new(Value::new(x)))
+            },
             ast::Node::UnaryOperation(ref op, ref a) => {
-                Box::new(
-                    Unary::new(
-                        op.clone(),
-                        self.transform_expr(rng, a)
-                        )
-                    )
+                Ok(Box::new(
+                        Unary::new(
+                            op.clone(),
+                            self.transform_expr(rng, a)?
+                            )
+                        ))
             },
             ast::Node::BinaryOperation(ref bx, ref op, ref by) => {
-                Box::new(
-                    Binary::new(
-                        self.transform_expr(rng, bx),
-                        op.clone(),
-                        self.transform_expr(rng, by)
-                    )
-                )
+                Ok(Box::new(
+                        Binary::new(
+                            self.transform_expr(rng, bx)?,
+                            op.clone(),
+                            self.transform_expr(rng, by)?
+                            )
+                        ))
             },
             ast::Node::EnumItemInst(ref a, ref b) => {
                 if let Some(entry) = self.enums.get(a) {
                     if let Some(entry) = entry.items.get(b) {
-                        Box::new(
-                            Value::new(*entry)
-                        )
+                        Ok(Box::new(Value::new(*entry)))
                     } else {
-                        panic!("Could not find enum value '{}' in enum '{}'", b, a);
+                        Err(TransformError::new(format!(
+                                    "Could not find enum value '{}' in enum '{}'", b, a
+                                    )))
                     }
                 } else {
-                    panic!("Could not find enum '{}'", a);
+                    Err(TransformError::new(format!(
+                                "Could not find enum '{}'", a
+                                )))
                 }
             },
-            _ => panic!("Not supported"),
+            _ => {
+                Err(TransformError::new(format!(
+                    "Expected (Function|Number|UnaryOperation|BinaryOperation|EnumItemInst) but found {:?}",
+                    *node)))
+            }
         }
     }
 
-    pub fn transform_function(&self, rng: &mut Rng, function: &ast::Function, args: &Vec<Box<ast::Node>>) -> Box<Expr> {
+    pub fn transform_function(
+        &self,
+        rng: &mut Rng,
+        function: &ast::Function,
+        args: &Vec<Box<ast::Node>>
+    ) -> TransformResult<Box<Expr>> {
         match *function {
             ast::Function::Pattern => {
-                Box::new(
-                    Pattern::new(
-                        args.into_iter()
-                        .map(|arg| self.transform_expr(rng, &arg))
-                        .collect()
+                Ok(Box::new(
+                        Pattern::new(
+                            args.into_iter()
+                            // FIXME: Can only use '?' in functions that return Result
+                            // Do something better than unwrap here
+                            .map(|arg| self.transform_expr(rng, &arg).unwrap())
+                            .collect()
+                            )
                         )
-                    )
+                  )
             }
             ast::Function::Range => {
-                let l = self.transform_expr(rng, &args[0]).next(rng);
-                let r = self.transform_expr(rng, &args[1]).next(rng);
+                let l = self.transform_expr(rng, &args[0])?.next(rng);
+                let r = self.transform_expr(rng, &args[1])?.next(rng);
 
-                Box::new(
-                    RangeSequence::new(l, r)
-                    )
+                Ok(Box::new(RangeSequence::new(l, r)))
             }
             ast::Function::Sample => {
                 let mut children: Vec<Box<Expr>> = Vec::new();
@@ -366,29 +401,36 @@ impl Context {
                                 );
                             }
                         } else {
-                            panic!("Could not find enum '{}'", name);
+                            return Err(TransformError::new(format!(
+                                        "Could not find enum '{}'", name
+                                        )));
                         }
                     } else {
-                        children.push(self.transform_expr(rng, &arg));
+                        children.push(self.transform_expr(rng, &arg)?);
                     }
                 }
 
-                Box::new(Sample::new(children))
+                Ok(Box::new(Sample::new(children)))
             }
             ast::Function::WeightedSample => {
-                Box::new(
-                    WeightedSample::new(
-                        args.into_iter()
-                        .map(|arg|
-                             if let ast::Node::WeightedPair(ref weight, ref node) = **arg {
-                                 (*weight, self.transform_expr(rng, node))
-                             } else {
-                                 panic!("Expected WeightedPair but found ... FIXME");
-                             }
+                Ok(Box::new(
+                        WeightedSample::new(
+                            args.into_iter()
+                            .map(|arg|
+                                 if let ast::Node::WeightedPair(ref weight, ref node) = **arg {
+                                     // FIXME: Can only use '?' in functions that return Result
+                                     // Do something better than unwrap here
+                                     (*weight, self.transform_expr(rng, node).unwrap())
+                                 } else {
+                                     // FIXME: Can return Err in functions that return Result
+                                     // Do something better than panic here
+                                     panic!("Expected WeightedPair but found {:?}", **arg);
+                                 }
+                                )
+                            .collect()
                             )
-                        .collect()
                         )
-                    )
+                  )
             }
         }
     }
@@ -413,7 +455,7 @@ mod tests {
             let context = Context::new();
             let mut rng = new_rng(&Seed::from_u32(0));
             let ast = ast::Node::Number(4);
-            let mut variable = context.transform_expr(&mut rng, &ast);
+            let mut variable = context.transform_expr(&mut rng, &ast).unwrap();
 
             assert_eq!(variable.next(&mut rng), 4);
         }
@@ -429,7 +471,7 @@ mod tests {
                     Box::new(ast::Node::Number(4))
                 ]
             );
-            let mut variable = context.transform_expr(&mut rng, &ast);
+            let mut variable = context.transform_expr(&mut rng, &ast).unwrap();
 
             let mut values = HashMap::new();
 
