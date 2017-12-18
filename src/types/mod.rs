@@ -51,6 +51,8 @@ pub struct Rv {
     rng: Box<Rng>,
 }
 
+type RvRef = Box<Rv>;
+
 impl Rv {
     pub fn new(expr: Box<Expr>, rng: Box<Rng>) -> Rv {
         Rv {
@@ -130,13 +132,13 @@ impl Seed {
 }
 
 pub struct Variables {
-    refs: Vec<Box<Rv>>,
+    refs: Vec<RvRef>,
     indexes: LinkedHashMap<String, usize>,
 }
 
 pub struct VariablesIter<'a> {
     iter: ::linked_hash_map::Iter<'a, String, usize>,
-    refs: &'a Vec<Box<Rv>>,
+    refs: &'a Vec<RvRef>,
 }
 
 impl<'a> Iterator for VariablesIter<'a> {
@@ -157,7 +159,7 @@ impl Variables {
         }
     }
 
-    pub fn insert(&mut self, name: &str, variable: Box<Rv>) {
+    pub fn insert(&mut self, name: &str, variable: RvRef) {
         self.refs.push(variable);
         self.indexes.insert(name.into(), self.refs.len() - 1);
     }
