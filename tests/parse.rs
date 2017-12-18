@@ -10,13 +10,13 @@ fn basic() {
 
     {
         let a = context.get("a").unwrap();
-        let result = a.next();
+        let result = a.borrow_mut().next();
         assert!(result == 0 || result == 1);
     }
 
     {
         let b = context.get("b").unwrap();
-        let result = b.next();
+        let result = b.borrow_mut().next();
         assert_eq!(result, 2);
     }
 }

@@ -15,7 +15,7 @@ fn basic() {
     let mut results: HashMap<u32, u32> = HashMap::new();
 
     for _ in 0..1000 {
-        let result = a.next();
+        let result = a.borrow_mut().next();
         let entry = results.entry(result).or_insert(0);
         *entry += 1;
     }

@@ -6,6 +6,8 @@ pub mod sample;
 pub mod weightedsample;
 
 use std::fmt;
+use std::rc::Rc;
+use std::cell::RefCell;
 use linked_hash_map::LinkedHashMap;
 use rand::Rng;
 use rand::SeedableRng;
@@ -51,7 +53,7 @@ pub struct Rv {
     rng: Box<Rng>,
 }
 
-type RvRef = Box<Rv>;
+type RvRef = Rc<RefCell<Box<Rv>>>;
 
 impl Rv {
     pub fn new(expr: Box<Expr>, rng: Box<Rng>) -> Rv {
@@ -142,12 +144,12 @@ pub struct VariablesIter<'a> {
 }
 
 impl<'a> Iterator for VariablesIter<'a> {
-    type Item = (&'a str, &'a Rv);
+    type Item = (&'a str, &'a RvRef);
 
-    fn next(&mut self) -> Option<(&'a str, &'a Rv)> {
+    fn next(&mut self) -> Option<(&'a str, &'a RvRef)> {
         let next = self.iter.next()?;
 
-        Some((next.0, &*self.refs[*next.1]))
+        Some((next.0, &self.refs[*next.1]))
     }
 }
 
@@ -164,26 +166,21 @@ impl Variables {
         self.indexes.insert(name.into(), self.refs.len() - 1);
     }
 
-    pub fn last_mut(&mut self) -> Option<&mut Rv> {
-        let variable = self.refs.last_mut()?;
-
-        Some(&mut *variable)
+    pub fn last_mut(&mut self) -> Option<&RvRef> {
+        self.refs.last()
     }
 
     pub fn get_index(&self, k: &str) -> Option<&usize> {
         self.indexes.get(k)
     }
 
-    pub fn get_by_index(&mut self, index: usize) -> Option<&mut Rv> {
-        let variable = self.refs.get_mut(index)?;
-
-        Some(&mut *variable)
+    pub fn get_by_index(&mut self, index: usize) -> Option<&RvRef> {
+        self.refs.get(index)
     }
 
-    pub fn get(&mut self, k: &str) -> Option<&mut Rv> {
+    pub fn get(&mut self, k: &str) -> Option<&RvRef> {
         let index = self.indexes.get(k)?;
-        let variable = self.refs.get_mut(*index)?;
-        Some(&mut *variable)
+        self.refs.get(*index)
     }
 
     pub fn iter(&self) -> VariablesIter {
@@ -198,7 +195,7 @@ impl fmt::Display for Variables {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         for (name, variable) in self.iter() {
             write!(f, "{} = ", name)?;
-            variable.fmt(f)?;
+            variable.borrow().fmt(f)?;
             writeln!(f, ";")?;
         }
 
@@ -223,7 +220,7 @@ impl Context {
         }
     }
 
-    pub fn get(&mut self, name: &str) -> Option<&mut Rv> {
+    pub fn get(&mut self, name: &str) -> Option<&RvRef> {
         self.variables.get(name)
     }
 }
@@ -278,9 +275,9 @@ impl Context {
             };
 
         let mut rng = new_rng(&self.seed);
-        let rv = Box::new(Rv::new(
+        let rv = Rc::new(RefCell::new(Box::new(Rv::new(
                 self.transform_expr(&mut rng, &rhs)?,
-                rng));
+                rng))));
         self.variables.insert(identifier, rv);
 
         Ok(())

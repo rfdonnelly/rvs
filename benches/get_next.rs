@@ -21,7 +21,7 @@ fn basic(b: &mut Bencher) {
     b.iter(|| 
            for i in 0..iter {
                let name = format!("a{}", i);
-               let rv = context.get(&name).unwrap();
+               let mut rv = context.get(&name).unwrap().borrow_mut();
                assert_eq!(rv.next(), i);
            });
 }
