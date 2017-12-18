@@ -29,6 +29,7 @@ pub use self::range::RangeSequence;
 pub use self::sample::Sample;
 pub use self::weightedsample::WeightedSample;
 pub use self::method::Next;
+pub use self::method::Prev;
 
 #[derive(Clone)]
 pub struct ExprData {
@@ -410,7 +411,7 @@ impl Context {
                         Ok(Box::new(Next::new(name)))
                     },
                     ast::Method::Prev => {
-                        Ok(Box::new(Value::new(0)))
+                        Ok(Box::new(Prev::new(name)))
                     },
                     ast::Method::Copy => {
                         Ok(variable.borrow().clone_expr())
