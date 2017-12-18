@@ -8,6 +8,7 @@ use types::Expr;
 use types::ExprData;
 use types::Context;
 
+#[derive(Clone)]
 pub struct WeightedSample {
     data: ExprData,
     children: Vec<(u32, Box<Expr>)>,

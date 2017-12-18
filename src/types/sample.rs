@@ -8,6 +8,7 @@ use types::Expr;
 use types::ExprData;
 use types::Context;
 
+#[derive(Clone)]
 pub struct Sample {
     data: ExprData,
     children: Vec<Box<Expr>>,

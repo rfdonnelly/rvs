@@ -7,6 +7,7 @@ use types::Expr;
 use types::ExprData;
 use types::Context;
 
+#[derive(Clone)]
 pub struct Binary {
     data: ExprData,
     operation: ast::BinaryOpcode,
@@ -14,6 +15,7 @@ pub struct Binary {
     r: Box<Expr>,
 }
 
+#[derive(Clone)]
 pub struct Unary {
     data: ExprData,
     operation: ast::UnaryOpcode,

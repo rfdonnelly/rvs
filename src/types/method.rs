@@ -5,6 +5,7 @@ use types::Expr;
 use types::ExprData;
 use types::Context;
 
+#[derive(Clone)]
 pub struct Next {
     variable_name: String,
     variable_index_valid: bool,

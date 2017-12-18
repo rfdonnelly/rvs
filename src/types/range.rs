@@ -8,6 +8,7 @@ use types::Expr;
 use types::ExprData;
 use types::Context;
 
+#[derive(Clone)]
 pub struct RangeSequence {
     data: ExprData,
     l: u32,

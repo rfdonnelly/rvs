@@ -30,12 +30,13 @@ pub use self::sample::Sample;
 pub use self::weightedsample::WeightedSample;
 pub use self::method::Next;
 
+#[derive(Clone)]
 pub struct ExprData {
     prev: u32,
     done: bool,
 }
 
-pub trait Expr: fmt::Display {
+pub trait Expr: fmt::Display + ExprClone {
     fn next(&mut self, rng: &mut Rng, context: &Context) -> u32;
 
     fn prev(&self) -> u32 {
@@ -47,6 +48,25 @@ pub trait Expr: fmt::Display {
     }
 
     fn data(&self) -> &ExprData;
+}
+
+/// Used to implement clone for all implementors of Expr trait.
+///
+/// https://stackoverflow.com/a/30353928
+pub trait ExprClone {
+    fn clone_box(&self) -> Box<Expr>;
+}
+
+impl<T> ExprClone for T where T: 'static + Expr + Clone {
+    fn clone_box(&self) -> Box<Expr> {
+        Box::new(self.clone())
+    }
+}
+
+impl Clone for Box<Expr> {
+    fn clone(&self) -> Box<Expr> {
+        self.clone_box()
+    }
 }
 
 /// Random Variable
@@ -63,6 +83,10 @@ impl Rv {
             expr,
             rng,
         }
+    }
+
+    pub fn clone_expr(&self) -> Box<Expr> {
+        self.expr.clone()
     }
 
     pub fn next(&mut self, context: &Context) -> u32 {
@@ -380,7 +404,7 @@ impl Context {
         method: &ast::Method
     ) -> TransformResult<Box<Expr>> {
         match self.variables.get(name) {
-            Some(_) => {
+            Some(variable) => {
                 match *method {
                     ast::Method::Next => {
                         Ok(Box::new(Next::new(name)))
@@ -389,7 +413,7 @@ impl Context {
                         Ok(Box::new(Value::new(0)))
                     },
                     ast::Method::Copy => {
-                        Ok(Box::new(Value::new(0)))
+                        Ok(variable.borrow().clone_expr())
                     },
                 }
             },

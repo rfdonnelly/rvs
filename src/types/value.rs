@@ -5,6 +5,7 @@ use types::Expr;
 use types::ExprData;
 use types::Context;
 
+#[derive(Clone)]
 pub struct Value {
     data: ExprData,
 }
