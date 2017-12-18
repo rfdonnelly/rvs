@@ -34,7 +34,7 @@ pub struct ExprData {
 }
 
 pub trait Expr: fmt::Display {
-    fn next(&mut self, rng: &mut Rng) -> u32;
+    fn next(&mut self, rng: &mut Rng, context: &Context) -> u32;
 
     fn prev(&self) -> u32 {
         self.data().prev
@@ -63,8 +63,8 @@ impl Rv {
         }
     }
 
-    pub fn next(&mut self) -> u32 {
-        self.expr.next(&mut self.rng)
+    pub fn next(&mut self, context: &Context) -> u32 {
+        self.expr.next(&mut self.rng, context)
     }
 
     pub fn prev(&self) -> u32 {
@@ -166,21 +166,24 @@ impl Variables {
         self.indexes.insert(name.into(), self.refs.len() - 1);
     }
 
-    pub fn last_mut(&mut self) -> Option<&RvRef> {
-        self.refs.last()
+    pub fn last_mut(&self) -> Option<RvRef> {
+        let variable = self.refs.last()?;
+        Some(Rc::clone(variable))
     }
 
     pub fn get_index(&self, k: &str) -> Option<&usize> {
         self.indexes.get(k)
     }
 
-    pub fn get_by_index(&mut self, index: usize) -> Option<&RvRef> {
-        self.refs.get(index)
+    pub fn get_by_index(&self, index: usize) -> Option<RvRef> {
+        let variable = self.refs.get(index)?;
+        Some(Rc::clone(variable))
     }
 
-    pub fn get(&mut self, k: &str) -> Option<&RvRef> {
+    pub fn get(&self, k: &str) -> Option<RvRef> {
         let index = self.indexes.get(k)?;
-        self.refs.get(*index)
+        let variable = self.refs.get(*index)?;
+        Some(Rc::clone(variable))
     }
 
     pub fn iter(&self) -> VariablesIter {
@@ -220,7 +223,7 @@ impl Context {
         }
     }
 
-    pub fn get(&mut self, name: &str) -> Option<&RvRef> {
+    pub fn get(&self, name: &str) -> Option<RvRef> {
         self.variables.get(name)
     }
 }
@@ -384,8 +387,8 @@ impl Context {
                   )
             }
             ast::Function::Range => {
-                let l = self.transform_expr(rng, &args[0])?.next(rng);
-                let r = self.transform_expr(rng, &args[1])?.next(rng);
+                let l = self.transform_expr(rng, &args[0])?.next(rng, self);
+                let r = self.transform_expr(rng, &args[1])?.next(rng, self);
 
                 Ok(Box::new(RangeSequence::new(l, r)))
             }
@@ -456,7 +459,7 @@ mod tests {
             let ast = ast::Node::Number(4);
             let mut variable = context.transform_expr(&mut rng, &ast).unwrap();
 
-            assert_eq!(variable.next(&mut rng), 4);
+            assert_eq!(variable.next(&mut rng, &context), 4);
         }
 
         #[test]
@@ -475,7 +478,7 @@ mod tests {
             let mut values = HashMap::new();
 
             for _ in 0..10 {
-                let value = variable.next(&mut rng);
+                let value = variable.next(&mut rng, &context);
                 let entry = values.entry(value).or_insert(0);
                 *entry += 1;
                 assert!(value == 3 || value == 4);

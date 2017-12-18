@@ -6,6 +6,7 @@ use rand::Distribution;
 
 use types::Expr;
 use types::ExprData;
+use types::Context;
 
 pub struct WeightedSample {
     data: ExprData,
@@ -34,9 +35,9 @@ impl WeightedSample {
 }
 
 impl Expr for WeightedSample {
-    fn next(&mut self, rng: &mut Rng) -> u32 {
+    fn next(&mut self, rng: &mut Rng, context: &Context) -> u32 {
         let index = self.weighted_choice.sample(rng);
-        self.data.prev = self.children[index].1.next(rng);
+        self.data.prev = self.children[index].1.next(rng, context);
 
         self.data.prev
     }

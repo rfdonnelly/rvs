@@ -18,10 +18,10 @@ fn basic(b: &mut Bencher) {
     }
     parse(&source, &mut context).unwrap();
 
-    b.iter(|| 
+    b.iter(||
            for i in 0..iter {
                let name = format!("a{}", i);
-               let mut rv = context.get(&name).unwrap().borrow_mut();
-               assert_eq!(rv.next(), i);
+               let rv = context.get(&name).unwrap();
+               assert_eq!(rv.borrow_mut().next(&context), i);
            });
 }

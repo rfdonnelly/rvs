@@ -17,7 +17,7 @@ fn basic() {
     let mut actual: HashSet<u32> = HashSet::new();
 
     for _ in 0..16 {
-        actual.insert(a.borrow_mut().next());
+        actual.insert(a.borrow_mut().next(&context));
     }
 
     assert_eq!(expected, actual);
