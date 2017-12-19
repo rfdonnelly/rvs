@@ -28,6 +28,13 @@ pub enum Function {
 }
 
 #[derive(PartialEq, Debug)]
+pub enum Method {
+    Next,
+    Prev,
+    Copy,
+}
+
+#[derive(PartialEq, Debug)]
 pub enum Node {
     Identifier(String),
     Number(u32),
@@ -40,6 +47,7 @@ pub enum Node {
     EnumItemInst(String, String),
     Function(Function, Vec<Box<Node>>),
     WeightedPair(u32, Box<Node>),
+    VariableMethodCall(String, Method),
 }
 
 /// An abstraction above Node to implement `require`

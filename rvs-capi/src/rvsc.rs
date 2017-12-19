@@ -203,7 +203,7 @@ pub extern fn rvs_find(context: *mut Context, name: *const c_char) -> SequenceHa
 
     let context = unsafe { &mut *context };
     if let Some(index) = context.variables.get_index(id_rstr) {
-        SequenceHandle::from(*index).to_raw()
+        SequenceHandle::from(index).to_raw()
     } else {
         0
     }
@@ -226,7 +226,7 @@ pub extern fn rvs_next(context: *mut Context, handle: SequenceHandleRaw) -> u32 
     let context = unsafe { &mut *context };
     let handle = SequenceHandle(handle);
     match context.variables.get_by_index(handle.into()) {
-        Some(variable) => variable.next(),
+        Some(variable) => variable.borrow_mut().next(&context),
         None => 0,
     }
 }
@@ -250,7 +250,7 @@ pub extern fn rvs_prev(context: *mut Context, handle: SequenceHandleRaw) -> u32 
     let handle = SequenceHandle(handle);
 
     match context.variables.get_by_index(handle.into()) {
-        Some(variable) => variable.prev(),
+        Some(variable) => variable.borrow().prev(),
         None => 0,
     }
 }
@@ -274,7 +274,7 @@ pub extern fn rvs_done(context: *mut Context, handle: SequenceHandleRaw) -> bool
     let handle = SequenceHandle(handle);
 
     match context.variables.get_by_index(handle.into()) {
-        Some(variable) => variable.done(),
+        Some(variable) => variable.borrow().done(),
         None => false,
     }
 }
@@ -383,7 +383,7 @@ mod tests {
             assert_eq!(rvs_error_code(error), ErrorKind::None.code());
 
             let variable = unsafe { (*context).variables.get("a").unwrap() };
-            let value = variable.next();
+            let value = variable.borrow_mut().next(unsafe { &(*context) });
             assert_eq!(value, 5);
 
             rvs_error_free(error);
@@ -399,7 +399,7 @@ mod tests {
             assert_eq!(rvs_error_code(error), ErrorKind::None.code());
 
             let variable = unsafe { (*context).variables.get("a").unwrap() };
-            let value = variable.next();
+            let value = variable.borrow_mut().next(unsafe { &(*context) });
             assert!(value == 0 || value == 1);
 
             rvs_error_free(error);

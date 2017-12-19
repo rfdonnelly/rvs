@@ -94,8 +94,8 @@ mod tests {
 
         #[test]
         fn bad() {
-            assert!(items("a = a;", &mut RequirePaths::new()).is_err());
-            assert!(items("a = _5;", &mut RequirePaths::new()).is_err());
+            assert!(items("a = 0b0;", &mut RequirePaths::new()).is_err());
+            assert!(items("a = 1z;", &mut RequirePaths::new()).is_err());
         }
     }
 

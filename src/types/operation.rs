@@ -5,7 +5,9 @@ use rand::Rng;
 use rvs_parser::ast;
 use types::Expr;
 use types::ExprData;
+use types::Context;
 
+#[derive(Clone)]
 pub struct Binary {
     data: ExprData,
     operation: ast::BinaryOpcode,
@@ -13,6 +15,7 @@ pub struct Binary {
     r: Box<Expr>,
 }
 
+#[derive(Clone)]
 pub struct Unary {
     data: ExprData,
     operation: ast::UnaryOpcode,
@@ -34,8 +37,8 @@ impl Binary {
 }
 
 impl Expr for Binary {
-    fn next(&mut self, rng: &mut Rng) -> u32 {
-        let (l, r) = (self.l.next(rng), self.r.next(rng));
+    fn next(&mut self, rng: &mut Rng, context: &Context) -> u32 {
+        let (l, r) = (self.l.next(rng, context), self.r.next(rng, context));
 
         self.data.done = self.l.done() || self.r.done();
 
@@ -86,8 +89,8 @@ impl Unary {
 }
 
 impl Expr for Unary {
-    fn next(&mut self, rng: &mut Rng) -> u32 {
-        let operand = self.operand.next(rng);
+    fn next(&mut self, rng: &mut Rng, context: &Context) -> u32 {
+        let operand = self.operand.next(rng, context);
 
         self.data.done = self.operand.done();
 
@@ -119,6 +122,7 @@ mod tests {
 
     #[test]
     fn binary() {
+        let context = Context::new();
         let mut rng = new_rng(&Seed::from_u32(0));
         let v0 = Box::new(Value::new(1));
         let v1 = Box::new(Value::new(2));
@@ -129,7 +133,7 @@ mod tests {
             v1,
         );
 
-        assert_eq!(binary.next(&mut rng), 3);
-        assert_eq!(binary.next(&mut rng), 3);
+        assert_eq!(binary.next(&mut rng, &context), 3);
+        assert_eq!(binary.next(&mut rng, &context), 3);
     }
 }
