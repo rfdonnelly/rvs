@@ -1,8 +1,11 @@
 use std::fmt;
+use std::io;
 use std::ffi::CString;
 use libc::c_char;
 
+use rvs;
 use rvs::ParseError;
+use rvs::TransformError;
 
 #[derive(Debug)]
 pub struct Error {
@@ -14,7 +17,8 @@ pub struct Error {
 pub enum ErrorKind {
     None,
     Parse(ParseError),
-    Io(::std::io::Error),
+    Transform(TransformError),
+    Io(io::Error),
 }
 
 impl Error {
@@ -29,6 +33,7 @@ impl Error {
         match self.kind {
             ErrorKind::None => false,
             ErrorKind::Parse(_) => true,
+            ErrorKind::Transform(_) => true,
             ErrorKind::Io(_) => true,
         }
     }
@@ -39,7 +44,18 @@ impl fmt::Display for Error {
         match self.kind {
             ErrorKind::None => write!(f, "no error"),
             ErrorKind::Parse(ref e) => e.fmt(f),
+            ErrorKind::Transform(ref e) => e.fmt(f),
             ErrorKind::Io(ref e) => e.fmt(f),
+        }
+    }
+}
+
+impl From<rvs::Error> for ErrorKind {
+    fn from(err: rvs::Error) -> ErrorKind {
+        match err {
+            rvs::Error::Parse(err) => ErrorKind::Parse(err),
+            rvs::Error::Transform(err) => ErrorKind::Transform(err),
+            rvs::Error::Io(err) => ErrorKind::Io(err),
         }
     }
 }
@@ -49,7 +65,8 @@ impl ErrorKind {
         match *self {
             ErrorKind::None => 0,
             ErrorKind::Parse(_) => 1,
-            ErrorKind::Io(_) => 2,
+            ErrorKind::Transform(_) => 2,
+            ErrorKind::Io(_) => 3,
         }
     }
 }

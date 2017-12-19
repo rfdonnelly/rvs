@@ -1,6 +1,6 @@
 use std::fmt;
 
-#[derive(PartialEq, Debug, Clone)]
+#[derive(Debug, Clone)]
 pub enum BinaryOpcode {
     Or,
     Xor,
@@ -14,12 +14,12 @@ pub enum BinaryOpcode {
     Mod,
 }
 
-#[derive(PartialEq, Debug, Clone)]
+#[derive(Debug, Clone)]
 pub enum UnaryOpcode {
     Neg,
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(Debug)]
 pub enum Function {
     Pattern,
     Range,
@@ -27,14 +27,14 @@ pub enum Function {
     WeightedSample,
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(Debug)]
 pub enum Method {
     Next,
     Prev,
     Copy,
 }
 
-#[derive(PartialEq, Debug)]
+#[derive(Debug)]
 pub enum Node {
     Identifier(String),
     Number(u32),
@@ -51,7 +51,7 @@ pub enum Node {
 }
 
 /// An abstraction above Node to implement `require`
-#[derive(PartialEq, Debug)]
+#[derive(Debug)]
 pub enum Item {
     /// A single item in the current file
     ///
@@ -62,6 +62,12 @@ pub enum Item {
     ///
     /// Contains all items from the `require`d file.
     Multiple(Vec<Item>),
+
+    /// Encapsulates errors on `require`
+    ///
+    /// We can't use normal Rust error handling techniques due to abstraction by rust-peg.
+    /// Instead, embed an Item::RequireErrors on a require error.
+    RequireError(::std::path::PathBuf, ::std::io::Error),
 }
 
 impl fmt::Display for BinaryOpcode {

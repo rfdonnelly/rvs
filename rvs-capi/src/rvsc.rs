@@ -174,7 +174,7 @@ pub extern fn rvs_parse(
             if let Err(e) = parse(&parser_string, &mut context) {
                 if !error.is_null() {
                     unsafe {
-                        *error = Error::new(ErrorKind::Parse(e))
+                        *error = Error::new(From::from(e))
                     }
                 }
             }

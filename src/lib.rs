@@ -5,12 +5,13 @@ extern crate rvs_parser;
 pub mod types;
 pub mod error;
 
-pub use rvs_parser::error::ParseResult;
 pub use rvs_parser::error::ParseError;
+pub use error::TransformError;
+pub use error::Error;
 
 use types::Context;
 
-pub fn parse(s: &str, context: &mut Context) -> ParseResult<()> {
+pub fn parse(s: &str, context: &mut Context) -> Result<(), Error> {
     let items = rvs_parser::parse(s, &mut context.requires)?;
     context.transform_items(&items).unwrap();
     Ok(())

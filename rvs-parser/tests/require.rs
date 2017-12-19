@@ -40,3 +40,16 @@ fn require_is_idempotent() {
     assert_eq!(format!("{:?}", items),
         "[Assignment(Identifier(\"a\"), Number(1)), Assignment(Identifier(\"a\"), Number(2))]");
 }
+
+mod error {
+    use super::*;
+
+    #[test]
+    fn not_in_search_path() {
+        let mut require_paths = RequirePaths::new();
+        let fixtures = current_dir().unwrap().join("fixtures/require");
+        require_paths.add_search_path(&fixtures);
+
+        assert!(parse("require 'a.rvs';", &mut require_paths).is_err());
+    }
+}
