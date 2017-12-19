@@ -4,6 +4,7 @@ pub mod path;
 pub mod error;
 
 pub use self::path::RequirePaths;
+pub use error::Error;
 pub use error::ParseResult;
 pub use error::ParseError;
 
