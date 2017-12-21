@@ -474,24 +474,17 @@ impl Context {
                 Ok(Box::new(Sample::new(children)))
             }
             ast::Function::WeightedSample => {
-                Ok(Box::new(
-                        WeightedSample::new(
-                            args.into_iter()
-                            .map(|arg|
-                                 if let ast::Node::WeightedPair(ref weight, ref node) = **arg {
-                                     // FIXME: Can only use '?' in functions that return Result
-                                     // Do something better than unwrap here
-                                     (*weight, self.transform_expr(rng, node).unwrap())
-                                 } else {
-                                     // FIXME: Can return Err in functions that return Result
-                                     // Do something better than panic here
-                                     panic!("Expected WeightedPair but found {:?}", **arg);
-                                 }
-                                )
-                            .collect()
-                            )
-                        )
-                  )
+                let mut pairs: Vec<(u32, Box<Expr>)> = Vec::new();
+                for arg in args {
+                    if let ast::Node::WeightedPair(ref weight, ref node) = **arg {
+                        pairs.push((*weight, self.transform_expr(rng, node)?));
+                    } else {
+                        return Err(TransformError::new(format!(
+                                    "Expected WeightedPair but found {:?}", **arg)));
+                    }
+                }
+
+                Ok(Box::new(WeightedSample::new(pairs)))
             }
         }
     }
