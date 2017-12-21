@@ -9,30 +9,14 @@ mod tests {
 
         #[test]
         fn good() {
-            assert_eq!(items("a = (5);", &mut RequirePaths::new()).unwrap(), vec![Item::Single(Box::new(
-                        Node::Assignment(
-                            Box::new(Node::Identifier("a".into())),
-                            Box::new(Node::Number(5))
-                        )
-                    ))]);
-            assert_eq!(items("a = 5;", &mut RequirePaths::new()).unwrap(), vec![Item::Single(Box::new(
-                        Node::Assignment(
-                            Box::new(Node::Identifier("a".into())),
-                            Box::new(Node::Number(5))
-                        )
-                    ))]);
-            assert_eq!(items("a = 0xa;", &mut RequirePaths::new()).unwrap(), vec![Item::Single(Box::new(
-                        Node::Assignment(
-                            Box::new(Node::Identifier("a".into())),
-                            Box::new(Node::Number(10))
-                        )
-                    ))]);
-            assert_eq!(items("a = 0xaf;", &mut RequirePaths::new()).unwrap(), vec![Item::Single(Box::new(
-                        Node::Assignment(
-                            Box::new(Node::Identifier("a".into())),
-                            Box::new(Node::Number(0xaf))
-                        )
-                    ))]);
+            assert_eq!(format!("{:?}", items("a = (5);", &mut RequirePaths::new()).unwrap()),
+                       "[Single(Assignment(Identifier(\"a\"), Number(5)))]");
+            assert_eq!(format!("{:?}", items("a = 5;", &mut RequirePaths::new()).unwrap()),
+                       "[Single(Assignment(Identifier(\"a\"), Number(5)))]");
+            assert_eq!(format!("{:?}", items("a = 0xa;", &mut RequirePaths::new()).unwrap()),
+                       "[Single(Assignment(Identifier(\"a\"), Number(10)))]");
+            assert_eq!(format!("{:?}", items("a = 0xaf;", &mut RequirePaths::new()).unwrap()),
+                       "[Single(Assignment(Identifier(\"a\"), Number(175)))]");
         }
 
         #[test]
@@ -43,18 +27,8 @@ mod tests {
 
         #[test]
         fn operations() {
-            assert_eq!(items("a = 1+2;", &mut RequirePaths::new()).unwrap(), vec![
-                       Item::Single(
-                           Box::new(Node::Assignment(
-                                   Box::new(Node::Identifier("a".into())),
-                                   Box::new(Node::BinaryOperation(
-                                           Box::new(Node::Number(1)),
-                                           BinaryOpcode::Add,
-                                           Box::new(Node::Number(2))
-                                           ))
-                                   ))
-                           )
-            ]);
+            assert_eq!(format!("{:?}", items("a = 1+2;", &mut RequirePaths::new()).unwrap()),
+                       "[Single(Assignment(Identifier(\"a\"), BinaryOperation(Number(1), Add, Number(2))))]");
 
             assert_eq!(format!("{:?}", items("a = 1+2*3;", &mut RequirePaths::new()).unwrap()),
                 "[Single(Assignment(Identifier(\"a\"), BinaryOperation(Number(1), Add, BinaryOperation(Number(2), Mul, Number(3)))))]");
@@ -128,16 +102,8 @@ mod tests {
 
         #[test]
         fn ast() {
-            assert_eq!(items("a=5;", &mut RequirePaths::new()).unwrap(), vec![
-                Item::Single(
-                    Box::new(
-                        Node::Assignment(
-                            Box::new(Node::Identifier("a".into())),
-                            Box::new(Node::Number(5))
-                        )
-                    )
-                )
-            ]);
+            assert_eq!(format!("{:?}", items("a=5;", &mut RequirePaths::new()).unwrap()),
+                       "[Single(Assignment(Identifier(\"a\"), Number(5)))]");
         }
 
         #[test]
@@ -166,20 +132,8 @@ mod tests {
 
         #[test]
         fn ast() {
-            assert_eq!(items(" a  = // comment0\n5 ; // comment1\nb=6;", &mut RequirePaths::new()).unwrap(), vec![
-                Item::Single(
-                    Box::new(Node::Assignment(
-                        Box::new(Node::Identifier("a".into())),
-                        Box::new(Node::Number(5))
-                    )),
-                ),
-                Item::Single(
-                    Box::new(Node::Assignment(
-                        Box::new(Node::Identifier("b".into())),
-                        Box::new(Node::Number(6))
-                    )),
-                )
-            ]);
+            assert_eq!(format!("{:?}", items(" a  = // comment0\n5 ; // comment1\nb=6;", &mut RequirePaths::new()).unwrap()),
+            "[Single(Assignment(Identifier(\"a\"), Number(5))), Single(Assignment(Identifier(\"b\"), Number(6)))]");
         }
     }
 
@@ -188,21 +142,8 @@ mod tests {
 
         #[test]
         fn ast() {
-            assert_eq!(items("a = [1,2];", &mut RequirePaths::new()).unwrap(), vec![
-                       Item::Single(
-                           Box::new(Node::Assignment(
-                                   Box::new(Node::Identifier("a".into())),
-                                   Box::new(
-                                       Node::Function(
-                                           Function::Range,
-                                           vec![
-                                           Box::new(Node::Number(1)),
-                                           Box::new(Node::Number(2))
-                                           ]
-                                           )
-                                       )
-                                   )))
-            ]);
+            assert_eq!(format!("{:?}", items("a = [1,2];", &mut RequirePaths::new()).unwrap()),
+                       "[Single(Assignment(Identifier(\"a\"), Function(Range, [Number(1), Number(2)])))]");
         }
     }
 }

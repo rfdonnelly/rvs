@@ -8,7 +8,9 @@ use libc::c_char;
 use std::ffi::CStr;
 use std::path::Path;
 use std::fs::File;
+use std::io;
 use std::io::prelude::*;
+use std::error;
 
 use rvs::types::Context;
 use rvs::types::Seed;
@@ -151,19 +153,33 @@ pub extern fn rvs_parse(
             let parser_string =
                 if is_file {
                     let path = Path::new(&entry);
-                    if !path.exists() {
-                        panic!("path does not exist: {}", path.display());
-                    }
 
                     let mut file = match File::open(&path) {
-                        Err(e) => panic!("could not open {}: {}", path.display(), ::std::error::Error::description(&e)),
+                        Err(e) => {
+                            if !error.is_null() {
+                                unsafe {
+                                    *error = Error::new(ErrorKind::Io(
+                                            io::Error::new(io::ErrorKind::NotFound,
+                                            format!("{}: {:?}", error::Error::description(&e), path))));
+                                }
+                            }
+
+                            return;
+                        }
                         Ok(file) => file,
                     };
 
                     let mut contents = String::new();
-                    match file.read_to_string(&mut contents) {
-                        Err(e) => panic!("could not read {}: {}", path.display(), ::std::error::Error::description(&e)),
-                        Ok(_) => (),
+                    if let Err(e) = file.read_to_string(&mut contents) {
+                        if !error.is_null() {
+                            unsafe {
+                                *error = Error::new(ErrorKind::Io(
+                                        io::Error::new(io::ErrorKind::NotFound,
+                                                       format!("{}: {:?}", error::Error::description(&e), path))));
+                            }
+                        }
+
+                        return;
                     };
 
                     contents
@@ -174,7 +190,7 @@ pub extern fn rvs_parse(
             if let Err(e) = parse(&parser_string, &mut context) {
                 if !error.is_null() {
                     unsafe {
-                        *error = Error::new(ErrorKind::Parse(e))
+                        *error = Error::new(From::from(e))
                     }
                 }
             }

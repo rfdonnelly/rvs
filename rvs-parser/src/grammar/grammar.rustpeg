@@ -2,7 +2,6 @@ use std::str::FromStr;
 use std::char;
 use std::path::Path;
 use std::fs::File;
-use std::error::Error;
 use std::io::prelude::*;
 
 use path::RequirePaths;
@@ -19,26 +18,35 @@ use ast::Item;
 require -> Item
     = "require" _ s:string ";" {
         let path = Path::new(&s);
-        let path = match _require_paths.find(&path) {
-            Ok(path) => path,
-            Err(e) => panic!("could not find {}: {}", path.display(), e.description()),
-        };
-        if _require_paths.enter_require(&path) {
-            let mut file = match File::open(&path) {
-                Ok(file) => file,
-                Err(e) => panic!("could not open {}: {}", path.display(), e.description()),
-            };
-            let mut contents = String::new();
-            match file.read_to_string(&mut contents) {
-                Ok(_) => (),
-                Err(e) => panic!("could not read {}: {}", path.display(), e.description()),
+        match _require_paths.find(&path) {
+            Err(e) => {
+                Item::RequireError(path.to_path_buf(), e)
             }
-            let result = Item::Multiple(items(&contents, _require_paths).unwrap());
-            _require_paths.leave_require();
+            Ok(path) => {
+                if _require_paths.enter_require(&path) {
+                    match File::open(&path) {
+                        Err(e) => {
+                            Item::RequireError(path.to_path_buf(), e)
+                        }
+                        Ok(mut file) => {
+                            let mut contents = String::new();
+                            match file.read_to_string(&mut contents) {
+                                Err(e) => {
+                                    Item::RequireError(path.to_path_buf(), e)
+                                }
+                                Ok(_) => {
+                                    let result = Item::Multiple(items(&contents, _require_paths).unwrap());
+                                    _require_paths.leave_require();
 
-            result
-        } else {
-            Item::Multiple(Vec::new())
+                                    result
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    Item::Multiple(Vec::new())
+                }
+            }
         }
     }
 

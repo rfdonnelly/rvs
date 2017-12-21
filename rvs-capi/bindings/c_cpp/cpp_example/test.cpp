@@ -1,6 +1,7 @@
 #include "rvs.h"
 
 #include <cassert>
+#include <iostream>
 
 int main() {
     uint32_t err = 0;
@@ -9,6 +10,9 @@ int main() {
     auto error = rvs_error_new();
 
     rvs_parse(context, "a=5;", error);
+    if (rvs_error_code(error)) {
+        std::cout << "error: " << rvs_error_message(error) << std::endl;
+    }
     assert(rvs_error_code(error) == 0);
 
     auto handle = rvs_find(context, "a");
