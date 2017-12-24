@@ -4,9 +4,9 @@ version = "0.1.0"
 authors = ["Rob Donnelly <rfdonnelly@gmail.com>"]
 
 [dependencies]
-rvs-parser = { version = "0.1", path = "rvs-parser" }
+rvs-parser = { version = "0.1", path = "parser" }
 rand = { git = "https://github.com/dhardy/rand" }
 linked-hash-map = "0.5"
 
 [workspace]
-members = ["rvs-parser", "rvs-capi", "rvs-repl"]
+members = ["parser", "c-api", "repl"]

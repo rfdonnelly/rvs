@@ -1,5 +1,5 @@
 [package]
-name = "rvs-capi"
+name = "rvs-c-api"
 version = "0.1.0"
 authors = ["Rob Donnelly <rfdonnelly@gmail.com>"]
 
