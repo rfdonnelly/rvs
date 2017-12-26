@@ -434,16 +434,12 @@ impl Context {
     ) -> TransformResult<Box<Expr>> {
         match *function {
             ast::Function::Pattern => {
-                Ok(Box::new(
-                        Pattern::new(
-                            args.into_iter()
-                            // FIXME: Can only use '?' in functions that return Result
-                            // Do something better than unwrap here
-                            .map(|arg| self.transform_expr(rng, &arg).unwrap())
-                            .collect()
-                            )
-                        )
-                  )
+                let mut children: Vec<Box<Expr>> = Vec::new();
+                for arg in args {
+                    children.push(self.transform_expr(rng, &arg)?);
+                }
+
+                Ok(Box::new(Pattern::new(children)))
             }
             ast::Function::Range => {
                 let l = self.transform_expr(rng, &args[0])?.next(rng, self);
