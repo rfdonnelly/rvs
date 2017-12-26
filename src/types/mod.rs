@@ -449,7 +449,15 @@ impl Context {
                 let l = self.transform_expr(rng, &args[0])?.next(rng, self);
                 let r = self.transform_expr(rng, &args[1])?.next(rng, self);
 
-                Ok(Box::new(RangeSequence::new(l, r)))
+                // Elide the range for case when limits are equal
+                //
+                // The underlying rand::distributions::Range treats this case as an error.  We
+                // don't want an error so catch and handle gracefully.
+                if l == r {
+                    Ok(Box::new(Value::new(1)))
+                } else {
+                    Ok(Box::new(RangeSequence::new(l, r)))
+                }
             }
             ast::Function::Sample => {
                 let mut children: Vec<Box<Expr>> = Vec::new();

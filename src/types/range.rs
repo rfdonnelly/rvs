@@ -18,7 +18,12 @@ pub struct RangeSequence {
 
 impl RangeSequence {
     pub fn new(l: u32, r: u32) -> RangeSequence {
-        // FIXME: Range::new may panic.
+        let limits = if r > l {
+            (l, r)
+        } else {
+            (r, l)
+        };
+
         RangeSequence {
             data: ExprData {
                 prev: 0,
@@ -26,7 +31,7 @@ impl RangeSequence {
             },
             l: l,
             r: r,
-            range: Range::new_inclusive(l, r),
+            range: Range::new_inclusive(limits.0, limits.1),
         }
     }
 }
