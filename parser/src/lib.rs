@@ -3,13 +3,13 @@ mod grammar;
 pub mod path;
 pub mod error;
 
-pub use self::path::ImportPaths;
+pub use self::path::SearchPath;
 pub use error::Error;
 pub use error::ParseResult;
 pub use error::ParseError;
 
-pub fn parse(s: &str, import_paths: &mut ImportPaths) -> Result<Vec<Box<ast::Node>>, Error> {
-    match grammar::items(s, import_paths) {
+pub fn parse(s: &str, search_path: &mut SearchPath) -> Result<Vec<Box<ast::Node>>, Error> {
+    match grammar::items(s, search_path) {
         Ok(items) => flatten(items),
         Err(error) => {
             // FIXME: Improve formatting source code in errors

@@ -16,7 +16,7 @@ use rand::prng::XorShiftRng;
 use rand::Sample as RandSample;
 
 use rvs_parser::ast;
-use rvs_parser::ImportPaths;
+use rvs_parser::SearchPath;
 
 use error::TransformError;
 use error::TransformResult;
@@ -239,7 +239,7 @@ pub struct Context {
     pub variables: Variables,
     pub enums: LinkedHashMap<String, Enum>,
     pub seed: Seed,
-    pub imports: ImportPaths,
+    pub search_path: SearchPath,
 }
 
 impl Context {
@@ -248,7 +248,7 @@ impl Context {
             variables: Variables::new(),
             enums: LinkedHashMap::new(),
             seed: Seed::from_u32(0),
-            imports: ImportPaths::new(),
+            search_path: SearchPath::new(),
         }
     }
 

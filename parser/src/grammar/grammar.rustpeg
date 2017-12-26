@@ -4,7 +4,7 @@ use std::path::Path;
 use std::fs::File;
 use std::io::prelude::*;
 
-use path::ImportPaths;
+use path::SearchPath;
 
 use ast::Method;
 use ast::BinaryOpcode;
@@ -13,7 +13,7 @@ use ast::Function;
 use ast::Node;
 use ast::Item;
 
-#![arguments(_import_paths: &mut ImportPaths)]
+#![arguments(_import_paths: &mut SearchPath)]
 
 import -> Item
     = "import" _ s:string ";" {

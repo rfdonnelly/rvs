@@ -3,7 +3,7 @@ use std::path::Path;
 use std::path::PathBuf;
 use std::collections::HashSet;
 
-pub struct ImportPaths {
+pub struct SearchPath {
     /// Keeps track of all files that have been imported
     ///
     /// Used to ensure idempotency of `import`.
@@ -19,9 +19,9 @@ pub struct ImportPaths {
     search_paths: Vec<PathBuf>,
 }
 
-impl ImportPaths {
-    pub fn new() -> ImportPaths {
-        ImportPaths {
+impl SearchPath {
+    pub fn new() -> SearchPath {
+        SearchPath {
             imported_paths: HashSet::new(),
             stack: Vec::new(),
             search_paths: Vec::new(),
@@ -34,9 +34,9 @@ impl ImportPaths {
     ///
     /// ```
     /// use std::path::Path;
-    /// use rvs_parser::ImportPaths;
+    /// use rvs_parser::SearchPath;
     ///
-    /// let mut paths = ImportPaths::new();
+    /// let mut paths = SearchPath::new();
     /// let path = Path::new("./foo/bar.txt");
     /// if paths.enter_import(path) {
     ///     // ...
@@ -101,14 +101,14 @@ impl ImportPaths {
     /// Error will be returned for parsed paths that do not exist.  If the search path string contains
     /// a mix of paths that do and do not exist, the paths that do exist will be added to the internal
     /// search path.
-    pub fn set_search_path(&mut self, paths: &str) -> io::Result<()> {
+    pub fn set(&mut self, paths: &str) -> io::Result<()> {
         let mut error_paths: Vec<PathBuf> = Vec::new();
 
         for path in paths.split(':') {
             let path = Path::new(path);
 
             if path.exists() {
-                self.add_search_path(&path);
+                self.add(&path);
             } else {
                 error_paths.push(path.to_path_buf());
             }
@@ -126,7 +126,7 @@ impl ImportPaths {
         }
     }
 
-    pub fn add_search_path(&mut self, path: &Path) {
+    pub fn add(&mut self, path: &Path) {
         self.search_paths.push(path.to_path_buf());
     }
 }
@@ -139,14 +139,14 @@ mod tests {
 
     #[test]
     fn basic() {
-        let mut paths = ImportPaths::new();
+        let mut search_path = SearchPath::new();
         let path_str = "../examples";
         let path_dir = fs::canonicalize(path_str).unwrap();
         let path_file = path_dir.join("readme.rvs");
 
-        paths.add_search_path(&path_dir);
+        search_path.add(&path_dir);
 
-        assert_eq!(paths.find(&Path::new("readme.rvs")).unwrap(), path_file);
-        assert_eq!(paths.enter_import(&path_file), true)
+        assert_eq!(search_path.find(&Path::new("readme.rvs")).unwrap(), path_file);
+        assert_eq!(search_path.enter_import(&path_file), true)
     }
 }

@@ -80,7 +80,7 @@ pub extern fn rvs_search_path(
     let c_str = unsafe { CStr::from_ptr(path) };
     let r_str = c_str.to_str().unwrap();
 
-    if let Err(e) = context.imports.set_search_path(&r_str) {
+    if let Err(e) = context.search_path.set(&r_str) {
         if !error.is_null() {
             unsafe {
                 *error = Error::new(ErrorKind::Io(e))
