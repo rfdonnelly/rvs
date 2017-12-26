@@ -3,10 +3,14 @@ name = "rvs-c-api"
 version = "0.1.0"
 authors = ["Rob Donnelly <rfdonnelly@gmail.com>"]
 
+[lib]
+name = "rvs"
+crate-type = ["cdylib"]
+
 [dependencies]
 libc = "0.2"
 rvs = { version = "0.1", path = ".." }
 
-[lib]
-name = "rvs"
-crate-type = ["cdylib"]
+[dev-dependencies]
+tempdir = "0.3"
+difference = "1.0"

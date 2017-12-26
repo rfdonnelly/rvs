@@ -62,7 +62,7 @@ weighted = {
   * [x] `rvs_done()`
   * [x] `rvs_prev()`
   * [ ] `rvs_reset()`
-  * [ ] `rvs_write_definitions()`
+  * [x] `rvs_write_definitions()`
 
 * Grammar
   * Consructs

@@ -290,6 +290,43 @@ pub extern fn rvs_done(context: *mut Context, handle: SequenceHandleRaw) -> bool
     }
 }
 
+#[no_mangle]
+pub extern fn rvs_write_definitions(
+    context: *const Context,
+    s: *const c_char,
+    error: *mut Error
+) {
+    let c_str = unsafe { CStr::from_ptr(s) };
+    let r_str = c_str.to_str().unwrap();
+    let context = unsafe { &*context };
+
+    let path = Path::new(r_str);
+
+    let mut file = match File::create(&path) {
+        Err(e) => {
+            if !error.is_null() {
+                unsafe {
+                    *error = Error::new(ErrorKind::Io(e));
+                }
+            }
+
+            return;
+        },
+        Ok(file) => file,
+    };
+
+    let variables = format!("{}", context.variables);
+    if let Err(e) = file.write_all(variables.as_bytes()) {
+        if !error.is_null() {
+            unsafe {
+                *error = Error::new(ErrorKind::Io(e));
+            }
+
+            return;
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
