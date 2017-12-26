@@ -1,4 +1,4 @@
 // This path is source relative only.  It cannot be found in the search path.
-require 'b/c.rvs';
+import 'b/c.rvs';
 
 b = 0;

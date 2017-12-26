@@ -1,5 +1,0 @@
-require 'b.rvs';
-
-a = 2;
-
-require 'b.rvs';

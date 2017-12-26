@@ -4,7 +4,7 @@ use std::path::Path;
 use std::fs::File;
 use std::io::prelude::*;
 
-use path::RequirePaths;
+use path::ImportPaths;
 
 use ast::Method;
 use ast::BinaryOpcode;
@@ -13,30 +13,30 @@ use ast::Function;
 use ast::Node;
 use ast::Item;
 
-#![arguments(_require_paths: &mut RequirePaths)]
+#![arguments(_import_paths: &mut ImportPaths)]
 
-require -> Item
-    = "require" _ s:string ";" {
+import -> Item
+    = "import" _ s:string ";" {
         let path = Path::new(&s);
-        match _require_paths.find(&path) {
+        match _import_paths.find(&path) {
             Err(e) => {
-                Item::RequireError(path.to_path_buf(), e)
+                Item::ImportError(path.to_path_buf(), e)
             }
             Ok(path) => {
-                if _require_paths.enter_require(&path) {
+                if _import_paths.enter_import(&path) {
                     match File::open(&path) {
                         Err(e) => {
-                            Item::RequireError(path.to_path_buf(), e)
+                            Item::ImportError(path.to_path_buf(), e)
                         }
                         Ok(mut file) => {
                             let mut contents = String::new();
                             match file.read_to_string(&mut contents) {
                                 Err(e) => {
-                                    Item::RequireError(path.to_path_buf(), e)
+                                    Item::ImportError(path.to_path_buf(), e)
                                 }
                                 Ok(_) => {
-                                    let result = Item::Multiple(items(&contents, _require_paths).unwrap());
-                                    _require_paths.leave_require();
+                                    let result = Item::Multiple(items(&contents, _import_paths).unwrap());
+                                    _import_paths.leave_import();
 
                                     result
                                 }
@@ -138,7 +138,7 @@ binary_expr -> Box<Node>
 item -> Item
     = enum
     / assignment
-    / require
+    / import
 
 assignment -> Item
     = lhs:identifier _ "=" _ rhs:expr _ ";" {

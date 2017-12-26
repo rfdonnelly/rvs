@@ -50,7 +50,7 @@ pub enum Node {
     VariableMethodCall(String, Method),
 }
 
-/// An abstraction above Node to implement `require`
+/// An abstraction above Node to implement `import`
 #[derive(Debug)]
 pub enum Item {
     /// A single item in the current file
@@ -58,16 +58,16 @@ pub enum Item {
     /// E.g. Node::Assignment
     Single(Box<Node>),
 
-    /// The expansion of a `require` statement
+    /// The expansion of a `import` statement
     ///
-    /// Contains all items from the `require`d file.
+    /// Contains all items from the `import`d file.
     Multiple(Vec<Item>),
 
-    /// Encapsulates errors on `require`
+    /// Encapsulates errors on `import`
     ///
     /// We can't use normal Rust error handling techniques due to abstraction by rust-peg.
-    /// Instead, embed an Item::RequireErrors on a require error.
-    RequireError(::std::path::PathBuf, ::std::io::Error),
+    /// Instead, embed an Item::ImportErrors on a import error.
+    ImportError(::std::path::PathBuf, ::std::io::Error),
 }
 
 impl fmt::Display for BinaryOpcode {

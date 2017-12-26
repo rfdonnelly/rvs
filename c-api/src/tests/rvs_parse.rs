@@ -12,7 +12,7 @@ use super::*;
 // }
 
 #[test]
-fn require() {
+fn import() {
     let context = rvs_context_new();
     let error = rvs_error_new();
 
@@ -25,7 +25,7 @@ fn require() {
     rvs_search_path(context, CString::new(search_path).unwrap().as_ptr(), error);
     assert_eq!(rvs_error_code(error), ErrorKind::None.code());
 
-    rvs_parse(context, CString::new("require '../examples/require.rvs'").unwrap().as_ptr(), error);
+    rvs_parse(context, CString::new("import '../examples/import.rvs'").unwrap().as_ptr(), error);
     assert_eq!(rvs_error_code(error), ErrorKind::None.code());
 
     assert_eq!(next_by_name(context, "a"), 5);

@@ -3,13 +3,13 @@ mod grammar;
 pub mod path;
 pub mod error;
 
-pub use self::path::RequirePaths;
+pub use self::path::ImportPaths;
 pub use error::Error;
 pub use error::ParseResult;
 pub use error::ParseError;
 
-pub fn parse(s: &str, require_paths: &mut RequirePaths) -> Result<Vec<Box<ast::Node>>, Error> {
-    match grammar::items(s, require_paths) {
+pub fn parse(s: &str, import_paths: &mut ImportPaths) -> Result<Vec<Box<ast::Node>>, Error> {
+    match grammar::items(s, import_paths) {
         Ok(items) => flatten(items),
         Err(error) => {
             // FIXME: Improve formatting source code in errors
@@ -55,7 +55,7 @@ fn flatten_recursive(mut items: Vec<ast::Item>, nodes: &mut Vec<Box<ast::Node>>)
         match item {
             ast::Item::Single(node) => nodes.push(node),
             ast::Item::Multiple(items) => flatten_recursive(items, nodes)?,
-            ast::Item::RequireError(path, err) => { return Err(Error::Io(err)); },
+            ast::Item::ImportError(path, err) => { return Err(Error::Io(err)); },
         }
     }
 
@@ -64,8 +64,8 @@ fn flatten_recursive(mut items: Vec<ast::Item>, nodes: &mut Vec<Box<ast::Node>>)
 
 /// Strips out all ast::Items while keeping their contents
 ///
-/// ast::Items only serve as packaging for ast::Nodes.  `require` adds the packaging.  `flatten`
-/// removes the packaging.  ast::Items are an implementation detail for `require` and only add
+/// ast::Items only serve as packaging for ast::Nodes.  `import` adds the packaging.  `flatten`
+/// removes the packaging.  ast::Items are an implementation detail for `import` and only add
 /// noise to the AST.
 fn flatten(items: Vec<ast::Item>) -> Result<Vec<Box<ast::Node>>, Error> {
     let mut nodes: Vec<Box<ast::Node>> = Vec::new();

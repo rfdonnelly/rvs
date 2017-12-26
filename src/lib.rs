@@ -12,7 +12,7 @@ pub use error::Error;
 use types::Context;
 
 pub fn parse(s: &str, context: &mut Context) -> Result<(), Error> {
-    let items = rvs_parser::parse(s, &mut context.requires)?;
+    let items = rvs_parser::parse(s, &mut context.imports)?;
     context.transform_items(&items).unwrap();
     Ok(())
 }

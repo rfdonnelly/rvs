@@ -1,0 +1,5 @@
+import 'b.rvs';
+
+a = 2;
+
+import 'b.rvs';

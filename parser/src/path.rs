@@ -3,15 +3,15 @@ use std::path::Path;
 use std::path::PathBuf;
 use std::collections::HashSet;
 
-pub struct RequirePaths {
-    /// Keeps track of all files that have been required
+pub struct ImportPaths {
+    /// Keeps track of all files that have been imported
     ///
-    /// Used to ensure idempotency of `require`.
-    required_paths: HashSet<PathBuf>,
+    /// Used to ensure idempotency of `import`.
+    imported_paths: HashSet<PathBuf>,
 
     /// Stack of required files
     ///
-    /// Push on entering `require`, pop on leaving `require`.  Used to determine source-relative
+    /// Push on entering `import`, pop on leaving `import`.  Used to determine source-relative
     /// path.
     stack: Vec<PathBuf>,
 
@@ -19,10 +19,10 @@ pub struct RequirePaths {
     search_paths: Vec<PathBuf>,
 }
 
-impl RequirePaths {
-    pub fn new() -> RequirePaths {
-        RequirePaths {
-            required_paths: HashSet::new(),
+impl ImportPaths {
+    pub fn new() -> ImportPaths {
+        ImportPaths {
+            imported_paths: HashSet::new(),
             stack: Vec::new(),
             search_paths: Vec::new(),
         }
@@ -34,27 +34,27 @@ impl RequirePaths {
     ///
     /// ```
     /// use std::path::Path;
-    /// use rvs_parser::RequirePaths;
+    /// use rvs_parser::ImportPaths;
     ///
-    /// let mut paths = RequirePaths::new();
+    /// let mut paths = ImportPaths::new();
     /// let path = Path::new("./foo/bar.txt");
-    /// if paths.enter_require(path) {
+    /// if paths.enter_import(path) {
     ///     // ...
-    ///     paths.leave_require();
+    ///     paths.leave_import();
     /// }
     /// ```
-    pub fn enter_require(&mut self, path: &Path) -> bool {
-        if self.required_paths.contains(path) {
+    pub fn enter_import(&mut self, path: &Path) -> bool {
+        if self.imported_paths.contains(path) {
             false
         } else {
-            self.required_paths.insert(path.to_path_buf());
+            self.imported_paths.insert(path.to_path_buf());
             self.stack.push(path.to_path_buf());
 
             true
         }
     }
 
-    pub fn leave_require(&mut self) {
+    pub fn leave_import(&mut self) {
         self.stack.pop();
     }
 
@@ -92,7 +92,7 @@ impl RequirePaths {
         }
     }
 
-    /// Sets the search path used for `require`
+    /// Sets the search path used for `import`
     ///
     /// The string must be a colon separated list of paths.
     ///
@@ -139,7 +139,7 @@ mod tests {
 
     #[test]
     fn basic() {
-        let mut paths = RequirePaths::new();
+        let mut paths = ImportPaths::new();
         let path_str = "../examples";
         let path_dir = fs::canonicalize(path_str).unwrap();
         let path_file = path_dir.join("readme.rvs");
@@ -147,6 +147,6 @@ mod tests {
         paths.add_search_path(&path_dir);
 
         assert_eq!(paths.find(&Path::new("readme.rvs")).unwrap(), path_file);
-        assert_eq!(paths.enter_require(&path_file), true)
+        assert_eq!(paths.enter_import(&path_file), true)
     }
 }

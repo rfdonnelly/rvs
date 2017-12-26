@@ -55,7 +55,7 @@ pub extern fn rvs_context_free(context: *mut Context) {
     unsafe { Box::from_raw(context); }
 }
 
-/// Sets the search path used for `require`
+/// Sets the search path used for `import`
 ///
 /// The string must be a colon separated list of paths.
 ///
@@ -80,7 +80,7 @@ pub extern fn rvs_search_path(
     let c_str = unsafe { CStr::from_ptr(path) };
     let r_str = c_str.to_str().unwrap();
 
-    if let Err(e) = context.requires.set_search_path(&r_str) {
+    if let Err(e) = context.imports.set_search_path(&r_str) {
         if !error.is_null() {
             unsafe {
                 *error = Error::new(ErrorKind::Io(e))
@@ -145,7 +145,7 @@ pub extern fn rvs_parse(
 
     for entry in r_str.split(';') {
         if !entry.is_empty() {
-            let is_file = !entry.contains("=") && !entry.contains("require");
+            let is_file = !entry.contains("=") && !entry.contains("import");
 
             let parser_string =
                 if is_file {

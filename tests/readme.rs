@@ -9,8 +9,8 @@ use rvs::types::Context;
 #[test]
 fn readme() {
     let mut context = Context::new();
-    context.requires.add_search_path(&current_dir().unwrap());
-    assert!(parse("require 'examples/readme.rvs';", &mut context).is_ok());
+    context.imports.add_search_path(&current_dir().unwrap());
+    assert!(parse("import 'examples/readme.rvs';", &mut context).is_ok());
 
     {
         let pattern = context.get("pattern").unwrap();
