@@ -74,6 +74,7 @@ number -> Box<Node>
 
 atom -> Box<Node>
     = "(" _ v:expr _ ")" { v }
+    / unary_expr
     / number
     / function
     / enum_item_inst
@@ -104,11 +105,10 @@ function -> Box<Node>
     / weighted_sample
 
 expr -> Box<Node>
-    = unary_expr
-    / binary_expr
+    = binary_expr
 
 unary_expr -> Box<Node>
-    = "~" _ a:expr { Box::new(Node::UnaryOperation(UnaryOpcode::Neg, a)) }
+    = "~" _ a:atom { Box::new(Node::UnaryOperation(UnaryOpcode::Neg, a)) }
 
 op_or  = _ "|" _
 op_xor = _ "^" _
