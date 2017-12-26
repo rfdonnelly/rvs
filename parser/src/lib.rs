@@ -1,5 +1,5 @@
+mod grammar { include!(concat!(env!("OUT_DIR"), "/grammar.rs")); }
 pub mod ast;
-mod grammar;
 pub mod path;
 pub mod error;
 
