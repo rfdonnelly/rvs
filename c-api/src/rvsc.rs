@@ -143,7 +143,6 @@ pub extern fn rvs_parse(
 
     let c_str = unsafe { CStr::from_ptr(s) };
     let r_str = c_str.to_str().unwrap();
-
     let mut context = unsafe { &mut *context };
 
     for entry in r_str.split(';') {
@@ -158,9 +157,7 @@ pub extern fn rvs_parse(
                         Err(e) => {
                             if !error.is_null() {
                                 unsafe {
-                                    *error = Error::new(ErrorKind::Io(
-                                            io::Error::new(io::ErrorKind::NotFound,
-                                            format!("{}: {:?}", error::Error::description(&e), path))));
+                                    *error = Error::new(ErrorKind::Io(e));
                                 }
                             }
 
@@ -173,9 +170,7 @@ pub extern fn rvs_parse(
                     if let Err(e) = file.read_to_string(&mut contents) {
                         if !error.is_null() {
                             unsafe {
-                                *error = Error::new(ErrorKind::Io(
-                                        io::Error::new(io::ErrorKind::NotFound,
-                                                       format!("{}: {:?}", error::Error::description(&e), path))));
+                                *error = Error::new(ErrorKind::Io(e));
                             }
                         }
 
