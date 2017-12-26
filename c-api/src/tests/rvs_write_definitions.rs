@@ -41,7 +41,7 @@ fn basic() {
     let output0_path = output0_path.path();
     let output1_path = TempDir::new("rvs-output1").unwrap();
     let output1_path = output1_path.path();
-    let expected_path = Path::new("tests/write_definitions");
+    let expected_path = Path::new("tests/rvs_write_definitions");
 
     for file in files {
         let input = input_path.join(file);
