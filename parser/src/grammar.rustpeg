@@ -200,7 +200,7 @@ pattern -> Box<Node>
     }
 
 range -> Box<Node>
-    = "[" _ a:expr **<2, 2> ("," _) optional_trailing_comma _ "]" {
+    = "[" _ a:expr **<2> ("," _) optional_trailing_comma _ "]" {
         Box::new(
             Node::Function(
                 Function::Range,
