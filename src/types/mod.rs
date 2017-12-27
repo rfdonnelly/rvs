@@ -1,6 +1,7 @@
 pub mod value;
 pub mod operation;
 pub mod pattern;
+pub mod sequence;
 pub mod range;
 pub mod sample;
 pub mod weightedsample;
@@ -25,6 +26,7 @@ pub use self::value::Value;
 pub use self::operation::Unary;
 pub use self::operation::Binary;
 pub use self::pattern::Pattern;
+pub use self::sequence::Sequence;
 pub use self::range::RangeSequence;
 pub use self::sample::Sample;
 pub use self::weightedsample::WeightedSample;
@@ -426,6 +428,19 @@ impl Context {
         }
     }
 
+    fn transform_args(
+        &self,
+        rng: &mut Rng,
+        args: &Vec<Box<ast::Node>>
+    ) -> TransformResult<Vec<Box<Expr>>> {
+        let mut arg_exprs: Vec<Box<Expr>> = Vec::new();
+        for arg in args {
+            arg_exprs.push(self.transform_expr(rng, &arg)?);
+        }
+
+        Ok(arg_exprs)
+    }
+
     pub fn transform_function(
         &self,
         rng: &mut Rng,
@@ -434,12 +449,14 @@ impl Context {
     ) -> TransformResult<Box<Expr>> {
         match *function {
             ast::Function::Pattern => {
-                let mut children: Vec<Box<Expr>> = Vec::new();
-                for arg in args {
-                    children.push(self.transform_expr(rng, &arg)?);
-                }
+                Ok(Box::new(Pattern::new(self.transform_args(rng, args)?)))
+            }
+            ast::Function::Sequence => {
+                let args = self.transform_args(rng, args)?.iter_mut().map(|arg| {
+                    arg.next(rng, self)
+                }).collect();
 
-                Ok(Box::new(Pattern::new(children)))
+                Ok(Box::new(Sequence::new(args)))
             }
             ast::Function::Range => {
                 let l = self.transform_expr(rng, &args[0])?.next(rng, self);

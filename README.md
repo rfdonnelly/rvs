@@ -100,7 +100,10 @@ weighted = {
     * Misc Types
       * [x] Pattern - Returns sub-expressions in order.  Syntax:
             `Pattern(<expr>, ...)`
-      * [ ] Loop
+      * [x] Loop/Sequence - Returns a sequnce of numbers.  Syntax:
+            `Sequence(<count>)` OR
+            `Sequence(<offset>, <count>)` OR
+            `Sequence(<offset>, <increment>, <count>)`
     * Arithmetic operators
       * [x] +, -
       * [x] *, /

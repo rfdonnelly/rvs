@@ -103,6 +103,7 @@ function -> Box<Node>
     / range
     / sample
     / weighted_sample
+    / sequence
 
 expr -> Box<Node>
     = binary_expr
@@ -197,6 +198,11 @@ pattern -> Box<Node>
                 a
             )
         )
+    }
+
+sequence -> Box<Node>
+    = "Sequence(" _ a:expr **<1, 3> ("," _) optional_trailing_comma _ ")" {
+        Box::new(Node::Function(Function::Sequence, a))
     }
 
 range -> Box<Node>

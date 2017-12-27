@@ -22,6 +22,7 @@ pub enum UnaryOpcode {
 #[derive(Debug)]
 pub enum Function {
     Pattern,
+    Sequence,
     Range,
     Sample,
     WeightedSample,
