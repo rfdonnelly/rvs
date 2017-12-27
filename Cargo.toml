@@ -2,6 +2,9 @@
 name = "rvs"
 version = "0.1.0"
 authors = ["Rob Donnelly <rfdonnelly@gmail.com>"]
+readme = "README.md"
+description = "A library for defining and evaluating random variables using a simple DSL"
+license = "MIT OR Apache-2.0"
 
 [dependencies]
 rvs-parser = { version = "0.1", path = "parser" }
@@ -10,3 +13,6 @@ linked-hash-map = "0.5"
 
 [workspace]
 members = ["parser", "c-api", "repl"]
+
+[badges]
+travis-ci = { repository = "rfdonnelly/rvs" }
