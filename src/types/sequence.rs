@@ -3,7 +3,6 @@ use rand::Rng;
 
 use types::Expr;
 use types::ExprData;
-use types::Context;
 
 #[derive(Clone)]
 pub struct Sequence {
@@ -46,7 +45,7 @@ impl Sequence {
 }
 
 impl Expr for Sequence {
-    fn next(&mut self, _rng: &mut Rng, _context: &Context) -> u32 {
+    fn next(&mut self, _rng: &mut Rng) -> u32 {
         self.data.prev = self.next;
         self.data.done = false;
 

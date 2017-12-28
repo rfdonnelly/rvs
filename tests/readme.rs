@@ -17,7 +17,7 @@ fn readme() {
         let expected: Vec<u32> = vec![2, 0, 1, 0, 2, 0, 1, 0];
         let mut actual: Vec<u32> = Vec::new();
         for _ in 0..8 {
-            actual.push(pattern.borrow_mut().next(&context));
+            actual.push(pattern.borrow_mut().next());
         }
         assert_eq!(expected, actual);
     }
@@ -26,7 +26,7 @@ fn readme() {
         let sample = context.get("sample").unwrap();
         let mut results: HashMap<u32, u32> = HashMap::new();
         for _ in 0..90 {
-            let result = sample.borrow_mut().next(&context);
+            let result = sample.borrow_mut().next();
             let entry = results.entry(result).or_insert(0);
             *entry += 1;;
         }
@@ -40,7 +40,7 @@ fn readme() {
         let weighted = context.get("weighted").unwrap();
         let mut results: HashMap<u32, u32> = HashMap::new();
         for _ in 0..1000 {
-            let result = weighted.borrow_mut().next(&context);
+            let result = weighted.borrow_mut().next();
             let entry = results.entry(result).or_insert(0);
             *entry += 1;;
         }

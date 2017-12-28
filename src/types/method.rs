@@ -4,7 +4,6 @@ use rand::Rng;
 use types::RvWeak;
 use types::Expr;
 use types::ExprData;
-use types::Context;
 
 #[derive(Clone)]
 pub struct Next {
@@ -37,9 +36,9 @@ impl Expr for Next {
     /// # Panics
     ///
     /// * If variable no longer exists.
-    fn next(&mut self, _rng: &mut Rng, context: &Context) -> u32 {
+    fn next(&mut self, _rng: &mut Rng) -> u32 {
         let variable = self.variable.upgrade().unwrap();
-        self.data.prev = variable.borrow_mut().next(context);
+        self.data.prev = variable.borrow_mut().next();
         self.data.done = variable.borrow().done();
 
         self.data.prev
@@ -73,7 +72,7 @@ impl Expr for Prev {
     /// # Panics
     ///
     /// * If variable no longer exists.
-    fn next(&mut self, _rng: &mut Rng, context: &Context) -> u32 {
+    fn next(&mut self, _rng: &mut Rng) -> u32 {
         let variable = self.variable.upgrade().unwrap();
         self.data.prev = variable.borrow().prev();
         self.data.done = variable.borrow().done();

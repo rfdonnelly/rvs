@@ -235,7 +235,7 @@ pub extern fn rvs_next(context: *mut Context, handle: SequenceHandleRaw) -> u32 
     let context = unsafe { &mut *context };
     let handle = SequenceHandle(handle);
     match context.variables.get_by_index(handle.into()) {
-        Some(variable) => variable.borrow_mut().next(&context),
+        Some(variable) => variable.borrow_mut().next(),
         None => 0,
     }
 }

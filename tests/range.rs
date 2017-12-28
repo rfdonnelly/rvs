@@ -17,7 +17,7 @@ fn reverse() {
     let mut actual: HashSet<u32> = HashSet::new();
 
     for _ in 0..10 {
-        actual.insert(a.borrow_mut().next(&context));
+        actual.insert(a.borrow_mut().next());
     }
 
     assert_eq!(expected, actual);
@@ -31,6 +31,6 @@ fn same() {
     let a = context.get("a").unwrap();
 
     for _ in 0..10 {
-        assert_eq!(a.borrow_mut().next(&context), 1);
+        assert_eq!(a.borrow_mut().next(), 1);
     }
 }

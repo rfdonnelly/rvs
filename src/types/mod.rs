@@ -41,7 +41,7 @@ pub struct ExprData {
 }
 
 pub trait Expr: fmt::Display + ExprClone {
-    fn next(&mut self, rng: &mut Rng, context: &Context) -> u32;
+    fn next(&mut self, rng: &mut Rng) -> u32;
 
     fn prev(&self) -> u32 {
         self.data().prev
@@ -94,8 +94,8 @@ impl Rv {
         self.expr.clone()
     }
 
-    pub fn next(&mut self, context: &Context) -> u32 {
-        self.expr.next(&mut self.rng, context)
+    pub fn next(&mut self) -> u32 {
+        self.expr.next(&mut self.rng)
     }
 
     pub fn prev(&self) -> u32 {
@@ -455,14 +455,14 @@ impl Context {
             }
             ast::Function::Sequence => {
                 let args = self.transform_args(rng, args)?.iter_mut().map(|arg| {
-                    arg.next(rng, self)
+                    arg.next(rng)
                 }).collect();
 
                 Ok(Box::new(Sequence::new(args)))
             }
             ast::Function::Range => {
-                let l = self.transform_expr(rng, &args[0])?.next(rng, self);
-                let r = self.transform_expr(rng, &args[1])?.next(rng, self);
+                let l = self.transform_expr(rng, &args[0])?.next(rng);
+                let r = self.transform_expr(rng, &args[1])?.next(rng);
 
                 // Elide the range for case when limits are equal
                 //
@@ -534,7 +534,7 @@ mod tests {
             let ast = ast::Node::Number(4);
             let mut variable = context.transform_expr(&mut rng, &ast).unwrap();
 
-            assert_eq!(variable.next(&mut rng, &context), 4);
+            assert_eq!(variable.next(&mut rng), 4);
         }
 
         #[test]
@@ -553,7 +553,7 @@ mod tests {
             let mut values = HashMap::new();
 
             for _ in 0..10 {
-                let value = variable.next(&mut rng, &context);
+                let value = variable.next(&mut rng);
                 let entry = values.entry(value).or_insert(0);
                 *entry += 1;
                 assert!(value == 3 || value == 4);

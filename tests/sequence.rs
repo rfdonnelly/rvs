@@ -13,7 +13,7 @@ fn count() {
 
     let expected: Vec<u32> = (0..10).collect();
     let actual: Vec<u32> = (0..10).map(|_| {
-        a.next(&context)
+        a.next()
     }).collect();
 
     assert_eq!(expected, actual);
@@ -29,7 +29,7 @@ fn offset_count() {
 
     let expected: Vec<u32> = (10..20).collect();
     let actual: Vec<u32> = (0..10).map(|_| {
-        a.next(&context)
+        a.next()
     }).collect();
 
     assert_eq!(expected, actual);
@@ -47,7 +47,7 @@ fn offset_increment_count() {
         i * 4
     }).collect();
     let actual: Vec<u32> = (0..10).map(|_| {
-        a.next(&context)
+        a.next()
     }).collect();
 
     assert_eq!(expected, actual);
@@ -62,5 +62,5 @@ fn zero_count() {
     let a = context.get("a").unwrap();
     let mut a = a.borrow_mut();
 
-    assert_eq!(a.next(&context), 0);
+    assert_eq!(a.next(), 0);
 }

@@ -44,7 +44,7 @@ fn basic() {
     assert_eq!(rvs_error_code(error), ErrorKind::None.code());
 
     let variable = unsafe { (*context).variables.get("a").unwrap() };
-    let value = variable.borrow_mut().next(unsafe { &(*context) });
+    let value = variable.borrow_mut().next();
     assert_eq!(value, 5);
 
     rvs_error_free(error);
@@ -60,7 +60,7 @@ fn range() {
     assert_eq!(rvs_error_code(error), ErrorKind::None.code());
 
     let variable = unsafe { (*context).variables.get("a").unwrap() };
-    let value = variable.borrow_mut().next(unsafe { &(*context) });
+    let value = variable.borrow_mut().next();
     assert!(value == 0 || value == 1);
 
     rvs_error_free(error);
