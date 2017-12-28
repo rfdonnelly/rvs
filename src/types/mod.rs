@@ -9,6 +9,7 @@ pub mod method;
 
 use std::fmt;
 use std::rc::Rc;
+use std::rc::Weak;
 use std::cell::RefCell;
 use linked_hash_map::LinkedHashMap;
 use rand::Rng;
@@ -79,6 +80,7 @@ pub struct Rv {
 }
 
 type RvRef = Rc<RefCell<Box<Rv>>>;
+type RvWeak = Weak<RefCell<Box<Rv>>>;
 
 impl Rv {
     pub fn new(expr: Box<Expr>, rng: Box<Rng>) -> Rv {
@@ -195,9 +197,9 @@ impl Variables {
         self.indexes.insert(name.into(), self.refs.len() - 1);
     }
 
-    pub fn last_mut(&self) -> Option<RvRef> {
+    pub fn last_mut(&self) -> Option<&RvRef> {
         let variable = self.refs.last()?;
-        Some(Rc::clone(variable))
+        Some(variable)
     }
 
     pub fn get_index(&self, k: &str) -> Option<usize> {
@@ -206,15 +208,15 @@ impl Variables {
         Some(*index)
     }
 
-    pub fn get_by_index(&self, index: usize) -> Option<RvRef> {
+    pub fn get_by_index(&self, index: usize) -> Option<&RvRef> {
         let variable = self.refs.get(index)?;
-        Some(Rc::clone(variable))
+        Some(variable)
     }
 
-    pub fn get(&self, k: &str) -> Option<RvRef> {
+    pub fn get(&self, k: &str) -> Option<&RvRef> {
         let index = self.indexes.get(k)?;
         let variable = self.refs.get(*index)?;
-        Some(Rc::clone(variable))
+        Some(variable)
     }
 
     pub fn iter(&self) -> VariablesIter {
@@ -254,7 +256,7 @@ impl Context {
         }
     }
 
-    pub fn get(&self, name: &str) -> Option<RvRef> {
+    pub fn get(&self, name: &str) -> Option<&RvRef> {
         self.variables.get(name)
     }
 }
@@ -410,10 +412,10 @@ impl Context {
             Some(variable) => {
                 match *method {
                     ast::Method::Next => {
-                        Ok(Box::new(Next::new(name)))
+                        Ok(Box::new(Next::new(name, Rc::downgrade(variable))))
                     },
                     ast::Method::Prev => {
-                        Ok(Box::new(Prev::new(name)))
+                        Ok(Box::new(Prev::new(name, Rc::downgrade(variable))))
                     },
                     ast::Method::Copy => {
                         Ok(variable.borrow().clone_expr())

@@ -1,32 +1,30 @@
 use std::fmt;
 use rand::Rng;
 
+use types::RvWeak;
 use types::Expr;
 use types::ExprData;
 use types::Context;
 
 #[derive(Clone)]
 pub struct Next {
+    variable: RvWeak,
     variable_name: String,
-    variable_index_valid: bool,
-    variable_index: usize,
     data: ExprData,
 }
 
 #[derive(Clone)]
 pub struct Prev {
+    variable: RvWeak,
     variable_name: String,
-    variable_index_valid: bool,
-    variable_index: usize,
     data: ExprData,
 }
 
 impl Next {
-    pub fn new(variable_name: &str) -> Next {
+    pub fn new(variable_name: &str, variable: RvWeak) -> Next {
         Next {
+            variable,
             variable_name: variable_name.into(),
-            variable_index_valid: false,
-            variable_index: 0,
             data: ExprData {
                 prev: 0,
                 done: false,
@@ -38,14 +36,9 @@ impl Next {
 impl Expr for Next {
     /// # Panics
     ///
-    /// * If variable not found in context
+    /// * If variable no longer exists.
     fn next(&mut self, _rng: &mut Rng, context: &Context) -> u32 {
-        if !self.variable_index_valid {
-            self.variable_index = context.variables.get_index(&self.variable_name).unwrap();
-        }
-
-        let variable = context.variables.get_by_index(self.variable_index).unwrap();
-
+        let variable = self.variable.upgrade().unwrap();
         self.data.prev = variable.borrow_mut().next(context);
         self.data.done = variable.borrow().done();
 
@@ -64,11 +57,10 @@ impl fmt::Display for Next {
 }
 
 impl Prev {
-    pub fn new(variable_name: &str) -> Prev {
+    pub fn new(variable_name: &str, variable: RvWeak) -> Prev {
         Prev {
+            variable,
             variable_name: variable_name.into(),
-            variable_index_valid: false,
-            variable_index: 0,
             data: ExprData {
                 prev: 0,
                 done: false,
@@ -80,14 +72,9 @@ impl Prev {
 impl Expr for Prev {
     /// # Panics
     ///
-    /// * If variable not found in context
+    /// * If variable no longer exists.
     fn next(&mut self, _rng: &mut Rng, context: &Context) -> u32 {
-        if !self.variable_index_valid {
-            self.variable_index = context.variables.get_index(&self.variable_name).unwrap();
-        }
-
-        let variable = context.variables.get_by_index(self.variable_index).unwrap();
-
+        let variable = self.variable.upgrade().unwrap();
         self.data.prev = variable.borrow().prev();
         self.data.done = variable.borrow().done();
 
