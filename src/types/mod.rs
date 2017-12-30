@@ -282,18 +282,18 @@ impl Enum {
 }
 
 impl Context {
-    pub fn transform_items(&mut self, items: &Vec<Box<ast::Node>>) -> TransformResult<()> {
-        for item in items.iter() {
-            match **item {
+    pub fn transform_items(&mut self, items: Vec<Box<ast::Node>>) -> TransformResult<()> {
+        for item in items {
+            match *item {
                 ast::Node::Assignment(ref lhs, ref rhs) => {
                     self.transform_assignment(lhs, rhs)?;
                 },
                 ast::Node::Enum(ref name, ref items) => {
                     self.transform_enum(name, items)?;
-                }
+                },
                 _ => {
                     return Err(TransformError::new(format!(
-                                "Expected Assignment or Enum but found {:?}", **item)));
+                                "Expected Assignment or Enum but found {:?}", *item)));
                 },
             }
         }

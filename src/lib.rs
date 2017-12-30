@@ -14,6 +14,6 @@ use types::Context;
 
 pub fn parse(s: &str, context: &mut Context) -> Result<()> {
     let items = rvs_parser::parse(s, &mut context.search_path)?;
-    context.transform_items(&items).unwrap();
+    context.transform_items(items)?;
     Ok(())
 }
