@@ -3,10 +3,8 @@ extern crate rvs;
 use std::io;
 use std::io::prelude::*;
 
-use rvs::types::Context;
-
 fn main() {
-    let mut context = Context::new();
+    let mut context = rvs::Context::new();
 
     loop {
         print!("> ");
@@ -22,8 +20,9 @@ fn main() {
     }
 }
 
-fn eval(s: &str, context: &mut Context) -> rvs::Result<()> {
+fn eval(s: &str, context: &mut rvs::Context) -> rvs::Result<()> {
     rvs::parse(&s, context)?;
+    rvs::resolve(context)?;
 
     let rv = context.variables.last_mut().unwrap();
     let mut rv = rv.borrow_mut();

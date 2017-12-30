@@ -1,12 +1,11 @@
 extern crate rvs;
 
-use rvs::parse;
-use rvs::types::Context;
+use rvs::Context;
 
 #[test]
 fn next() {
     let mut context = Context::new();
-    parse("a = 1; b = a;", &mut context).unwrap();
+    rvs::parse("a = 1; b = a;", &mut context).unwrap();
 
     let b = context.get("b").unwrap();
 
@@ -17,7 +16,7 @@ fn next() {
 #[test]
 fn next_pattern() {
     let mut context = Context::new();
-    parse("a = Pattern(0, 1, 2, 3); b = a;", &mut context).unwrap();
+    rvs::parse("a = Pattern(0, 1, 2, 3); b = a;", &mut context).unwrap();
 
     let a = context.get("a").unwrap();
     let b = context.get("b").unwrap();
@@ -31,7 +30,7 @@ fn next_pattern() {
 #[test]
 fn copy() {
     let mut context = Context::new();
-    parse("a = 1; b = a.copy;", &mut context).unwrap();
+    rvs::parse("a = 1; b = a.copy;", &mut context).unwrap();
 
     let b = context.get("b").unwrap();
 
@@ -41,7 +40,7 @@ fn copy() {
 #[test]
 fn copy_pattern() {
     let mut context = Context::new();
-    parse("a = Pattern(0, 1, 2, 3); b = a.copy;", &mut context).unwrap();
+    rvs::parse("a = Pattern(0, 1, 2, 3); b = a.copy;", &mut context).unwrap();
 
     let a = context.get("a").unwrap();
     let b = context.get("b").unwrap();
@@ -57,7 +56,7 @@ fn copy_pattern() {
 #[test]
 fn prev() {
     let mut context = Context::new();
-    parse("a = Pattern(0, 1, 2, 3); b = a.prev;", &mut context).unwrap();
+    rvs::parse("a = Pattern(0, 1, 2, 3); b = a.prev;", &mut context).unwrap();
 
     let a = context.get("a").unwrap();
     let b = context.get("b").unwrap();

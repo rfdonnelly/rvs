@@ -2,13 +2,12 @@ extern crate rvs;
 
 use std::collections::HashSet;
 
-use rvs::parse;
-use rvs::types::Context;
+use rvs::Context;
 
 #[test]
 fn reverse() {
     let mut context = Context::new();
-    assert!(parse("a = [1, 0];", &mut context).is_ok());
+    rvs::parse("a = [1, 0];", &mut context).unwrap();
 
     let a = context.get("a").unwrap();
 
@@ -26,7 +25,7 @@ fn reverse() {
 #[test]
 fn same() {
     let mut context = Context::new();
-    assert!(parse("a = [1, 1];", &mut context).is_ok());
+    rvs::parse("a = [1, 1];", &mut context).unwrap();
 
     let a = context.get("a").unwrap();
 

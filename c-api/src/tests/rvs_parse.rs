@@ -69,15 +69,13 @@ fn range() {
 
 #[test]
 fn parse_error() {
-    // use rvs::grammar::ParseError;
-
     let context = rvs_context_new();
     let error = rvs_error_new();
 
     rvs_parse(context, CString::new("a = 1;\n1 = b;").unwrap().as_ptr(), error);
     // FIXME: Check error message
     // println!("{}", unsafe { *error });
-    // assert_eq!(rvs_error_code(error), ErrorKind::Parse(ParseError::new()).code());
+    // assert_eq!(rvs_error_code(error), ErrorKind::Parse(rvs::ParseError::new()).code());
     assert!(rvs_error_code(error) != ErrorKind::None.code());
 
     rvs_error_free(error);

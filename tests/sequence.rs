@@ -1,12 +1,11 @@
 extern crate rvs;
 
-use rvs::parse;
-use rvs::types::Context;
+use rvs::Context;
 
 #[test]
 fn count() {
     let mut context = Context::new();
-    assert!(parse("a = Sequence(10);", &mut context).is_ok());
+    rvs::parse("a = Sequence(10);", &mut context).unwrap();
 
     let a = context.get("a").unwrap();
     let mut a = a.borrow_mut();
@@ -22,7 +21,7 @@ fn count() {
 #[test]
 fn offset_count() {
     let mut context = Context::new();
-    assert!(parse("a = Sequence(10, 10);", &mut context).is_ok());
+    rvs::parse("a = Sequence(10, 10);", &mut context).unwrap();
 
     let a = context.get("a").unwrap();
     let mut a = a.borrow_mut();
@@ -38,7 +37,7 @@ fn offset_count() {
 #[test]
 fn offset_increment_count() {
     let mut context = Context::new();
-    assert!(parse("a = Sequence(0, 4, 10);", &mut context).is_ok());
+    rvs::parse("a = Sequence(0, 4, 10);", &mut context).unwrap();
 
     let a = context.get("a").unwrap();
     let mut a = a.borrow_mut();
@@ -57,7 +56,7 @@ fn offset_increment_count() {
 #[should_panic]
 fn zero_count() {
     let mut context = Context::new();
-    assert!(parse("a = Sequence(0);", &mut context).is_ok());
+    rvs::parse("a = Sequence(0);", &mut context).unwrap();
 
     let a = context.get("a").unwrap();
     let mut a = a.borrow_mut();

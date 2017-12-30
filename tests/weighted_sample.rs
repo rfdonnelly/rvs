@@ -2,13 +2,12 @@ extern crate rvs;
 
 use std::collections::HashMap;
 
-use rvs::parse;
-use rvs::types::Context;
+use rvs::Context;
 
 #[test]
 fn basic() {
     let mut context = Context::new();
-    assert!(parse("a = { 10: 0, 90: 1 };", &mut context).is_ok());
+    rvs::parse("a = { 10: 0, 90: 1 };", &mut context).unwrap();
 
     let a = context.get("a").unwrap();
 

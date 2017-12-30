@@ -3,14 +3,13 @@ extern crate rvs;
 use std::env::current_dir;
 use std::collections::HashMap;
 
-use rvs::parse;
-use rvs::types::Context;
+use rvs::Context;
 
 #[test]
 fn readme() {
     let mut context = Context::new();
     context.search_path.add(&current_dir().unwrap());
-    assert!(parse("import 'examples/readme.rvs';", &mut context).is_ok());
+    rvs::parse("import 'examples/readme.rvs';", &mut context).unwrap();
 
     {
         let pattern = context.get("pattern").unwrap();

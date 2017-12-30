@@ -1,12 +1,11 @@
 extern crate rvs;
 
-use rvs::parse;
-use rvs::types::Context;
+use rvs::Context;
 
 #[test]
 fn basic() {
     let mut context = Context::new();
-    assert!(parse("a=[0,1];\nb=2;", &mut context).is_ok());
+    rvs::parse("a=[0,1];\nb=2;", &mut context).unwrap();
 
     {
         let a = context.get("a").unwrap();

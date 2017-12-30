@@ -4,8 +4,6 @@ use std::ffi::CString;
 use libc::c_char;
 
 use rvs;
-use rvs::ParseError;
-use rvs::TransformError;
 
 #[derive(Debug)]
 pub struct Error {
@@ -16,8 +14,8 @@ pub struct Error {
 #[derive(Debug)]
 pub enum ErrorKind {
     None,
-    Parse(ParseError),
-    Transform(TransformError),
+    Parse(rvs::ParseError),
+    Transform(rvs::TransformError),
     Io(io::Error),
 }
 
