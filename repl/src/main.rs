@@ -4,7 +4,6 @@ use std::io;
 use std::io::prelude::*;
 
 use rvs::types::Context;
-use rvs::parse;
 
 fn main() {
     let mut context = Context::new();
@@ -17,25 +16,32 @@ fn main() {
         if s.is_empty() {
             return;
         }
-        if let Err(e) = parse(&s, &mut context) {
+        if let Err(e) = eval(&s, &mut context) {
             println!("error: {}", e);
         }
-
-        let rv = context.variables.last_mut().unwrap();
-        let mut rv = rv.borrow_mut();
-        let values: Vec<String> = vec![(0, false); 15]
-            .iter()
-            .map(|_| (rv.next(), rv.done()))
-            .map(|(next, done)| if done {
-                format!("0x{:x} <done>", next)
-            } else {
-                format!("0x{:x}", next)
-            })
-        .collect();
-        let values = values.join(", ");
-
-        println!("=> {}", values);
     }
+}
+
+fn eval(s: &str, context: &mut Context) -> rvs::Result<()> {
+    rvs::parse(&s, context)?;
+
+    let rv = context.variables.last_mut().unwrap();
+    let mut rv = rv.borrow_mut();
+
+    let values: Vec<String> = vec![(0, false); 15]
+        .iter()
+        .map(|_| (rv.next(), rv.done()))
+        .map(|(next, done)| if done {
+            format!("0x{:x} <done>", next)
+        } else {
+            format!("0x{:x}", next)
+        })
+    .collect();
+
+    let values = values.join(", ");
+    println!("=> {}", values);
+
+    Ok(())
 }
 
 fn read_statement() -> Result<String, io::Error> {
