@@ -8,6 +8,7 @@ use rvs::Context;
 fn reverse() {
     let mut context = Context::new();
     rvs::parse("a = [1, 0];", &mut context).unwrap();
+    rvs::transform(&mut context).unwrap();
 
     let a = context.get("a").unwrap();
 
@@ -26,6 +27,7 @@ fn reverse() {
 fn same() {
     let mut context = Context::new();
     rvs::parse("a = [1, 1];", &mut context).unwrap();
+    rvs::transform(&mut context).unwrap();
 
     let a = context.get("a").unwrap();
 

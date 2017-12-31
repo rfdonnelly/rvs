@@ -6,6 +6,7 @@ use rvs::Context;
 fn basic() {
     let mut context = Context::new();
     rvs::parse("a=[0,1];\nb=2;", &mut context).unwrap();
+    rvs::transform(&mut context).unwrap();
 
     {
         let a = context.get("a").unwrap();

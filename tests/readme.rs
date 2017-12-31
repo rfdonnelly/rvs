@@ -10,6 +10,7 @@ fn readme() {
     let mut context = Context::new();
     context.search_path.add(&current_dir().unwrap());
     rvs::parse("import 'examples/readme.rvs';", &mut context).unwrap();
+    rvs::transform(&mut context).unwrap();
 
     {
         let pattern = context.get("pattern").unwrap();

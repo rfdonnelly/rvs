@@ -18,3 +18,8 @@ pub fn parse(s: &str, context: &mut Context) -> Result<()> {
     context.transform_items(items)?;
     Ok(())
 }
+
+pub fn transform(context: &mut Context) -> Result<()> {
+    context.transform_variables()?;
+    Ok(())
+}

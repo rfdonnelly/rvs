@@ -191,6 +191,22 @@ pub extern fn rvs_parse(
     }
 }
 
+#[no_mangle]
+pub extern fn rvs_transform(
+    context: *mut Context,
+    error: *mut Error
+) {
+    let mut context = unsafe { &mut *context };
+
+    if let Err(e) = rvs::transform(&mut context) {
+        if !error.is_null() {
+            unsafe {
+                *error = Error::new(From::from(e))
+            }
+        }
+    }
+}
+
 /// Returns the handle of a variable
 ///
 /// The callee owns the handle.  The handle is valid until `rvs_context_free()` is called.

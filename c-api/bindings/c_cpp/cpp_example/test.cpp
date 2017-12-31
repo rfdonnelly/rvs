@@ -14,6 +14,11 @@ int main() {
         std::cout << "error: " << rvs_error_message(error) << std::endl;
     }
     assert(rvs_error_code(error) == 0);
+    rvs_transform(context, error);
+    if (rvs_error_code(error)) {
+        std::cout << "error: " << rvs_error_message(error) << std::endl;
+    }
+    assert(rvs_error_code(error) == 0);
 
     auto handle = rvs_find(context, "a");
     assert(handle == 1);

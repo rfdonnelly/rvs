@@ -11,11 +11,12 @@ use std::fmt;
 use std::rc::Rc;
 use std::rc::Weak;
 use std::cell::RefCell;
-use linked_hash_map::LinkedHashMap;
 use rand::Rng;
 use rand::SeedableRng;
 use rand::prng::XorShiftRng;
 use rand::Sample as RandSample;
+use linked_hash_map::LinkedHashMap;
+use linked_hash_map::Entry;
 
 use rvs_parser::ast;
 use rvs_parser::SearchPath;
@@ -240,6 +241,8 @@ impl fmt::Display for Variables {
 }
 
 pub struct Context {
+    pub ast_map: LinkedHashMap<String, Box<ast::Node>>,
+
     pub variables: Variables,
     pub enums: LinkedHashMap<String, Enum>,
     pub seed: Seed,
@@ -249,6 +252,7 @@ pub struct Context {
 impl Context {
     pub fn new() -> Context {
         Context {
+            ast_map: LinkedHashMap::new(),
             variables: Variables::new(),
             enums: LinkedHashMap::new(),
             seed: Seed::from_u32(0),
@@ -284,16 +288,38 @@ impl Enum {
 impl Context {
     pub fn transform_items(&mut self, items: Vec<Box<ast::Node>>) -> TransformResult<()> {
         for item in items {
-            match *item {
-                ast::Node::Assignment(ref lhs, ref rhs) => {
-                    self.transform_assignment(lhs, rhs)?;
+            // NOTE: This reassignment is necessary because matching on *item directly causes
+            // issues.  Error when matching on *item directly.
+            //
+            // error[E0382]: use of collaterally moved value: `(item:rvs_parser::ast::Node::Assignment).1`
+            //    --> src/types/mod.rs:305:44
+            //     |
+            // 305 |                 ast::Node::Assignment(lhs, rhs) => {
+            //     |                                       ---  ^^^ value used here after move
+            //     |                                       |
+            //     |                                       value moved here
+            //     |
+            //     = note: move occurs because `(item:rvs_parser::ast::Node::Assignment).0` has type
+            //       `std::boxed::Box<rvs_parser::ast::Node>`, which does not implement the `Copy` trait
+            //
+            // This seems to be similar issue:
+            // https://stackoverflow.com/questions/28466809/collaterally-moved-error-on-deconstructing-box-of-pairs
+            //
+            // An open bug exists for this: https://github.com/rust-lang/rust/issues/16223
+            //
+            // Maybe this would be fixed by?: https://github.com/rust-lang/rust-roadmap/issues/24
+            let item = *item;
+
+            match item {
+                ast::Node::Assignment(lhs, rhs) => {
+                    self.move_variable(lhs, rhs)?;
                 },
                 ast::Node::Enum(ref name, ref items) => {
                     self.transform_enum(name, items)?;
                 },
                 _ => {
                     return Err(TransformError::new(format!(
-                                "Expected Assignment or Enum but found {:?}", *item)));
+                                "Expected Assignment or Enum but found {:?}", item)));
                 },
             }
         }
@@ -301,7 +327,19 @@ impl Context {
         Ok(())
     }
 
-    pub fn transform_assignment(&mut self, lhs: &ast::Node, rhs: &ast::Node) -> TransformResult<()> {
+    pub fn transform_variables(&mut self) -> TransformResult<()> {
+        for (name, expr) in self.ast_map.iter() {
+            let mut rng = new_rng(&self.seed);
+            let rv = Rc::new(RefCell::new(Box::new(Rv::new(
+                            self.transform_expr(&mut rng, expr)?,
+                            rng))));
+            self.variables.insert(name, rv);
+        }
+
+        Ok(())
+    }
+
+    pub fn move_variable(&mut self, lhs: Box<ast::Node>, rhs: Box<ast::Node>) -> TransformResult<()> {
         let identifier =
             if let ast::Node::Identifier(ref identifier) = *lhs {
                 identifier
@@ -310,11 +348,20 @@ impl Context {
                         "Expecting identifier but found {:?}", lhs)));
             };
 
-        let mut rng = new_rng(&self.seed);
-        let rv = Rc::new(RefCell::new(Box::new(Rv::new(
-                self.transform_expr(&mut rng, &rhs)?,
-                rng))));
-        self.variables.insert(identifier, rv);
+        // The LinkedHashMap preserves insertion order.  We need order reflect order of first
+        // definition of variables rather than last definition of variables.  For example, given
+        // a=0; b=1; a=2; we want the order to be a, b rather than b, a.  To do this, we cannot use
+        // the insert function for pre-existing variables because LinkedHashMap preserves insertion
+        // order and calling insert will change the order.  Instead, we replace the contents of
+        // pre-existing variables.
+        match self.ast_map.entry(identifier.to_owned()) {
+            Entry::Occupied(mut entry) => {
+                *entry.get_mut() = rhs;
+            },
+            Entry::Vacant(entry) => {
+                entry.insert(rhs);
+            }
+        }
 
         Ok(())
     }

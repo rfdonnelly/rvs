@@ -28,6 +28,9 @@ fn import() {
     rvs_parse(context, CString::new("import '../examples/import.rvs'").unwrap().as_ptr(), error);
     assert_eq!(rvs_error_code(error), ErrorKind::None.code());
 
+    rvs_transform(context, error);
+    assert_eq!(rvs_error_code(error), ErrorKind::None.code());
+
     assert_eq!(next_by_name(context, "a"), 5);
     assert_eq!(next_by_name(context, "b"), 1);
 
@@ -41,6 +44,9 @@ fn basic() {
     let error = rvs_error_new();
 
     rvs_parse(context, CString::new("a=5;").unwrap().as_ptr(), error);
+    assert_eq!(rvs_error_code(error), ErrorKind::None.code());
+
+    rvs_transform(context, error);
     assert_eq!(rvs_error_code(error), ErrorKind::None.code());
 
     let variable = unsafe { (*context).variables.get("a").unwrap() };
@@ -57,6 +63,9 @@ fn range() {
     let error = rvs_error_new();
 
     rvs_parse(context, CString::new("a=[0,1];").unwrap().as_ptr(), error);
+    assert_eq!(rvs_error_code(error), ErrorKind::None.code());
+
+    rvs_transform(context, error);
     assert_eq!(rvs_error_code(error), ErrorKind::None.code());
 
     let variable = unsafe { (*context).variables.get("a").unwrap() };
@@ -90,6 +99,9 @@ fn file() {
     rvs_parse(context, CString::new("../examples/basic.rvs;b = 3").unwrap().as_ptr(), error);
     assert_eq!(rvs_error_code(error), ErrorKind::None.code());
 
+    rvs_transform(context, error);
+    assert_eq!(rvs_error_code(error), ErrorKind::None.code());
+
     let handle = rvs_find(context, CString::new("a").unwrap().as_ptr());
     assert!(handle != 0);
 
@@ -115,6 +127,9 @@ fn override_rv() {
     assert_eq!(rvs_error_code(error), ErrorKind::None.code());
 
     rvs_parse(context, CString::new("a = 2").unwrap().as_ptr(), error);
+    assert_eq!(rvs_error_code(error), ErrorKind::None.code());
+
+    rvs_transform(context, error);
     assert_eq!(rvs_error_code(error), ErrorKind::None.code());
 
     let handle = rvs_find(context, CString::new("a").unwrap().as_ptr());

@@ -8,6 +8,7 @@ use rvs::Context;
 fn basic() {
     let mut context = Context::new();
     rvs::parse("a = Sample(1, 2, 4, 8);", &mut context).unwrap();
+    rvs::transform(&mut context).unwrap();
 
     let a = context.get("a").unwrap();
 

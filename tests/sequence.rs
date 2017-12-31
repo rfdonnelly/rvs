@@ -6,6 +6,7 @@ use rvs::Context;
 fn count() {
     let mut context = Context::new();
     rvs::parse("a = Sequence(10);", &mut context).unwrap();
+    rvs::transform(&mut context).unwrap();
 
     let a = context.get("a").unwrap();
     let mut a = a.borrow_mut();
@@ -22,6 +23,7 @@ fn count() {
 fn offset_count() {
     let mut context = Context::new();
     rvs::parse("a = Sequence(10, 10);", &mut context).unwrap();
+    rvs::transform(&mut context).unwrap();
 
     let a = context.get("a").unwrap();
     let mut a = a.borrow_mut();
@@ -38,6 +40,7 @@ fn offset_count() {
 fn offset_increment_count() {
     let mut context = Context::new();
     rvs::parse("a = Sequence(0, 4, 10);", &mut context).unwrap();
+    rvs::transform(&mut context).unwrap();
 
     let a = context.get("a").unwrap();
     let mut a = a.borrow_mut();
@@ -57,6 +60,7 @@ fn offset_increment_count() {
 fn zero_count() {
     let mut context = Context::new();
     rvs::parse("a = Sequence(0);", &mut context).unwrap();
+    rvs::transform(&mut context).unwrap();
 
     let a = context.get("a").unwrap();
     let mut a = a.borrow_mut();

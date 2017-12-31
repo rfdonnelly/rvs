@@ -9,6 +9,9 @@ fn next(seed: u32, s: &str) -> u32 {
     rvs_parse(context, CString::new(s).unwrap().as_ptr(), error);
     assert_eq!(rvs_error_code(error), ErrorKind::None.code());
 
+    rvs_transform(context, error);
+    assert_eq!(rvs_error_code(error), ErrorKind::None.code());
+
     let handle = rvs_find(context, CString::new("a").unwrap().as_ptr());
     assert!(handle != 0);
 

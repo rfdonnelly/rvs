@@ -6,6 +6,7 @@ use rvs::Context;
 fn next() {
     let mut context = Context::new();
     rvs::parse("a = 1; b = a;", &mut context).unwrap();
+    rvs::transform(&mut context).unwrap();
 
     let b = context.get("b").unwrap();
 
@@ -17,6 +18,7 @@ fn next() {
 fn next_pattern() {
     let mut context = Context::new();
     rvs::parse("a = Pattern(0, 1, 2, 3); b = a;", &mut context).unwrap();
+    rvs::transform(&mut context).unwrap();
 
     let a = context.get("a").unwrap();
     let b = context.get("b").unwrap();
@@ -31,6 +33,7 @@ fn next_pattern() {
 fn copy() {
     let mut context = Context::new();
     rvs::parse("a = 1; b = a.copy;", &mut context).unwrap();
+    rvs::transform(&mut context).unwrap();
 
     let b = context.get("b").unwrap();
 
@@ -41,6 +44,7 @@ fn copy() {
 fn copy_pattern() {
     let mut context = Context::new();
     rvs::parse("a = Pattern(0, 1, 2, 3); b = a.copy;", &mut context).unwrap();
+    rvs::transform(&mut context).unwrap();
 
     let a = context.get("a").unwrap();
     let b = context.get("b").unwrap();
@@ -57,6 +61,7 @@ fn copy_pattern() {
 fn prev() {
     let mut context = Context::new();
     rvs::parse("a = Pattern(0, 1, 2, 3); b = a.prev;", &mut context).unwrap();
+    rvs::transform(&mut context).unwrap();
 
     let a = context.get("a").unwrap();
     let b = context.get("b").unwrap();

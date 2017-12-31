@@ -22,7 +22,7 @@ fn main() {
 
 fn eval(s: &str, context: &mut rvs::Context) -> rvs::Result<()> {
     rvs::parse(&s, context)?;
-    rvs::resolve(context)?;
+    rvs::transform(context)?;
 
     let rv = context.variables.last_mut().unwrap();
     let mut rv = rv.borrow_mut();
