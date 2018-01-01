@@ -1,24 +1,24 @@
 use super::*;
 
 fn next(seed: u32, s: &str) -> u32 {
-    let context = rvs_context_new();
     let error = rvs_error_new();
-    rvs_seed(context, seed);
+    let context = rvs_context_new(CString::new("").unwrap().as_ptr(), seed, error);
+    assert!(!rvs_error_test(error));
 
     let s = format!("a = {};", s);
     rvs_parse(context, CString::new(s).unwrap().as_ptr(), error);
-    assert_eq!(rvs_error_code(error), ErrorKind::None.code());
+    assert!(!rvs_error_test(error));
 
-    rvs_transform(context, error);
-    assert_eq!(rvs_error_code(error), ErrorKind::None.code());
+    let model = rvs_transform(context, error);
+    assert!(!rvs_error_test(error));
 
-    let handle = rvs_find(context, CString::new("a").unwrap().as_ptr());
+    let handle = rvs_get(model, CString::new("a").unwrap().as_ptr());
     assert!(handle != 0);
 
-    let value = rvs_next(context, handle);
+    let value = rvs_next(model, handle);
 
     rvs_error_free(error);
-    rvs_context_free(context);
+    rvs_model_free(model);
 
     value
 }

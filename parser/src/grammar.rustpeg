@@ -6,7 +6,7 @@ use std::io::prelude::*;
 
 use sourcepaths::SourcePaths;
 
-use ast::Method;
+use ast::VariableMethod;
 use ast::BinaryOpcode;
 use ast::UnaryOpcode;
 use ast::Function;
@@ -78,25 +78,25 @@ atom -> Box<Node>
     / number
     / function
     / enum_item_inst
-    / variable
+    / variable_inst
 
-variable -> Box<Node>
+variable_inst -> Box<Node>
     = a:identifier b:variable_method_call? {
         let method = if let Some(method) = b {
             method
         } else {
-            Method::Next
+            VariableMethod::Next
         };
 
-        Box::new(Node::VariableMethodCall(a.to_owned(), method))
+        Box::new(Node::VariableInst(a.to_owned(), method))
     }
 
-variable_method_call -> Method
+variable_method_call -> VariableMethod
     = "." a:variable_method { a }
 
-variable_method -> Method
-    = "prev" { Method::Prev }
-    / "copy" { Method::Copy }
+variable_method -> VariableMethod
+    = "prev" { VariableMethod::Prev }
+    / "copy" { VariableMethod::Copy }
 
 function -> Box<Node>
     = pattern
@@ -138,14 +138,14 @@ binary_expr -> Box<Node>
 
 item -> Item
     = enum
-    / assignment
+    / variable
     / import
 
-assignment -> Item
+variable -> Item
     = lhs:identifier _ "=" _ rhs:expr _ ";" {
         Item::Single(
-            Box::new(Node::Assignment(
-                Box::new(Node::Identifier(lhs.into())),
+            Box::new(Node::Variable(
+                lhs.into(),
                 rhs
             ))
         )

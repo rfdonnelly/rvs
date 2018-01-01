@@ -1,14 +1,13 @@
 extern crate rvs;
 
-use rvs::Context;
-
 #[test]
 fn count() {
-    let mut context = Context::new();
-    rvs::parse("a = Sequence(10);", &mut context).unwrap();
-    rvs::transform(&mut context).unwrap();
+    let model = rvs::parse(
+        Default::default(),
+        "a = Sequence(10);"
+        ).unwrap();
 
-    let a = context.get("a").unwrap();
+    let a = model.get_variable_by_name("a").unwrap();
     let mut a = a.borrow_mut();
 
     let expected: Vec<u32> = (0..10).collect();
@@ -21,11 +20,12 @@ fn count() {
 
 #[test]
 fn offset_count() {
-    let mut context = Context::new();
-    rvs::parse("a = Sequence(10, 10);", &mut context).unwrap();
-    rvs::transform(&mut context).unwrap();
+    let model = rvs::parse(
+        Default::default(),
+        "a = Sequence(10, 10);"
+        ).unwrap();
 
-    let a = context.get("a").unwrap();
+    let a = model.get_variable_by_name("a").unwrap();
     let mut a = a.borrow_mut();
 
     let expected: Vec<u32> = (10..20).collect();
@@ -38,11 +38,12 @@ fn offset_count() {
 
 #[test]
 fn offset_increment_count() {
-    let mut context = Context::new();
-    rvs::parse("a = Sequence(0, 4, 10);", &mut context).unwrap();
-    rvs::transform(&mut context).unwrap();
+    let model = rvs::parse(
+        Default::default(),
+        "a = Sequence(0, 4, 10);"
+        ).unwrap();
 
-    let a = context.get("a").unwrap();
+    let a = model.get_variable_by_name("a").unwrap();
     let mut a = a.borrow_mut();
 
     let expected: Vec<u32> = (0..10).map(|i| {
@@ -58,11 +59,12 @@ fn offset_increment_count() {
 #[test]
 #[should_panic]
 fn zero_count() {
-    let mut context = Context::new();
-    rvs::parse("a = Sequence(0);", &mut context).unwrap();
-    rvs::transform(&mut context).unwrap();
+    let model = rvs::parse(
+        Default::default(),
+        "a = Sequence(0);"
+        ).unwrap();
 
-    let a = context.get("a").unwrap();
+    let a = model.get_variable_by_name("a").unwrap();
     let mut a = a.borrow_mut();
 
     assert_eq!(a.next(), 0);

@@ -17,5 +17,5 @@ fn expr_whitespace() {
 fn ast() {
     assert_eq!(
         parse(" a  = // comment0\n5 ; // comment1\nb=6;"),
-        "[Assignment(Identifier(\"a\"), Number(5)), Assignment(Identifier(\"b\"), Number(6))]");
+        "[Variable(\"a\", Number(5)), Variable(\"b\", Number(6))]");
 }

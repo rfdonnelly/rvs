@@ -74,7 +74,7 @@ be dual licensed as above, without any additional terms or conditions.
   * [x] `rvs_context_free()`
   * [x] `rvs_seed()`
   * [x] `rvs_parse()`
-  * [x] `rvs_find()`
+  * [x] `rvs_get()`
   * [x] `rvs_next()`
   * [x] `rvs_done()`
   * [x] `rvs_prev()`

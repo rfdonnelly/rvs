@@ -90,12 +90,11 @@ mod tests {
 
     #[test]
     fn basic() {
-        let mut search_path = SearchPath::new();
         let path_str = "../examples";
         let path_dir = fs::canonicalize(path_str).unwrap();
         let path_file = path_dir.join("readme.rvs");
 
-        search_path.add(&path_dir);
+        let search_path = SearchPath::new(vec![path_dir]);
         let mut sourcepaths = SourcePaths::new(search_path);
 
         assert_eq!(sourcepaths.find(&Path::new("readme.rvs")).unwrap(), path_file);

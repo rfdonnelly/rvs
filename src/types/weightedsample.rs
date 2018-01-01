@@ -4,8 +4,7 @@ use rand::sequences::Weighted;
 use rand::sequences::WeightedChoice;
 use rand::Distribution;
 
-use types::Expr;
-use types::ExprData;
+use model::{Expr, ExprData};
 
 #[derive(Clone)]
 pub struct WeightedSample {

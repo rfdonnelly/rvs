@@ -51,16 +51,6 @@ impl From<rvs::Error> for ErrorKind {
     }
 }
 
-impl ErrorKind {
-    pub fn code(&self) -> u32 {
-        match *self {
-            ErrorKind::None => 0,
-            ErrorKind::Rvs(_) => 1,
-            ErrorKind::Io(_) => 2,
-        }
-    }
-}
-
 #[no_mangle]
 pub extern fn rvs_error_new() -> *mut Error {
     Box::into_raw(Box::new(Error::new(ErrorKind::None)))
@@ -85,8 +75,8 @@ pub extern fn rvs_error_message(err: *mut Error) -> *const c_char {
 }
 
 #[no_mangle]
-pub extern fn rvs_error_code(err: *const Error) -> u32 {
+pub extern fn rvs_error_test(err: *const Error) -> bool {
     let err = unsafe { &*err };
 
-    err.kind.code()
+    err.is_err()
 }

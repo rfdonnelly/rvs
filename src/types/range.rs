@@ -1,41 +1,40 @@
 use std::fmt;
 use rand::Rng;
-use rand::distributions::Range;
+use rand::distributions::Range as RndRange;
 use rand::distributions::range::RangeInt;
 use rand::distributions::Distribution;
 
-use types::Expr;
-use types::ExprData;
+use model::{Expr, ExprData};
 
 #[derive(Clone)]
-pub struct RangeSequence {
+pub struct Range {
     data: ExprData,
     l: u32,
     r: u32,
-    range: Range<RangeInt<u32>>,
+    range: RndRange<RangeInt<u32>>,
 }
 
-impl RangeSequence {
-    pub fn new(l: u32, r: u32) -> RangeSequence {
+impl Range {
+    pub fn new(l: u32, r: u32) -> Range {
         let limits = if r > l {
             (l, r)
         } else {
             (r, l)
         };
 
-        RangeSequence {
+        Range {
             data: ExprData {
                 prev: 0,
                 done: false,
             },
             l: l,
             r: r,
-            range: Range::new_inclusive(limits.0, limits.1),
+            range: RndRange::new_inclusive(limits.0, limits.1),
         }
     }
 }
 
-impl Expr for RangeSequence {
+impl Expr for Range {
     fn next(&mut self, rng: &mut Rng) -> u32 {
         self.data.prev = self.range.sample(rng);
 
@@ -47,7 +46,7 @@ impl Expr for RangeSequence {
     }
 }
 
-impl fmt::Display for RangeSequence {
+impl fmt::Display for Range {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "[0x{:x}, 0x{:x}]", self.l, self.r)
     }
@@ -57,16 +56,15 @@ impl fmt::Display for RangeSequence {
 mod tests {
     mod range {
         use super::super::*;
-        use types::new_rng;
-        use types::Seed;
+        use transform::Seed;
 
         #[test]
         fn basic() {
             use std::collections::HashMap;
 
-            let mut range = RangeSequence::new(0, 1);
+            let mut range = Range::new(0, 1);
 
-            let mut rng = new_rng(&Seed::from_u32(0));
+            let mut rng = Seed::from_u32(0).to_rng();
             let mut values = HashMap::new();
 
             for _ in 0..1000 {
@@ -88,12 +86,12 @@ mod tests {
         fn max_max() {
             use std::collections::HashMap;
 
-            let mut variable = RangeSequence::new(
+            let mut variable = Range::new(
                 ::std::u32::MAX - 1,
                 ::std::u32::MAX
             );
 
-            let mut rng = new_rng(&Seed::from_u32(0));
+            let mut rng = Seed::from_u32(0).to_rng();
             let mut values = HashMap::new();
 
             for _ in 0..100 {
@@ -112,12 +110,12 @@ mod tests {
         fn full_range() {
             use std::collections::HashMap;
 
-            let mut variable = RangeSequence::new(
+            let mut variable = Range::new(
                 ::std::u32::MIN,
                 ::std::u32::MAX
             );
 
-            let mut rng = new_rng(&Seed::from_u32(0));
+            let mut rng = Seed::from_u32(0).to_rng();
             let mut values = HashMap::new();
 
             for _ in 0u64..0x2_0000_0000u64 {

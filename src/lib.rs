@@ -3,27 +3,28 @@ extern crate linked_hash_map;
 extern crate rvs_parser;
 
 mod error;
+mod parser;
+mod transform;
+mod model;
+mod types;
 
-pub mod types;
-
-pub use types::{
-    Context,
-    Seed,
-};
+pub use rvs_parser::SearchPath;
+pub use parser::Parser;
+pub use transform::{Seed, Transform};
+pub use model::Model;
 
 pub use error::{
     Error,
     Result,
 };
 
-pub fn parse(s: &str, context: &mut Context) -> Result<()> {
-    let parser = rvs_parser::Parser::new(context.search_path.clone());
-    let items = parser.parse(s)?;
-    context.transform_items(items)?;
-    Ok(())
-}
+pub fn parse(
+    search_path: SearchPath,
+    s: &str,
+) -> Result<Model> {
+    let mut parser = Parser::new(search_path);
+    parser.parse(s)?;
 
-pub fn transform(context: &mut Context) -> Result<()> {
-    context.transform_variables()?;
-    Ok(())
+    let mut transform = Transform::new(Default::default());
+    Ok(transform.transform(parser.ast())?)
 }

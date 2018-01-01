@@ -1,26 +1,24 @@
 use std::fmt;
 use rand::Rng;
 
-use types::RvWeak;
-use types::Expr;
-use types::ExprData;
+use model::{Expr, ExprData, VariableWeak};
 
 #[derive(Clone)]
 pub struct Next {
-    variable: RvWeak,
+    variable: VariableWeak,
     variable_name: String,
     data: ExprData,
 }
 
 #[derive(Clone)]
 pub struct Prev {
-    variable: RvWeak,
+    variable: VariableWeak,
     variable_name: String,
     data: ExprData,
 }
 
 impl Next {
-    pub fn new(variable_name: &str, variable: RvWeak) -> Next {
+    pub fn new(variable_name: &str, variable: VariableWeak) -> Next {
         Next {
             variable,
             variable_name: variable_name.into(),
@@ -56,7 +54,7 @@ impl fmt::Display for Next {
 }
 
 impl Prev {
-    pub fn new(variable_name: &str, variable: RvWeak) -> Prev {
+    pub fn new(variable_name: &str, variable: VariableWeak) -> Prev {
         Prev {
             variable,
             variable_name: variable_name.into(),

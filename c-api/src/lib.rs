@@ -2,6 +2,7 @@ extern crate libc;
 extern crate rvs;
 
 mod rvsc;
+mod context;
 mod error;
 
 pub use rvsc::*;

@@ -2,16 +2,16 @@ use std::io;
 use std::path::Path;
 use std::path::PathBuf;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct SearchPath {
     /// Search path for `import`
     pub paths: Vec<PathBuf>,
 }
 
 impl SearchPath {
-    pub fn new() -> SearchPath {
+    pub fn new(paths: Vec<PathBuf>) -> SearchPath {
         SearchPath {
-            paths: Vec::new(),
+            paths,
         }
     }
 
@@ -24,16 +24,19 @@ impl SearchPath {
     /// Error will be returned for parsed paths that do not exist.  If the search path string contains
     /// a mix of paths that do and do not exist, the paths that do exist will be added to the internal
     /// search path.
-    pub fn set(&mut self, paths: &str) -> io::Result<()> {
+    pub fn from_string(s: &str) -> io::Result<SearchPath> {
+        let mut paths: Vec<PathBuf> = Vec::new();
         let mut error_paths: Vec<PathBuf> = Vec::new();
 
-        for path in paths.split(':') {
-            let path = Path::new(path);
+        for path in s.split(':') {
+            if !path.is_empty() {
+                let path = Path::new(path);
 
-            if path.exists() {
-                self.add(&path);
-            } else {
-                error_paths.push(path.to_path_buf());
+                if path.exists() {
+                    paths.push(path.to_path_buf());
+                } else {
+                    error_paths.push(path.to_path_buf());
+                }
             }
         }
 
@@ -45,7 +48,7 @@ impl SearchPath {
                                        .collect::<Vec<String>>()
                                        .join("\n"))))
         } else {
-            Ok(())
+            Ok(SearchPath::new(paths))
         }
     }
 

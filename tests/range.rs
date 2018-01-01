@@ -2,15 +2,14 @@ extern crate rvs;
 
 use std::collections::HashSet;
 
-use rvs::Context;
-
 #[test]
 fn reverse() {
-    let mut context = Context::new();
-    rvs::parse("a = [1, 0];", &mut context).unwrap();
-    rvs::transform(&mut context).unwrap();
+    let model = rvs::parse(
+        Default::default(),
+        "a = [1, 0];"
+        ).unwrap();
 
-    let a = context.get("a").unwrap();
+    let a = model.get_variable_by_name("a").unwrap();
 
     let expected: HashSet<u32> =
         [0, 1].iter().cloned().collect();
@@ -25,11 +24,12 @@ fn reverse() {
 
 #[test]
 fn same() {
-    let mut context = Context::new();
-    rvs::parse("a = [1, 1];", &mut context).unwrap();
-    rvs::transform(&mut context).unwrap();
+    let model = rvs::parse(
+        Default::default(),
+        "a = [1, 1];"
+        ).unwrap();
 
-    let a = context.get("a").unwrap();
+    let a = model.get_variable_by_name("a").unwrap();
 
     for _ in 0..10 {
         assert_eq!(a.borrow_mut().next(), 1);
