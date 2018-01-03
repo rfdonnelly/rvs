@@ -3,7 +3,6 @@ use rand::Rng;
 
 use types::Expr;
 use types::ExprData;
-use types::Context;
 
 #[derive(Clone)]
 pub struct Value {
@@ -22,7 +21,7 @@ impl Value {
 }
 
 impl Expr for Value {
-    fn next(&mut self, _rng: &mut Rng, _context: &Context) -> u32 {
+    fn next(&mut self, _rng: &mut Rng) -> u32 {
         self.data.done = true;
 
         self.data.prev

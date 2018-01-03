@@ -26,6 +26,9 @@ fn parse_write(input: &Path, output: &Path) {
     rvs_parse(context, CString::new(input.to_string_lossy().as_bytes()).unwrap().as_ptr(), error);
     assert_eq!(rvs_error_code(error), ErrorKind::None.code());
 
+    rvs_transform(context, error);
+    assert_eq!(rvs_error_code(error), ErrorKind::None.code());
+
     rvs_write_definitions(context, CString::new(output.to_string_lossy().as_bytes()).unwrap().as_ptr(), error);
     assert_eq!(rvs_error_code(error), ErrorKind::None.code());
 

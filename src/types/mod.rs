@@ -9,12 +9,14 @@ pub mod method;
 
 use std::fmt;
 use std::rc::Rc;
+use std::rc::Weak;
 use std::cell::RefCell;
-use linked_hash_map::LinkedHashMap;
 use rand::Rng;
 use rand::SeedableRng;
 use rand::prng::XorShiftRng;
 use rand::Sample as RandSample;
+use linked_hash_map::LinkedHashMap;
+use linked_hash_map::Entry;
 
 use rvs_parser::ast;
 use rvs_parser::SearchPath;
@@ -40,7 +42,7 @@ pub struct ExprData {
 }
 
 pub trait Expr: fmt::Display + ExprClone {
-    fn next(&mut self, rng: &mut Rng, context: &Context) -> u32;
+    fn next(&mut self, rng: &mut Rng) -> u32;
 
     fn prev(&self) -> u32 {
         self.data().prev
@@ -79,6 +81,7 @@ pub struct Rv {
 }
 
 type RvRef = Rc<RefCell<Box<Rv>>>;
+type RvWeak = Weak<RefCell<Box<Rv>>>;
 
 impl Rv {
     pub fn new(expr: Box<Expr>, rng: Box<Rng>) -> Rv {
@@ -92,8 +95,8 @@ impl Rv {
         self.expr.clone()
     }
 
-    pub fn next(&mut self, context: &Context) -> u32 {
-        self.expr.next(&mut self.rng, context)
+    pub fn next(&mut self) -> u32 {
+        self.expr.next(&mut self.rng)
     }
 
     pub fn prev(&self) -> u32 {
@@ -195,9 +198,9 @@ impl Variables {
         self.indexes.insert(name.into(), self.refs.len() - 1);
     }
 
-    pub fn last_mut(&self) -> Option<RvRef> {
+    pub fn last_mut(&self) -> Option<&RvRef> {
         let variable = self.refs.last()?;
-        Some(Rc::clone(variable))
+        Some(variable)
     }
 
     pub fn get_index(&self, k: &str) -> Option<usize> {
@@ -206,15 +209,15 @@ impl Variables {
         Some(*index)
     }
 
-    pub fn get_by_index(&self, index: usize) -> Option<RvRef> {
+    pub fn get_by_index(&self, index: usize) -> Option<&RvRef> {
         let variable = self.refs.get(index)?;
-        Some(Rc::clone(variable))
+        Some(variable)
     }
 
-    pub fn get(&self, k: &str) -> Option<RvRef> {
+    pub fn get(&self, k: &str) -> Option<&RvRef> {
         let index = self.indexes.get(k)?;
         let variable = self.refs.get(*index)?;
-        Some(Rc::clone(variable))
+        Some(variable)
     }
 
     pub fn iter(&self) -> VariablesIter {
@@ -238,6 +241,8 @@ impl fmt::Display for Variables {
 }
 
 pub struct Context {
+    pub ast_map: LinkedHashMap<String, Box<ast::Node>>,
+
     pub variables: Variables,
     pub enums: LinkedHashMap<String, Enum>,
     pub seed: Seed,
@@ -247,6 +252,7 @@ pub struct Context {
 impl Context {
     pub fn new() -> Context {
         Context {
+            ast_map: LinkedHashMap::new(),
             variables: Variables::new(),
             enums: LinkedHashMap::new(),
             seed: Seed::from_u32(0),
@@ -254,7 +260,7 @@ impl Context {
         }
     }
 
-    pub fn get(&self, name: &str) -> Option<RvRef> {
+    pub fn get(&self, name: &str) -> Option<&RvRef> {
         self.variables.get(name)
     }
 }
@@ -280,18 +286,40 @@ impl Enum {
 }
 
 impl Context {
-    pub fn transform_items(&mut self, items: &Vec<Box<ast::Node>>) -> TransformResult<()> {
-        for item in items.iter() {
-            match **item {
-                ast::Node::Assignment(ref lhs, ref rhs) => {
-                    self.transform_assignment(lhs, rhs)?;
+    pub fn transform_items(&mut self, items: Vec<Box<ast::Node>>) -> TransformResult<()> {
+        for item in items {
+            // NOTE: This reassignment is necessary because matching on *item directly causes
+            // issues.  Error when matching on *item directly.
+            //
+            // error[E0382]: use of collaterally moved value: `(item:rvs_parser::ast::Node::Assignment).1`
+            //    --> src/types/mod.rs:305:44
+            //     |
+            // 305 |                 ast::Node::Assignment(lhs, rhs) => {
+            //     |                                       ---  ^^^ value used here after move
+            //     |                                       |
+            //     |                                       value moved here
+            //     |
+            //     = note: move occurs because `(item:rvs_parser::ast::Node::Assignment).0` has type
+            //       `std::boxed::Box<rvs_parser::ast::Node>`, which does not implement the `Copy` trait
+            //
+            // This seems to be similar issue:
+            // https://stackoverflow.com/questions/28466809/collaterally-moved-error-on-deconstructing-box-of-pairs
+            //
+            // An open bug exists for this: https://github.com/rust-lang/rust/issues/16223
+            //
+            // Maybe this would be fixed by?: https://github.com/rust-lang/rust-roadmap/issues/24
+            let item = *item;
+
+            match item {
+                ast::Node::Assignment(lhs, rhs) => {
+                    self.move_variable(lhs, rhs)?;
                 },
                 ast::Node::Enum(ref name, ref items) => {
                     self.transform_enum(name, items)?;
-                }
+                },
                 _ => {
                     return Err(TransformError::new(format!(
-                                "Expected Assignment or Enum but found {:?}", **item)));
+                                "Expected Assignment or Enum but found {:?}", item)));
                 },
             }
         }
@@ -299,7 +327,19 @@ impl Context {
         Ok(())
     }
 
-    pub fn transform_assignment(&mut self, lhs: &ast::Node, rhs: &ast::Node) -> TransformResult<()> {
+    pub fn transform_variables(&mut self) -> TransformResult<()> {
+        for (name, expr) in self.ast_map.iter() {
+            let mut rng = new_rng(&self.seed);
+            let rv = Rc::new(RefCell::new(Box::new(Rv::new(
+                            self.transform_expr(&mut rng, expr)?,
+                            rng))));
+            self.variables.insert(name, rv);
+        }
+
+        Ok(())
+    }
+
+    pub fn move_variable(&mut self, lhs: Box<ast::Node>, rhs: Box<ast::Node>) -> TransformResult<()> {
         let identifier =
             if let ast::Node::Identifier(ref identifier) = *lhs {
                 identifier
@@ -308,11 +348,20 @@ impl Context {
                         "Expecting identifier but found {:?}", lhs)));
             };
 
-        let mut rng = new_rng(&self.seed);
-        let rv = Rc::new(RefCell::new(Box::new(Rv::new(
-                self.transform_expr(&mut rng, &rhs)?,
-                rng))));
-        self.variables.insert(identifier, rv);
+        // The LinkedHashMap preserves insertion order.  We need order reflect order of first
+        // definition of variables rather than last definition of variables.  For example, given
+        // a=0; b=1; a=2; we want the order to be a, b rather than b, a.  To do this, we cannot use
+        // the insert function for pre-existing variables because LinkedHashMap preserves insertion
+        // order and calling insert will change the order.  Instead, we replace the contents of
+        // pre-existing variables.
+        match self.ast_map.entry(identifier.to_owned()) {
+            Entry::Occupied(mut entry) => {
+                *entry.get_mut() = rhs;
+            },
+            Entry::Vacant(entry) => {
+                entry.insert(rhs);
+            }
+        }
 
         Ok(())
     }
@@ -410,10 +459,10 @@ impl Context {
             Some(variable) => {
                 match *method {
                     ast::Method::Next => {
-                        Ok(Box::new(Next::new(name)))
+                        Ok(Box::new(Next::new(name, Rc::downgrade(variable))))
                     },
                     ast::Method::Prev => {
-                        Ok(Box::new(Prev::new(name)))
+                        Ok(Box::new(Prev::new(name, Rc::downgrade(variable))))
                     },
                     ast::Method::Copy => {
                         Ok(variable.borrow().clone_expr())
@@ -453,14 +502,14 @@ impl Context {
             }
             ast::Function::Sequence => {
                 let args = self.transform_args(rng, args)?.iter_mut().map(|arg| {
-                    arg.next(rng, self)
+                    arg.next(rng)
                 }).collect();
 
                 Ok(Box::new(Sequence::new(args)))
             }
             ast::Function::Range => {
-                let l = self.transform_expr(rng, &args[0])?.next(rng, self);
-                let r = self.transform_expr(rng, &args[1])?.next(rng, self);
+                let l = self.transform_expr(rng, &args[0])?.next(rng);
+                let r = self.transform_expr(rng, &args[1])?.next(rng);
 
                 // Elide the range for case when limits are equal
                 //
@@ -532,7 +581,7 @@ mod tests {
             let ast = ast::Node::Number(4);
             let mut variable = context.transform_expr(&mut rng, &ast).unwrap();
 
-            assert_eq!(variable.next(&mut rng, &context), 4);
+            assert_eq!(variable.next(&mut rng), 4);
         }
 
         #[test]
@@ -551,7 +600,7 @@ mod tests {
             let mut values = HashMap::new();
 
             for _ in 0..10 {
-                let value = variable.next(&mut rng, &context);
+                let value = variable.next(&mut rng);
                 let entry = values.entry(value).or_insert(0);
                 *entry += 1;
                 assert!(value == 3 || value == 4);

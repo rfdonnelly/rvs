@@ -12,6 +12,7 @@ package rvs_pkg;
     import "DPI-C" function void rvs_seed(rvs_context ctxt, u32_t seed);
     import "DPI-C" function void rvs_search_path(rvs_context ctxt, string path, rvs_error error);
     import "DPI-C" function void rvs_parse(rvs_context ctxt, string s, rvs_error error);
+    import "DPI-C" function void rvs_transform(rvs_context ctxt, rvs_error error);
 
     import "DPI-C" function rvs_handle rvs_find(rvs_context ctxt, string name);
     import "DPI-C" function rvs_result rvs_next(rvs_context ctxt, rvs_handle handle);
@@ -73,6 +74,16 @@ package rvs_pkg;
             init();
 
             rvs_parse(m_ctxt, s, m_error);
+
+            if (rvs_error_code(m_error)) begin
+                $fatal(1, "Could not parse: '%s'", rvs_error_message(m_error));
+            end
+        endfunction
+
+        static function void transform();
+            init();
+
+            rvs_transform(m_ctxt, s, m_error);
 
             if (rvs_error_code(m_error)) begin
                 $fatal(1, "Could not parse: '%s'", rvs_error_message(m_error));

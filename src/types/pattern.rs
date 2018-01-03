@@ -3,7 +3,6 @@ use rand::Rng;
 
 use types::Expr;
 use types::ExprData;
-use types::Context;
 
 #[derive(Clone)]
 pub struct Pattern {
@@ -26,8 +25,8 @@ impl Pattern {
 }
 
 impl Expr for Pattern {
-    fn next(&mut self, rng: &mut Rng, context: &Context) -> u32 {
-        self.data.prev = self.children[self.index].next(rng, context);
+    fn next(&mut self, rng: &mut Rng) -> u32 {
+        self.data.prev = self.children[self.index].next(rng);
         self.index = (self.index + 1) % self.children.len();
         self.data.prev
     }

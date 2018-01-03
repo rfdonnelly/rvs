@@ -6,7 +6,6 @@ use rand::distributions::Distribution;
 
 use types::Expr;
 use types::ExprData;
-use types::Context;
 
 #[derive(Clone)]
 pub struct RangeSequence {
@@ -37,7 +36,7 @@ impl RangeSequence {
 }
 
 impl Expr for RangeSequence {
-    fn next(&mut self, rng: &mut Rng, _context: &Context) -> u32 {
+    fn next(&mut self, rng: &mut Rng) -> u32 {
         self.data.prev = self.range.sample(rng);
 
         self.data.prev
@@ -66,13 +65,12 @@ mod tests {
             use std::collections::HashMap;
 
             let mut range = RangeSequence::new(0, 1);
-            let context = Context::new();
 
             let mut rng = new_rng(&Seed::from_u32(0));
             let mut values = HashMap::new();
 
             for _ in 0..1000 {
-                let value = range.next(&mut rng, &context);
+                let value = range.next(&mut rng);
                 let entry = values.entry(value).or_insert(0);
                 *entry += 1;
                 assert!(value == 0 || value == 1);
@@ -90,7 +88,6 @@ mod tests {
         fn max_max() {
             use std::collections::HashMap;
 
-            let context = Context::new();
             let mut variable = RangeSequence::new(
                 ::std::u32::MAX - 1,
                 ::std::u32::MAX
@@ -100,7 +97,7 @@ mod tests {
             let mut values = HashMap::new();
 
             for _ in 0..100 {
-                let value = variable.next(&mut rng, &context);
+                let value = variable.next(&mut rng);
                 let entry = values.entry(value).or_insert(0);
                 *entry += 1;
                 assert!(value == ::std::u32::MAX - 1 || value == ::std::u32::MAX);
@@ -115,7 +112,6 @@ mod tests {
         fn full_range() {
             use std::collections::HashMap;
 
-            let context = Context::new();
             let mut variable = RangeSequence::new(
                 ::std::u32::MIN,
                 ::std::u32::MAX
@@ -125,7 +121,7 @@ mod tests {
             let mut values = HashMap::new();
 
             for _ in 0u64..0x2_0000_0000u64 {
-                let value = variable.next(&mut rng, &context);
+                let value = variable.next(&mut rng);
                 if value == ::std::u32::MIN || value == ::std::u32::MAX {
                     let entry = values.entry(value).or_insert(0);
                     *entry += 1;

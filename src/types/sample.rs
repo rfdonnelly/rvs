@@ -6,7 +6,6 @@ use rand::distributions::Distribution;
 
 use types::Expr;
 use types::ExprData;
-use types::Context;
 
 #[derive(Clone)]
 pub struct Sample {
@@ -29,10 +28,10 @@ impl Sample {
 }
 
 impl Expr for Sample {
-    fn next(&mut self, rng: &mut Rng, context: &Context) -> u32 {
+    fn next(&mut self, rng: &mut Rng) -> u32 {
         let idx = self.range.sample(rng);
 
-        self.data.prev = self.children[idx].next(rng, context);
+        self.data.prev = self.children[idx].next(rng);
 
         self.data.prev
     }

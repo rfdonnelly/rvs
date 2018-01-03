@@ -10,9 +10,9 @@ use std::path::Path;
 use std::fs::File;
 use std::io::prelude::*;
 
-use rvs::types::Context;
-use rvs::types::Seed;
-use rvs::parse;
+use rvs::Context;
+use rvs::Seed;
+use rvs;
 
 use error::Error;
 use error::ErrorKind;
@@ -180,12 +180,28 @@ pub extern fn rvs_parse(
                     entry.to_owned() + ";"
                 };
 
-            if let Err(e) = parse(&parser_string, &mut context) {
+            if let Err(e) = rvs::parse(&parser_string, &mut context) {
                 if !error.is_null() {
                     unsafe {
                         *error = Error::new(From::from(e))
                     }
                 }
+            }
+        }
+    }
+}
+
+#[no_mangle]
+pub extern fn rvs_transform(
+    context: *mut Context,
+    error: *mut Error
+) {
+    let mut context = unsafe { &mut *context };
+
+    if let Err(e) = rvs::transform(&mut context) {
+        if !error.is_null() {
+            unsafe {
+                *error = Error::new(From::from(e))
             }
         }
     }
@@ -235,7 +251,7 @@ pub extern fn rvs_next(context: *mut Context, handle: SequenceHandleRaw) -> u32 
     let context = unsafe { &mut *context };
     let handle = SequenceHandle(handle);
     match context.variables.get_by_index(handle.into()) {
-        Some(variable) => variable.borrow_mut().next(&context),
+        Some(variable) => variable.borrow_mut().next(),
         None => 0,
     }
 }

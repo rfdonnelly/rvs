@@ -12,6 +12,8 @@ pub enum Error {
     Io(io::Error),
 }
 
+pub type Result<T> = ::std::result::Result<T, Error>;
+
 #[derive(Debug)]
 pub struct TransformError {
     pub description: String,
@@ -60,7 +62,7 @@ impl From<TransformError> for Error {
     }
 }
 
-pub type TransformResult<T> = Result<T, TransformError>;
+pub type TransformResult<T> = ::std::result::Result<T, TransformError>;
 
 impl TransformError {
     pub fn new(

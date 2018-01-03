@@ -1,6 +1,6 @@
 use super::*;
 
-use rvs::types::Context;
+use rvs::Context;
 
 use std::ffi::CString;
 
