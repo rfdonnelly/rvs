@@ -27,7 +27,8 @@ fn parse_write(input: &Path, output: &Path) {
     rvs_parse(context, CString::new(input.to_string_lossy().as_bytes()).unwrap().as_ptr(), error);
     assert!(!rvs_error_test(error));
 
-    let model = rvs_transform(context, error);
+    let model = rvs_model_new();
+    rvs_transform(context, model, error);
     assert!(!rvs_error_test(error));
 
     rvs_write_definitions(model, CString::new(output.to_string_lossy().as_bytes()).unwrap().as_ptr(), error);

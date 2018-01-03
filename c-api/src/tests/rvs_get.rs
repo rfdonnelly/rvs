@@ -6,7 +6,8 @@ fn not_found() {
     let context = rvs_context_new(CString::new("").unwrap().as_ptr(), 0, error);
     assert!(!rvs_error_test(error));
 
-    let model = rvs_transform(context, error);
+    let model = rvs_model_new();
+    rvs_transform(context, model, error);
     assert!(!rvs_error_test(error));
 
     let handle = rvs_get(model, CString::new("a").unwrap().as_ptr());
@@ -24,7 +25,8 @@ fn found() {
     rvs_parse(context, CString::new("a=5;").unwrap().as_ptr(), error);
     assert!(!rvs_error_test(error));
 
-    let model = rvs_transform(context, error);
+    let model = rvs_model_new();
+    rvs_transform(context, model, error);
     assert!(!rvs_error_test(error));
 
     let handle = rvs_get(model, CString::new("a").unwrap().as_ptr());

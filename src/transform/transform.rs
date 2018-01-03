@@ -47,14 +47,13 @@ impl Transform {
 
     pub fn transform(
         &mut self,
+        model: &mut Model,
         nodes: &Vec<Box<ast::Node>>
-    ) -> TransformResult<Model> {
-        let mut model = Model::new();
-
+    ) -> TransformResult<()> {
         for node in nodes {
             match **node {
                 ast::Node::Variable(ref name, ref expr) => {
-                    let variable = self.transform_variable(&model, expr)?;
+                    let variable = self.transform_variable(model, expr)?;
                     model.add_variable(name, variable);
                 }
                 ast::Node::Enum(ref name, ref items) => {
@@ -67,7 +66,7 @@ impl Transform {
             }
         }
 
-        Ok(model)
+        Ok(())
     }
 
     fn transform_variable(

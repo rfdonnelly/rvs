@@ -11,7 +11,7 @@ impl Context {
         seed: rvs::Seed,
     ) -> Context {
         Context {
-            parser: rvs::Parser::new(search_path),
+            parser: rvs::Parser::new(&search_path),
             seed,
         }
     }
@@ -24,10 +24,13 @@ impl Context {
     }
 
     pub fn transform(
-        &mut self
-    ) -> rvs::Result<rvs::Model> {
+        &self,
+        model: &mut rvs::Model
+    ) -> rvs::Result<()> {
         let mut transform = rvs::Transform::new(self.seed.clone());
 
-        Ok(transform.transform(self.parser.ast())?)
+        transform.transform(model, self.parser.ast())?;
+
+        Ok(())
     }
 }

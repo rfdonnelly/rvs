@@ -18,7 +18,9 @@ int main() {
         std::cout << "error: " << rvs_error_message(error) << std::endl;
     }
     assert(rvs_error_test(error) == 0);
-    auto model = rvs_transform(context, error);
+
+    auto model = rvs_model_new();
+    rvs_transform(context, model, error);
     if (rvs_error_test(error)) {
         std::cout << "error: " << rvs_error_message(error) << std::endl;
     }

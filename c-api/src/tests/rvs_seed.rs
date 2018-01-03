@@ -9,7 +9,8 @@ fn next(seed: u32, s: &str) -> u32 {
     rvs_parse(context, CString::new(s).unwrap().as_ptr(), error);
     assert!(!rvs_error_test(error));
 
-    let model = rvs_transform(context, error);
+    let model = rvs_model_new();
+    rvs_transform(context, model, error);
     assert!(!rvs_error_test(error));
 
     let handle = rvs_get(model, CString::new("a").unwrap().as_ptr());

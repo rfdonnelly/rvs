@@ -22,9 +22,11 @@ pub fn parse(
     search_path: SearchPath,
     s: &str,
 ) -> Result<Model> {
-    let mut parser = Parser::new(search_path);
+    let mut parser = Parser::new(&search_path);
     parser.parse(s)?;
 
     let mut transform = Transform::new(Default::default());
-    Ok(transform.transform(parser.ast())?)
+    let mut model = Model::new();
+    transform.transform(&mut model, parser.ast())?;
+    Ok(model)
 }

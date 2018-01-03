@@ -1,11 +1,12 @@
 use super::VariableRef;
 
-use linked_hash_map::LinkedHashMap;
+use linked_hash_map::{LinkedHashMap, Entry};
 use std::fmt;
 
 pub struct Model {
     variables: Vec<VariableRef>,
     variable_indexes: LinkedHashMap<String, usize>,
+    most_recent: usize,
 }
 
 impl Model {
@@ -13,6 +14,7 @@ impl Model {
         Model {
             variables: Vec::new(),
             variable_indexes: LinkedHashMap::new(),
+            most_recent: 0,
         }
     }
 
@@ -21,8 +23,20 @@ impl Model {
         name: &str,
         variable: VariableRef
     ) {
-        self.variables.push(variable);
-        self.variable_indexes.insert(name.into(), self.variables.len() - 1);
+        let variables = &mut self.variables;
+        let most_recent = &mut self.most_recent;
+
+        match self.variable_indexes.entry(name.into()) {
+            Entry::Occupied(entry) => {
+                *most_recent = *entry.get();
+                *variables.get_mut(*most_recent).unwrap() = variable;
+            }
+            Entry::Vacant(entry) => {
+                variables.push(variable);
+                *most_recent = variables.len() - 1;
+                entry.insert(*most_recent);
+            }
+        }
     }
 
     pub fn get_variable_index(
@@ -48,6 +62,12 @@ impl Model {
         let index = self.variable_indexes.get(name)?;
         let variable = self.variables.get(*index)?;
         Some(variable)
+    }
+
+    pub fn get_most_recently_added(
+        &self
+    ) -> Option<&VariableRef> {
+        self.variables.get(self.most_recent)
     }
 
     pub fn variables_iter(&self) -> VariablesIter {

@@ -39,17 +39,13 @@ impl From<usize> for SequenceHandle {
 
 /// Allocates and returns a new Context
 ///
-/// The pointer returned is owned by the caller and is freed by a call to `rvs_transform`.
+/// The pointer returned is owned by the caller and is freed by a call to `rvs_transform` or
+/// `rvs_context_free`.
 ///
 /// # Arguments
 ///
-/// * search_path
-///
-///   A colon separated list of paths to search for `import`s.
-///
-/// * seed
-///
-///   The initial seed for all variable PRNGs.
+/// * search_path - A colon separated list of paths to search for `import`s.
+/// * seed - The initial seed for all variable PRNGs.
 ///
 /// # Errors
 ///
@@ -176,9 +172,21 @@ pub extern fn rvs_parse(
     }
 }
 
+/// Creates a new Model
+///
+/// The pointer returned is owned by the caller and is freed by a call to `rvs_model_free`.
+#[no_mangle]
+pub extern fn rvs_model_new() -> *mut rvs::Model {
+    Box::into_raw(Box::new(rvs::Model::new()))
+}
+
 /// Transforms an AST into an object model
 ///
-/// Requires a valid Context pointer.  The Context is freed error or no error.
+/// # Arguments
+///
+/// * context - (required) A Context pointer.  Created by `rvs_context_new`.  Freed by `rvs_transform`.
+/// * model - (required) A Model pointer.  Created by `rvs_model_new`.  Freed by `rvs_model_free`
+/// * error - (optional) An Error pointer.  Used to report any errors that may occur.
 ///
 /// # Errors
 ///
@@ -186,31 +194,25 @@ pub extern fn rvs_parse(
 /// types are possible:
 ///
 /// * Transform errors
-///
-/// Note: A valid model pointer is returned and must be freed by the caller error or no error.
 #[no_mangle]
 pub extern fn rvs_transform(
     context: *mut Context,
+    model: *mut rvs::Model,
     error: *mut Error
-) -> *mut rvs::Model {
+) {
     assert!(!context.is_null());
+    assert!(!model.is_null());
 
     let context_deref = unsafe { &mut *context };
+    let mut model = unsafe { &mut *model };
 
-    let model = match context_deref.transform() {
-        Err(e) => {
-            if !error.is_null() {
-                unsafe { *error = Error::new(From::from(e)) }
-            }
-
-            rvs::Model::new()
+    if let Err(e) = context_deref.transform(&mut model) {
+        if !error.is_null() {
+            unsafe { *error = Error::new(From::from(e)) }
         }
-        Ok(model) => model
-    };
+    }
 
     unsafe { Box::from_raw(context) };
-
-    Box::into_raw(Box::new(model))
 }
 
 /// Frees a Context previously allocated by `rvs_context_new`

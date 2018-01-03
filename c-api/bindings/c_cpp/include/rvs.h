@@ -18,7 +18,9 @@ typedef struct rvs_model rvs_model;
 rvs_context* rvs_context_new(const char* search_path, uint32_t seed, rvs_error* error);
 void rvs_context_free(rvs_context* context);
 void rvs_parse(rvs_context* context, const char* s, rvs_error* error);
-rvs_model* rvs_transform(rvs_context* context, rvs_error* error);
+
+rvs_model* rvs_model_new();
+rvs_model* rvs_transform(rvs_context* context, rvs_model* model, rvs_error* error);
 void rvs_model_free(rvs_model* model);
 
 uint32_t rvs_get(rvs_model* model, const char* id);

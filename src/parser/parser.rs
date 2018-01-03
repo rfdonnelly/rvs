@@ -12,10 +12,11 @@ pub struct Parser {
 
 impl Parser {
     pub fn new(
-        search_path: rvs_parser::SearchPath
+        search_path: &rvs_parser::SearchPath
     ) -> Parser {
         Parser {
-            search_path,
+            // FIXME: Remove clone
+            search_path: search_path.clone(),
             ast: Ast::new(),
         }
     }
