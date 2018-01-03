@@ -20,6 +20,7 @@ package rvs_pkg;
     import "DPI-C" function rvs_result rvs_next(rvs_model model, rvs_handle handle);
     import "DPI-C" function rvs_result rvs_prev(rvs_model model, rvs_handle handle);
     import "DPI-C" function bit rvs_done(rvs_model model, rvs_handle handle);
+    import "DPI-C" function void rvs_write_definitions(rvs_model model, string name, rvs_error error);
 
     import "DPI-C" function rvs_error rvs_error_new();
     import "DPI-C" function bit rvs_error_test(rvs_error error);
@@ -43,9 +44,9 @@ package rvs_pkg;
             if (model) rvs_model_free(model);
             if (error) rvs_error_free(error);
 
-            ctxt = 0;
-            model = 0;
-            error = 0;
+            ctxt = null;
+            model = null;
+            error = null;
         endfunction
 
         static local function void handle_error();
@@ -66,7 +67,7 @@ package rvs_pkg;
         static function void transform();
             rvs_transform(ctxt, model, error);
             handle_error();
-            ctxt = 0;
+            ctxt = null;
         endfunction
 
         static function bit exists(string name);
@@ -74,7 +75,7 @@ package rvs_pkg;
         endfunction
 
         static function rvs_handle get(string name);
-            rvs_handle handle = rvs_get(ctxt, name);
+            rvs_handle handle = rvs_get(model, name);
 
             if (!handle) begin
                 $fatal(1, "Variable '%s' not found", name);
@@ -86,17 +87,49 @@ package rvs_pkg;
         static function rvs_model get_model();
             return model;
         endfunction
+
+        // Function: seed_from_plusargs
+        //
+        // Sets the seed from the +seed= plusarg.  Accepts decimal and
+        // hexadecimal (0x prefix) values.
+        static function uint32_t seed_from_plusargs(uint32_t default_seed = 0);
+            uint32_t seed;
+
+            if ($value$plusargs("seed=0x%h", seed)) begin
+                return seed;
+            end else if ($value$plusargs("seed=%d", seed)) begin
+                return seed;
+            end else begin
+                return default_seed;
+            end
+        endfunction
+
+        // Function: parse_from_plusargs
+        //
+        // Passes the value of the +rvs= plusarg to Rvs::parse.
+        static function void parse_from_plusargs();
+            string s;
+
+            if ($value$plusargs("rvs=%s", s)) begin
+                parse(s);
+            end
+        endfunction
+
+        static function write_definitions(string filename);
+            rvs_write_definitions(model, filename, error);
+            handle_error();
+        endfunction
     endclass
 
-    class Rv#(type T = uint32_t);
+    class Rv#(type T = rvs_result);
         local string name;
         local rvs_model model;
         local rvs_handle handle;
 
         function new(string name);
             this.name = name;
-            model = Rvs::get_model();
-            handle = Rvs::get(name);
+            this.model = Rvs::get_model();
+            this.handle = Rvs::get(name);
         endfunction
 
         function T next();
@@ -108,7 +141,7 @@ package rvs_pkg;
         endfunction
 
         function bit done();
-            return rvs_done(model, handle));
+            return rvs_done(model, handle);
         endfunction
 
         function string get_name();
