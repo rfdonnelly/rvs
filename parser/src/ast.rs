@@ -29,7 +29,7 @@ pub enum Function {
 }
 
 #[derive(Debug)]
-pub enum Method {
+pub enum VariableMethod {
     Next,
     Prev,
     Copy,
@@ -37,18 +37,17 @@ pub enum Method {
 
 #[derive(Debug)]
 pub enum Node {
-    Identifier(String),
     Number(u32),
     UnaryOperation(UnaryOpcode, Box<Node>),
     BinaryOperation(Box<Node>, BinaryOpcode, Box<Node>),
-    Assignment(Box<Node>, Box<Node>),
+    Variable(String, Box<Node>),
     Enum(String, Vec<Box<Node>>),
     EnumItem(String, Option<Box<Node>>),
     EnumInst(String),
     EnumItemInst(String, String),
     Function(Function, Vec<Box<Node>>),
     WeightedPair(u32, Box<Node>),
-    VariableMethodCall(String, Method),
+    VariableInst(String, VariableMethod),
 }
 
 /// An abstraction above Node to implement `import`

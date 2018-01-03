@@ -1,8 +1,7 @@
 use std::fmt;
 use rand::Rng;
 
-use types::Expr;
-use types::ExprData;
+use model::{Expr, ExprData};
 
 #[derive(Clone)]
 pub struct Value {

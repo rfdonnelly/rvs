@@ -1,22 +1,17 @@
 extern crate rvs;
 
-use rvs::Context;
-
 #[test]
 fn basic() {
-    let mut context = Context::new();
-    rvs::parse("a=[0,1];\nb=2;", &mut context).unwrap();
-    rvs::transform(&mut context).unwrap();
+    let model = rvs::parse(
+        Default::default(),
+        "a=[0,1];\nb=2;"
+        ).unwrap();
 
-    {
-        let a = context.get("a").unwrap();
-        let result = a.borrow_mut().next();
-        assert!(result == 0 || result == 1);
-    }
+    let a = model.get_variable_by_name("a").unwrap();
+    let result = a.borrow_mut().next();
+    assert!(result == 0 || result == 1);
 
-    {
-        let b = context.get("b").unwrap();
-        let result = b.borrow_mut().next();
-        assert_eq!(result, 2);
-    }
+    let b = model.get_variable_by_name("b").unwrap();
+    let result = b.borrow_mut().next();
+    assert_eq!(result, 2);
 }

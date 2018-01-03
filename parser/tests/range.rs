@@ -7,5 +7,5 @@ use utils::*;
 fn ast() {
     assert_eq!(
         parse("a = [1,2];"),
-        "[Assignment(Identifier(\"a\"), Function(Range, [Number(1), Number(2)]))]");
+        "[Variable(\"a\", Function(Range, [Number(1), Number(2)]))]");
 }

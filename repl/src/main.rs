@@ -4,7 +4,11 @@ use std::io;
 use std::io::prelude::*;
 
 fn main() {
-    let mut context = rvs::Context::new();
+    let search_path = Default::default();
+    let seed = Default::default();
+
+    let mut transform = rvs::Transform::new(seed);
+    let mut model = rvs::Model::new();
 
     loop {
         print!("> ");
@@ -14,17 +18,24 @@ fn main() {
         if s.is_empty() {
             return;
         }
-        if let Err(e) = eval(&s, &mut context) {
+
+        let mut parser = rvs::Parser::new(&search_path);
+        if let Err(e) = eval(&s, &mut parser, &mut transform, &mut model) {
             println!("error: {}", e);
         }
     }
 }
 
-fn eval(s: &str, context: &mut rvs::Context) -> rvs::Result<()> {
-    rvs::parse(&s, context)?;
-    rvs::transform(context)?;
+fn eval(
+    s: &str,
+    parser: &mut rvs::Parser,
+    transform: &mut rvs::Transform,
+    model: &mut rvs::Model
+) -> rvs::Result<()> {
+    parser.parse(s)?;
+    transform.transform(model, parser.ast())?;
 
-    let rv = context.variables.last_mut().unwrap();
+    let rv = model.get_most_recently_added().unwrap();
     let mut rv = rv.borrow_mut();
 
     let values: Vec<String> = vec![(0, false); 15]

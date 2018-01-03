@@ -10,10 +10,9 @@ use std::path::Path;
 use std::fs::File;
 use std::io::prelude::*;
 
-use rvs::Context;
-use rvs::Seed;
 use rvs;
 
+use context::Context;
 use error::Error;
 use error::ErrorKind;
 
@@ -38,67 +37,49 @@ impl From<usize> for SequenceHandle {
     }
 }
 
-/// Allocates and returns a new context.
+/// Allocates and returns a new Context
 ///
-/// The caller owns the context and must call `rvs_context_free()` to free the context.
-#[no_mangle]
-pub extern fn rvs_context_new() -> *mut Context {
-    Box::into_raw(Box::new(
-        Context::new()
-    ))
-}
-
-/// Frees a context.
-#[no_mangle]
-pub extern fn rvs_context_free(context: *mut Context) {
-    if context.is_null() { return }
-    unsafe { Box::from_raw(context); }
-}
-
-/// Sets the search path used for `import`
+/// The pointer returned is owned by the caller and is freed by a call to `rvs_transform` or
+/// `rvs_context_free`.
 ///
-/// The string must be a colon separated list of paths.
+/// # Arguments
+///
+/// * search_path - A colon separated list of paths to search for `import`s.
+/// * seed - The initial seed for all variable PRNGs.
 ///
 /// # Errors
 ///
-/// Error will be reported for parsed paths that do not exist.  If the search path string contains
+/// Error will be reported for search paths that do not exist.  If the search path string contains
 /// a mix of paths that do and do not exist, the paths that do exist will be added to the internal
 /// search path.
 ///
-/// # Panics
-///
-/// If any pointer arguments are null.
+/// A valid Context pointer will be returned and will need to be freed by the caller regardless of
+/// error or no error.
 #[no_mangle]
-pub extern fn rvs_search_path(
-    context: *mut Context,
-    path: *const c_char,
+pub extern fn rvs_context_new(
+    search_path: *const c_char,
+    seed: u32,
     error: *mut Error
-) {
-    assert!(!context.is_null());
-
-    let context = unsafe { &mut *context };
-    let c_str = unsafe { CStr::from_ptr(path) };
+) -> *mut Context {
+    let c_str = unsafe { CStr::from_ptr(search_path) };
     let r_str = c_str.to_str().unwrap();
 
-    if let Err(e) = context.search_path.set(&r_str) {
-        if !error.is_null() {
-            unsafe {
-                *error = Error::new(ErrorKind::Io(e))
+    let search_path = match rvs::SearchPath::from_string(&r_str) {
+        Ok(search_path) => search_path,
+        Err(e) => {
+            if !error.is_null() {
+                unsafe {
+                    *error = Error::new(ErrorKind::Io(e))
+                }
             }
+
+            Default::default()
         }
-    }
-}
+    };
 
+    let seed = rvs::Seed::from_u32(seed);
 
-/// Sets the seed for all future calls to `rvs_parse()`.
-///
-/// Should be called before `rvs_parse()`.
-#[no_mangle]
-pub extern fn rvs_seed(context: *mut Context, seed: u32) {
-    assert!(!context.is_null());
-
-    let context = unsafe { &mut *context };
-    context.seed = Seed::from_u32(seed);
+    Box::into_raw(Box::new(Context::new(search_path, seed)))
 }
 
 /// Parses a semicolon delimited string of Rvs statements and/or Rvs files.
@@ -107,8 +88,8 @@ pub extern fn rvs_seed(context: *mut Context, seed: u32) {
 ///
 /// # Errors
 ///
-/// Errors will be reported via the optional error struct pointer if available.  The following
-/// errors types are possible:
+/// Errors are reported via the optional error struct pointer if available.  The following errors
+/// types are possible:
 ///
 /// * Parsing errors
 /// * IO errors
@@ -141,7 +122,7 @@ pub extern fn rvs_parse(
 
     let c_str = unsafe { CStr::from_ptr(s) };
     let r_str = c_str.to_str().unwrap();
-    let mut context = unsafe { &mut *context };
+    let context = unsafe { &mut *context };
 
     for entry in r_str.split(';') {
         if !entry.is_empty() {
@@ -180,7 +161,7 @@ pub extern fn rvs_parse(
                     entry.to_owned() + ";"
                 };
 
-            if let Err(e) = rvs::parse(&parser_string, &mut context) {
+            if let Err(e) = context.parse(&parser_string) {
                 if !error.is_null() {
                     unsafe {
                         *error = Error::new(From::from(e))
@@ -191,25 +172,73 @@ pub extern fn rvs_parse(
     }
 }
 
+/// Creates a new Model
+///
+/// The pointer returned is owned by the caller and is freed by a call to `rvs_model_free`.
+#[no_mangle]
+pub extern fn rvs_model_new() -> *mut rvs::Model {
+    Box::into_raw(Box::new(rvs::Model::new()))
+}
+
+/// Transforms an AST into an object model
+///
+/// # Arguments
+///
+/// * context - (required) A Context pointer.  Created by `rvs_context_new`.  Freed by `rvs_transform`.
+/// * model - (required) A Model pointer.  Created by `rvs_model_new`.  Freed by `rvs_model_free`
+/// * error - (optional) An Error pointer.  Used to report any errors that may occur.
+///
+/// # Errors
+///
+/// Errors are reported via the optional error struct pointer if available.  The following errors
+/// types are possible:
+///
+/// * Transform errors
 #[no_mangle]
 pub extern fn rvs_transform(
     context: *mut Context,
+    model: *mut rvs::Model,
     error: *mut Error
 ) {
-    let mut context = unsafe { &mut *context };
+    assert!(!context.is_null());
+    assert!(!model.is_null());
 
-    if let Err(e) = rvs::transform(&mut context) {
+    let context_deref = unsafe { &mut *context };
+    let mut model = unsafe { &mut *model };
+
+    if let Err(e) = context_deref.transform(&mut model) {
         if !error.is_null() {
-            unsafe {
-                *error = Error::new(From::from(e))
-            }
+            unsafe { *error = Error::new(From::from(e)) }
         }
     }
+
+    unsafe { Box::from_raw(context) };
+}
+
+/// Frees a Context previously allocated by `rvs_context_new`
+///
+/// This is for error scenarios only.  In a non-error scenario, `rvs_transform` is used to free the
+/// Context.
+#[no_mangle]
+pub extern fn rvs_context_free(
+    context: *mut Context
+) {
+    assert!(!context.is_null());
+    unsafe { Box::from_raw(context); }
+}
+
+/// Frees a Model previously allocated by `rvs_transform`
+#[no_mangle]
+pub extern fn rvs_model_free(
+    model: *mut rvs::Model
+) {
+    assert!(!model.is_null());
+    unsafe { Box::from_raw(model); }
 }
 
 /// Returns the handle of a variable
 ///
-/// The callee owns the handle.  The handle is valid until `rvs_context_free()` is called.
+/// The callee owns the handle.  The handle is valid until `rvs_model_free()` is called.
 ///
 /// # Errors
 ///
@@ -219,15 +248,18 @@ pub extern fn rvs_transform(
 ///
 /// * If any pointer arguments are null
 #[no_mangle]
-pub extern fn rvs_find(context: *mut Context, name: *const c_char) -> SequenceHandleRaw {
-    assert!(!context.is_null());
+pub extern fn rvs_get(
+    model: *mut rvs::Model,
+    name: *const c_char
+) -> SequenceHandleRaw {
+    assert!(!model.is_null());
     assert!(!name.is_null());
 
-    let id_cstr = unsafe { CStr::from_ptr(name) };
-    let id_rstr = id_cstr.to_str().unwrap();
+    let name_cstr = unsafe { CStr::from_ptr(name) };
+    let name_rstr = name_cstr.to_str().unwrap();
 
-    let context = unsafe { &mut *context };
-    if let Some(index) = context.variables.get_index(id_rstr) {
+    let model = unsafe { &mut *model };
+    if let Some(index) = model.get_variable_index(name_rstr) {
         SequenceHandle::from(index).to_raw()
     } else {
         0
@@ -245,12 +277,15 @@ pub extern fn rvs_find(context: *mut Context, name: *const c_char) -> SequenceHa
 /// * If any pointer arguments are null
 /// * If handle doesn't exist
 #[no_mangle]
-pub extern fn rvs_next(context: *mut Context, handle: SequenceHandleRaw) -> u32 {
-    assert!(!context.is_null());
+pub extern fn rvs_next(
+    model: *mut rvs::Model,
+    handle: SequenceHandleRaw
+) -> u32 {
+    assert!(!model.is_null());
 
-    let context = unsafe { &mut *context };
+    let model = unsafe { &mut *model };
     let handle = SequenceHandle(handle);
-    match context.variables.get_by_index(handle.into()) {
+    match model.get_variable_by_index(handle.into()) {
         Some(variable) => variable.borrow_mut().next(),
         None => 0,
     }
@@ -268,13 +303,16 @@ pub extern fn rvs_next(context: *mut Context, handle: SequenceHandleRaw) -> u32 
 /// * If any pointer arguments are null
 /// * If handle doesn't exist
 #[no_mangle]
-pub extern fn rvs_prev(context: *mut Context, handle: SequenceHandleRaw) -> u32 {
-    assert!(!context.is_null());
+pub extern fn rvs_prev(
+    model: *mut rvs::Model,
+    handle: SequenceHandleRaw
+) -> u32 {
+    assert!(!model.is_null());
 
-    let context = unsafe { &mut *context };
+    let model = unsafe { &mut *model };
     let handle = SequenceHandle(handle);
 
-    match context.variables.get_by_index(handle.into()) {
+    match model.get_variable_by_index(handle.into()) {
         Some(variable) => variable.borrow().prev(),
         None => 0,
     }
@@ -292,13 +330,16 @@ pub extern fn rvs_prev(context: *mut Context, handle: SequenceHandleRaw) -> u32 
 /// * If any pointer arguments are null
 /// * If handle doesn't exist
 #[no_mangle]
-pub extern fn rvs_done(context: *mut Context, handle: SequenceHandleRaw) -> bool {
-    assert!(!context.is_null());
+pub extern fn rvs_done(
+    model: *mut rvs::Model,
+    handle: SequenceHandleRaw
+) -> bool {
+    assert!(!model.is_null());
 
-    let context = unsafe { &mut *context };
+    let model = unsafe { &mut *model };
     let handle = SequenceHandle(handle);
 
-    match context.variables.get_by_index(handle.into()) {
+    match model.get_variable_by_index(handle.into()) {
         Some(variable) => variable.borrow().done(),
         None => false,
     }
@@ -306,13 +347,16 @@ pub extern fn rvs_done(context: *mut Context, handle: SequenceHandleRaw) -> bool
 
 #[no_mangle]
 pub extern fn rvs_write_definitions(
-    context: *const Context,
+    model: *const rvs::Model,
     s: *const c_char,
     error: *mut Error
 ) {
+    assert!(!model.is_null());
+    assert!(!s.is_null());
+
     let c_str = unsafe { CStr::from_ptr(s) };
     let r_str = c_str.to_str().unwrap();
-    let context = unsafe { &*context };
+    let model = unsafe { &*model };
 
     let path = Path::new(r_str);
 
@@ -329,7 +373,7 @@ pub extern fn rvs_write_definitions(
         Ok(file) => file,
     };
 
-    let variables = format!("{}", context.variables);
+    let variables = format!("{}", model);
     if let Err(e) = file.write_all(variables.as_bytes()) {
         if !error.is_null() {
             unsafe {

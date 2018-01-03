@@ -4,8 +4,7 @@ use rand::distributions::Range;
 use rand::distributions::range::RangeInt;
 use rand::distributions::Distribution;
 
-use types::Expr;
-use types::ExprData;
+use model::{Expr, ExprData};
 
 #[derive(Clone)]
 pub struct Sample {

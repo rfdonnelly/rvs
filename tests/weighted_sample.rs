@@ -2,15 +2,13 @@ extern crate rvs;
 
 use std::collections::HashMap;
 
-use rvs::Context;
-
 #[test]
 fn basic() {
-    let mut context = Context::new();
-    rvs::parse("a = { 10: 0, 90: 1 };", &mut context).unwrap();
-    rvs::transform(&mut context).unwrap();
-
-    let a = context.get("a").unwrap();
+    let model = rvs::parse(
+        Default::default(),
+        "a = { 10: 0, 90: 1 };",
+        ).unwrap();
+    let a = model.get_variable_by_name("a").unwrap();
 
     let mut results: HashMap<u32, u32> = HashMap::new();
 

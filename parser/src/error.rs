@@ -2,6 +2,8 @@ use std::fmt;
 use std::io;
 use std::error;
 
+pub type Result<T> = ::std::result::Result<T, Error>;
+
 #[derive(Debug)]
 pub enum Error {
     Parse(ParseError),
@@ -50,7 +52,7 @@ impl From<ParseError> for Error {
     }
 }
 
-pub type ParseResult<T> = Result<T, ParseError>;
+pub type ParseResult<T> = ::std::result::Result<T, ParseError>;
 
 impl ParseError {
     pub fn new(

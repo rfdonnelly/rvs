@@ -3,8 +3,7 @@ use std::fmt::Write;
 use rand::Rng;
 
 use rvs_parser::ast;
-use types::Expr;
-use types::ExprData;
+use model::{Expr, ExprData};
 
 #[derive(Clone)]
 pub struct Binary {
@@ -109,29 +108,5 @@ impl fmt::Display for Unary {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         self.operation.fmt(f)?;
         self.operand.fmt(f)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use types::Value;
-    use types::new_rng;
-    use types::Seed;
-
-    #[test]
-    fn binary() {
-        let mut rng = new_rng(&Seed::from_u32(0));
-        let v0 = Box::new(Value::new(1));
-        let v1 = Box::new(Value::new(2));
-
-        let mut binary = Binary::new(
-            v0,
-            ast::BinaryOpcode::Add,
-            v1,
-        );
-
-        assert_eq!(binary.next(&mut rng), 3);
-        assert_eq!(binary.next(&mut rng), 3);
     }
 }

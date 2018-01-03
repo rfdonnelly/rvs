@@ -20,20 +20,22 @@ fn assert_contents_eq(actual: &Path, expected: &Path) {
 }
 
 fn parse_write(input: &Path, output: &Path) {
-    let context = rvs_context_new();
     let error = rvs_error_new();
+    let context = rvs_context_new(CString::new("").unwrap().as_ptr(), 0, error);
+    assert!(!rvs_error_test(error));
 
     rvs_parse(context, CString::new(input.to_string_lossy().as_bytes()).unwrap().as_ptr(), error);
-    assert_eq!(rvs_error_code(error), ErrorKind::None.code());
+    assert!(!rvs_error_test(error));
 
-    rvs_transform(context, error);
-    assert_eq!(rvs_error_code(error), ErrorKind::None.code());
+    let model = rvs_model_new();
+    rvs_transform(context, model, error);
+    assert!(!rvs_error_test(error));
 
-    rvs_write_definitions(context, CString::new(output.to_string_lossy().as_bytes()).unwrap().as_ptr(), error);
-    assert_eq!(rvs_error_code(error), ErrorKind::None.code());
+    rvs_write_definitions(model, CString::new(output.to_string_lossy().as_bytes()).unwrap().as_ptr(), error);
+    assert!(!rvs_error_test(error));
 
     rvs_error_free(error);
-    rvs_context_free(context);
+    rvs_model_free(model);
 }
 
 #[test]

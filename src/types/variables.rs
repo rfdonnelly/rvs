@@ -1,26 +1,24 @@
 use std::fmt;
 use rand::Rng;
 
-use types::RvWeak;
-use types::Expr;
-use types::ExprData;
+use model::{Expr, ExprData, VariableWeak};
 
 #[derive(Clone)]
 pub struct Next {
-    variable: RvWeak,
+    variable: VariableWeak,
     variable_name: String,
     data: ExprData,
 }
 
 #[derive(Clone)]
 pub struct Prev {
-    variable: RvWeak,
+    variable: VariableWeak,
     variable_name: String,
     data: ExprData,
 }
 
 impl Next {
-    pub fn new(variable_name: &str, variable: RvWeak) -> Next {
+    pub fn new(variable_name: &str, variable: VariableWeak) -> Next {
         Next {
             variable,
             variable_name: variable_name.into(),
@@ -33,13 +31,14 @@ impl Next {
 }
 
 impl Expr for Next {
-    /// # Panics
+    /// # Errors
     ///
-    /// * If variable no longer exists.
+    /// If Weak pointer cannot be upgraded, next() will return previous value.
     fn next(&mut self, _rng: &mut Rng) -> u32 {
-        let variable = self.variable.upgrade().unwrap();
-        self.data.prev = variable.borrow_mut().next();
-        self.data.done = variable.borrow().done();
+        if let Some(variable) = self.variable.upgrade() {
+            self.data.prev = variable.borrow_mut().next();
+            self.data.done = variable.borrow().done();
+        }
 
         self.data.prev
     }
@@ -56,7 +55,7 @@ impl fmt::Display for Next {
 }
 
 impl Prev {
-    pub fn new(variable_name: &str, variable: RvWeak) -> Prev {
+    pub fn new(variable_name: &str, variable: VariableWeak) -> Prev {
         Prev {
             variable,
             variable_name: variable_name.into(),
@@ -69,13 +68,14 @@ impl Prev {
 }
 
 impl Expr for Prev {
-    /// # Panics
+    /// # Errors
     ///
-    /// * If variable no longer exists.
+    /// If Weak pointer cannot be upgraded, next() will return previous value.
     fn next(&mut self, _rng: &mut Rng) -> u32 {
-        let variable = self.variable.upgrade().unwrap();
-        self.data.prev = variable.borrow().prev();
-        self.data.done = variable.borrow().done();
+        if let Some(variable) = self.variable.upgrade() {
+            self.data.prev = variable.borrow().prev();
+            self.data.done = variable.borrow().done();
+        }
 
         self.data.prev
     }

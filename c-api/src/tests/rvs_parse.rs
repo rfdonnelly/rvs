@@ -13,79 +13,88 @@ use super::*;
 
 #[test]
 fn import() {
-    let context = rvs_context_new();
-    let error = rvs_error_new();
-
     let search_path = ::std::env::current_dir()
         .unwrap()
         .join("../examples");
     let search_path = search_path
         .to_str()
         .unwrap();
-    rvs_search_path(context, CString::new(search_path).unwrap().as_ptr(), error);
-    assert_eq!(rvs_error_code(error), ErrorKind::None.code());
+
+    let error = rvs_error_new();
+    let context = rvs_context_new(CString::new(search_path).unwrap().as_ptr(), 0, error);
+    assert!(!rvs_error_test(error));
 
     rvs_parse(context, CString::new("import '../examples/import.rvs'").unwrap().as_ptr(), error);
-    assert_eq!(rvs_error_code(error), ErrorKind::None.code());
+    assert!(!rvs_error_test(error));
 
-    rvs_transform(context, error);
-    assert_eq!(rvs_error_code(error), ErrorKind::None.code());
+    let model = rvs_model_new();
+    rvs_transform(context, model, error);
+    assert!(!rvs_error_test(error));
 
-    assert_eq!(next_by_name(context, "a"), 5);
-    assert_eq!(next_by_name(context, "b"), 1);
+    assert_eq!(next_by_name(model, "a"), 5);
+    assert_eq!(next_by_name(model, "b"), 1);
 
     rvs_error_free(error);
-    rvs_context_free(context);
+    rvs_model_free(model);
 }
 
 #[test]
 fn basic() {
-    let context = rvs_context_new();
     let error = rvs_error_new();
+    let context = rvs_context_new(CString::new("").unwrap().as_ptr(), 0, error);
+    assert!(!rvs_error_test(error));
 
     rvs_parse(context, CString::new("a=5;").unwrap().as_ptr(), error);
-    assert_eq!(rvs_error_code(error), ErrorKind::None.code());
+    assert!(!rvs_error_test(error));
 
-    rvs_transform(context, error);
-    assert_eq!(rvs_error_code(error), ErrorKind::None.code());
+    let model = rvs_model_new();
+    rvs_transform(context, model, error);
+    assert!(!rvs_error_test(error));
 
-    let variable = unsafe { (*context).variables.get("a").unwrap() };
-    let value = variable.borrow_mut().next();
+    let handle = rvs_get(model, CString::new("a").unwrap().as_ptr());
+    assert!(handle != 0);
+
+    let value = rvs_next(model, handle);
     assert_eq!(value, 5);
 
     rvs_error_free(error);
-    rvs_context_free(context);
+    rvs_model_free(model);
 }
 
 #[test]
 fn range() {
-    let context = rvs_context_new();
     let error = rvs_error_new();
+    let context = rvs_context_new(CString::new("").unwrap().as_ptr(), 0, error);
+    assert!(!rvs_error_test(error));
 
     rvs_parse(context, CString::new("a=[0,1];").unwrap().as_ptr(), error);
-    assert_eq!(rvs_error_code(error), ErrorKind::None.code());
+    assert!(!rvs_error_test(error));
 
-    rvs_transform(context, error);
-    assert_eq!(rvs_error_code(error), ErrorKind::None.code());
+    let model = rvs_model_new();
+    rvs_transform(context, model, error);
+    assert!(!rvs_error_test(error));
 
-    let variable = unsafe { (*context).variables.get("a").unwrap() };
-    let value = variable.borrow_mut().next();
+    let handle = rvs_get(model, CString::new("a").unwrap().as_ptr());
+    assert!(handle != 0);
+
+    let value = rvs_next(model, handle);
     assert!(value == 0 || value == 1);
 
     rvs_error_free(error);
-    rvs_context_free(context);
+    rvs_model_free(model);
 }
 
 #[test]
 fn parse_error() {
-    let context = rvs_context_new();
     let error = rvs_error_new();
+    let context = rvs_context_new(CString::new("").unwrap().as_ptr(), 0, error);
+    assert!(!rvs_error_test(error));
 
     rvs_parse(context, CString::new("a = 1;\n1 = b;").unwrap().as_ptr(), error);
     // FIXME: Check error message
     // println!("{}", unsafe { *error });
     // assert_eq!(rvs_error_code(error), ErrorKind::Parse(rvs::ParseError::new()).code());
-    assert!(rvs_error_code(error) != ErrorKind::None.code());
+    assert!(rvs_error_test(error));
 
     rvs_error_free(error);
     rvs_context_free(context);
@@ -93,51 +102,55 @@ fn parse_error() {
 
 #[test]
 fn file() {
-    let context = rvs_context_new();
     let error = rvs_error_new();
+    let context = rvs_context_new(CString::new("").unwrap().as_ptr(), 0, error);
+    assert!(!rvs_error_test(error));
 
     rvs_parse(context, CString::new("../examples/basic.rvs;b = 3").unwrap().as_ptr(), error);
-    assert_eq!(rvs_error_code(error), ErrorKind::None.code());
+    assert!(!rvs_error_test(error));
 
-    rvs_transform(context, error);
-    assert_eq!(rvs_error_code(error), ErrorKind::None.code());
+    let model = rvs_model_new();
+    rvs_transform(context, model, error);
+    assert!(!rvs_error_test(error));
 
-    let handle = rvs_find(context, CString::new("a").unwrap().as_ptr());
+    let handle = rvs_get(model, CString::new("a").unwrap().as_ptr());
     assert!(handle != 0);
 
-    let value = rvs_next(context, handle);
+    let value = rvs_next(model, handle);
     assert_eq!(value, 5);
 
-    let handle = rvs_find(context, CString::new("b").unwrap().as_ptr());
+    let handle = rvs_get(model, CString::new("b").unwrap().as_ptr());
     assert!(handle != 0);
 
-    let value = rvs_next(context, handle);
+    let value = rvs_next(model, handle);
     assert_eq!(value, 3);
 
     rvs_error_free(error);
-    rvs_context_free(context);
+    rvs_model_free(model);
 }
 
 #[test]
 fn override_rv() {
-    let context = rvs_context_new();
     let error = rvs_error_new();
+    let context = rvs_context_new(CString::new("").unwrap().as_ptr(), 0, error);
+    assert!(!rvs_error_test(error));
 
     rvs_parse(context, CString::new("a = 0;a = 1").unwrap().as_ptr(), error);
-    assert_eq!(rvs_error_code(error), ErrorKind::None.code());
+    assert!(!rvs_error_test(error));
 
     rvs_parse(context, CString::new("a = 2").unwrap().as_ptr(), error);
-    assert_eq!(rvs_error_code(error), ErrorKind::None.code());
+    assert!(!rvs_error_test(error));
 
-    rvs_transform(context, error);
-    assert_eq!(rvs_error_code(error), ErrorKind::None.code());
+    let model = rvs_model_new();
+    rvs_transform(context, model, error);
+    assert!(!rvs_error_test(error));
 
-    let handle = rvs_find(context, CString::new("a").unwrap().as_ptr());
+    let handle = rvs_get(model, CString::new("a").unwrap().as_ptr());
     assert!(handle != 0);
 
-    let value = rvs_next(context, handle);
+    let value = rvs_next(model, handle);
     assert_eq!(value, 2);
 
     rvs_error_free(error);
-    rvs_context_free(context);
+    rvs_model_free(model);
 }

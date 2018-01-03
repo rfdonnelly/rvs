@@ -6,26 +6,32 @@
 int main() {
     uint32_t err = 0;
 
-    auto context = rvs_context_new();
     auto error = rvs_error_new();
+    auto context = rvs_context_new("", 0, error);
+    if (rvs_error_test(error)) {
+        std::cout << "error: " << rvs_error_message(error) << std::endl;
+    }
+    assert(rvs_error_test(error) == 0);
 
     rvs_parse(context, "a=5;", error);
-    if (rvs_error_code(error)) {
+    if (rvs_error_test(error)) {
         std::cout << "error: " << rvs_error_message(error) << std::endl;
     }
-    assert(rvs_error_code(error) == 0);
-    rvs_transform(context, error);
-    if (rvs_error_code(error)) {
-        std::cout << "error: " << rvs_error_message(error) << std::endl;
-    }
-    assert(rvs_error_code(error) == 0);
+    assert(rvs_error_test(error) == 0);
 
-    auto handle = rvs_find(context, "a");
+    auto model = rvs_model_new();
+    rvs_transform(context, model, error);
+    if (rvs_error_test(error)) {
+        std::cout << "error: " << rvs_error_message(error) << std::endl;
+    }
+    assert(rvs_error_test(error) == 0);
+
+    auto handle = rvs_get(model, "a");
     assert(handle == 1);
 
-    auto result = rvs_next(context, handle);
+    auto result = rvs_next(model, handle);
     assert(result == 5);
 
     rvs_error_free(error);
-    rvs_context_free(context);
+    rvs_model_free(model);
 }

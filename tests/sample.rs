@@ -2,15 +2,14 @@ extern crate rvs;
 
 use std::collections::HashSet;
 
-use rvs::Context;
-
 #[test]
 fn basic() {
-    let mut context = Context::new();
-    rvs::parse("a = Sample(1, 2, 4, 8);", &mut context).unwrap();
-    rvs::transform(&mut context).unwrap();
+    let model = rvs::parse(
+        Default::default(),
+        "a = Sample(1, 2, 4, 8);"
+        ).unwrap();
 
-    let a = context.get("a").unwrap();
+    let a = model.get_variable_by_name("a").unwrap();
 
     let expected: HashSet<u32> =
         [1, 2, 4, 8].iter().cloned().collect();

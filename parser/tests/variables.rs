@@ -12,7 +12,7 @@ fn good() {
 fn ast() {
     assert_eq!(
         parse("a=5;"),
-        "[Assignment(Identifier(\"a\"), Number(5))]");
+        "[Variable(\"a\", Number(5))]");
 }
 
 #[test]
