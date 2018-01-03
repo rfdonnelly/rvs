@@ -31,13 +31,14 @@ impl Next {
 }
 
 impl Expr for Next {
-    /// # Panics
+    /// # Errors
     ///
-    /// * If variable no longer exists.
+    /// If Weak pointer cannot be upgraded, next() will return previous value.
     fn next(&mut self, _rng: &mut Rng) -> u32 {
-        let variable = self.variable.upgrade().unwrap();
-        self.data.prev = variable.borrow_mut().next();
-        self.data.done = variable.borrow().done();
+        if let Some(variable) = self.variable.upgrade() {
+            self.data.prev = variable.borrow_mut().next();
+            self.data.done = variable.borrow().done();
+        }
 
         self.data.prev
     }
@@ -67,13 +68,14 @@ impl Prev {
 }
 
 impl Expr for Prev {
-    /// # Panics
+    /// # Errors
     ///
-    /// * If variable no longer exists.
+    /// If Weak pointer cannot be upgraded, next() will return previous value.
     fn next(&mut self, _rng: &mut Rng) -> u32 {
-        let variable = self.variable.upgrade().unwrap();
-        self.data.prev = variable.borrow().prev();
-        self.data.done = variable.borrow().done();
+        if let Some(variable) = self.variable.upgrade() {
+            self.data.prev = variable.borrow().prev();
+            self.data.done = variable.borrow().done();
+        }
 
         self.data.prev
     }
