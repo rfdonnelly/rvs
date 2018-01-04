@@ -1,4 +1,5 @@
-// This path is source relative only.  It cannot be found in the search path.
-import 'b/c.rvs';
+// This path is source relative only.  It cannot be found in the search
+// path.
+import b::c;
 
 b = 0;

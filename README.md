@@ -137,7 +137,7 @@ be dual licensed as above, without any additional terms or conditions.
       * [ ] Key relative paths E.g. `::key0::path::file => '/a/b/c/path/file.rvs'`
       * [x] Precendence path E.g. `path::file` => ['/a/b/c/path/file.rvs', '/d/e/f/path/file.rvs']
     * [x] Source relative path E.g. a `import fileb` in `filea` becomes `$(dirname filea)/fileb.rvs`
-    * [ ] Simplified naming E.g. `path::file` instead of `'path/file.rvs'`
+    * [x] Simplified naming E.g. `path::file` instead of `'path/file.rvs'`
   * [ ] Filename in errors
   * [x] Line numbers in errors
 

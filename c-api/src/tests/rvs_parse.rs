@@ -24,7 +24,7 @@ fn import() {
     let context = rvs_context_new(CString::new(search_path).unwrap().as_ptr(), 0, error);
     assert!(!rvs_error_test(error));
 
-    rvs_parse(context, CString::new("import '../examples/import.rvs'").unwrap().as_ptr(), error);
+    rvs_parse(context, CString::new("import import;").unwrap().as_ptr(), error);
     assert!(!rvs_error_test(error));
 
     let model = rvs_model_new();

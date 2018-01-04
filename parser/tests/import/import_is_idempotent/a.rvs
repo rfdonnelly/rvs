@@ -1,5 +1,5 @@
-import 'b.rvs';
+import b;
 
 a = 2;
 
-import 'b.rvs';
+import b;

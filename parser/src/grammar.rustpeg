@@ -1,6 +1,6 @@
 use std::str::FromStr;
 use std::char;
-use std::path::Path;
+use std::path::{Path, MAIN_SEPARATOR};
 use std::fs::File;
 use std::io::prelude::*;
 
@@ -15,9 +15,12 @@ use ast::Item;
 
 #![arguments(_import_paths: &mut SourcePaths)]
 
+import_path -> &'input str
+    = #quiet<$([:a-zA-Z0-9_]+)> / #expected("import path")
+
 import -> Item
-    = "import" _ s:string ";" {
-        let path = Path::new(&s);
+    = "import" _ s:import_path _ ";" {
+        let path = Path::new(&s.replace("::", &MAIN_SEPARATOR.to_string())).with_extension("rvs");
         match _import_paths.find(&path) {
             Err(e) => {
                 Item::ImportError(path.to_path_buf(), e)
@@ -341,3 +344,5 @@ digit
 
 hexDigit
     = [0-9a-fA-F]
+
+// vim: ft=rust
