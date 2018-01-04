@@ -205,6 +205,11 @@ sequence -> Box<Node>
         Box::new(Node::Function(Function::Sequence, a))
     }
 
+expand -> Box<Node>
+    = "Expand(" _ a:expr **<1, 2> ("," _) optional_trailing_comma _ ")"{
+        Box::new(Node::Function(Function::Expand, a))
+    }
+
 range -> Box<Node>
     = "[" _ a:expr **<2> ("," _) optional_trailing_comma _ "]" {
         Box::new(
@@ -216,7 +221,7 @@ range -> Box<Node>
     }
 
 sample -> Box<Node>
-    = "Sample(" _ a:(enum_inst / expr) ++ ("," _) optional_trailing_comma _ ")" {
+    = "Sample(" _ a:(expand / enum_inst / expr) ++ ("," _) optional_trailing_comma _ ")" {
         Box::new(
             Node::Function(
                 Function::Sample,

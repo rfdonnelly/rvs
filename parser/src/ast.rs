@@ -26,6 +26,7 @@ pub enum Function {
     Range,
     Sample,
     WeightedSample,
+    Expand,
 }
 
 #[derive(Debug)]

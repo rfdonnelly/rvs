@@ -102,8 +102,8 @@ be dual licensed as above, without any additional terms or conditions.
             Syntax: `<expr>.done`
       * [ ] Once - Forces the sub expression to be evaluated once. Syntax:
             `<expr>.once`
-      * [ ] Expand - Returns all evaluations of the expression until done.
-            Syntax: `<expr>.expand`
+      * [x] Expand - Returns all evaluations of the expression until done.
+            Syntax: `Expand(<expr>)` OR `Expand(<expr>, <count-expr>)`
     * Random Types
       * [x] Range - Returns a random value in the range [<lower>, <upper>]
             inclusive.  Syntax: `[<lower>, <upper>]`

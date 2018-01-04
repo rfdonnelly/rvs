@@ -251,20 +251,37 @@ impl Transform {
             ast::Function::Sample => {
                 let mut children: Vec<Box<Expr>> = Vec::new();
                 for arg in args.iter() {
-                    if let ast::Node::EnumInst(ref name) = **arg {
-                        if let Some(entry) = self.enums.get(name) {
-                            for value in entry.items.values() {
-                                children.push(
-                                    Box::new(Value::new(*value))
-                                );
+                    match **arg {
+                        ast::Node::EnumInst(ref name) => {
+                            if let Some(entry) = self.enums.get(name) {
+                                for value in entry.items.values() {
+                                    children.push(
+                                        Box::new(Value::new(*value))
+                                        );
+                                }
+                            } else {
+                                return Err(TransformError::new(format!(
+                                            "Could not find enum '{}'", name
+                                            )));
                             }
-                        } else {
-                            return Err(TransformError::new(format!(
-                                        "Could not find enum '{}'", name
-                                        )));
                         }
-                    } else {
-                        children.push(self.transform_expr(model, rng, &arg)?);
+                        ast::Node::Function(ast::Function::Expand, ref args) => {
+                            let mut expr = self.transform_expr(model, rng, &args[0])?;
+
+                            if args.len() == 1 {
+                                while !expr.done() {
+                                    children.push(Box::new(Value::new(expr.next(rng))));
+                                }
+                            } else {
+                                let mut count = self.transform_expr(model, rng, &args[1])?;
+                                for _ in 0..count.next(rng) {
+                                    children.push(Box::new(Value::new(expr.next(rng))));
+                                }
+                            }
+                        }
+                        _ => {
+                            children.push(self.transform_expr(model, rng, &arg)?);
+                        }
                     }
                 }
 
@@ -282,6 +299,10 @@ impl Transform {
                 }
 
                 Ok(Box::new(WeightedSample::new(pairs)))
+            }
+            ast::Function::Expand => {
+                return Err(TransformError::new(format!(
+                            "Expand() must be inside Sample()")));
             }
         }
     }
