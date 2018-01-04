@@ -15,6 +15,7 @@ use types::{
     Sequence,
     Range,
     Sample,
+    Unique,
     WeightedSample,
     Next,
     Prev,
@@ -248,7 +249,8 @@ impl Transform {
                     Ok(Box::new(Range::new(l, r)))
                 }
             }
-            ast::Function::Sample => {
+            ast::Function::Sample
+            | ast::Function::Unique => {
                 let mut children: Vec<Box<Expr>> = Vec::new();
                 for arg in args.iter() {
                     match **arg {
@@ -285,7 +287,11 @@ impl Transform {
                     }
                 }
 
-                Ok(Box::new(Sample::new(children)))
+                if let ast::Function::Sample = *function {
+                    Ok(Box::new(Sample::new(children)))
+                } else {
+                    Ok(Box::new(Unique::new(children, rng)))
+                }
             }
             ast::Function::WeightedSample => {
                 let mut pairs: Vec<(u32, Box<Expr>)> = Vec::new();

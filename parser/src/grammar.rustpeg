@@ -102,6 +102,7 @@ function -> Box<Node>
     = pattern
     / range
     / sample
+    / unique
     / weighted_sample
     / sequence
 
@@ -228,6 +229,11 @@ sample -> Box<Node>
                 a
             )
         )
+    }
+
+unique -> Box<Node>
+    = "Unique(" _ a:(expand / enum_inst / expr) ++ ("," _) optional_trailing_comma _ ")" {
+        Box::new(Node::Function(Function::Unique, a))
     }
 
 weighted_pair -> Box<Node>

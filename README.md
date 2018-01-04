@@ -109,9 +109,9 @@ be dual licensed as above, without any additional terms or conditions.
             inclusive.  Syntax: `[<lower>, <upper>]`
       * [x] Sample - Randomly selects then returns a sub-expression.  Syntax:
             `Sample(<expr>, ...)`
-      * [ ] SampleNoRepeat - Randomly selects then returns a sub-expression.
+      * [x] Unique - Randomly selects then returns a sub-expression.
             Will not return same sub-expression until all sub-expressions have
-            been returned.  Syntax: `SampleNoRepeat(<expr>, ...)`
+            been returned.  Syntax: `Unique(<expr>, ...)`
       * [x] WeightedSample - Randomly selects then returns a sub-expression
             according to weight.  Syntax: `{<weight>: <expr>, ...}`
     * Misc Types

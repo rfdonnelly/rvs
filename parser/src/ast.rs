@@ -25,6 +25,7 @@ pub enum Function {
     Sequence,
     Range,
     Sample,
+    Unique,
     WeightedSample,
     Expand,
 }
