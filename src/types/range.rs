@@ -37,6 +37,7 @@ impl Range {
 impl Expr for Range {
     fn next(&mut self, rng: &mut Rng) -> u32 {
         self.data.prev = self.range.sample(rng);
+        self.data.done = true;
 
         self.data.prev
     }

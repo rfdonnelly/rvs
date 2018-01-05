@@ -27,3 +27,38 @@ fn yields_each_value_once_per_cycle() {
         assert_eq!(expected, actual);
     }
 }
+
+#[test]
+fn selects_another_subexpr_when_current_subexpr_done() {
+    let a = expr_to_var("Unique(Pattern(0, 1), Pattern(2, 3))").unwrap();
+    let mut a = a.borrow_mut();
+
+    for _ in 0..100 {
+        let value = a.next();
+
+        match value {
+            0 => assert_eq!(a.next(), 1),
+            2 => assert_eq!(a.next(), 3),
+            value => assert!(value == 0 || value == 2),
+        }
+    }
+}
+
+#[test]
+fn done_after_all() {
+    let a = expr_to_var("Unique(Pattern(0, 0), Pattern(0, 0))").unwrap();
+    let mut a = a.borrow_mut();
+
+    assert_eq!(a.done(), false);
+
+    let expected: Vec<(u32, bool)> = (0..4)
+        .zip(vec![false, false, false, true].into_iter())
+        .cycle().take(16)
+        .map(|(_, done)| (0, done))
+        .collect();
+    let actual: Vec<(u32, bool)> = (0..16)
+        .map(|_| (a.next(), a.done()))
+        .collect();
+
+    assert_eq!(actual, expected);
+}

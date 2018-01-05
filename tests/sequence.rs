@@ -8,11 +8,12 @@ fn count() {
     let a = expr_to_var("Sequence(4)").unwrap();
     let mut a = a.borrow_mut();
 
-    let expected: Vec<u32> = (0..4)
+    let expected: Vec<(u32, bool)> = (0..4)
+        .zip(vec![false, false, false, true].into_iter())
         .cycle().take(16)
         .collect();
-    let actual: Vec<u32> = (0..16)
-        .map(|_| a.next())
+    let actual: Vec<(u32, bool)> = (0..16)
+        .map(|_| (a.next(), a.done()))
         .collect();
 
     assert_eq!(expected, actual);
@@ -23,11 +24,12 @@ fn offset_count() {
     let a = expr_to_var("Sequence(10, 4)").unwrap();
     let mut a = a.borrow_mut();
 
-    let expected: Vec<u32> = (10..14)
+    let expected: Vec<(u32, bool)> = (10..14)
+        .zip(vec![false, false, false, true].into_iter())
         .cycle().take(16)
         .collect();
-    let actual: Vec<u32> = (0..16)
-        .map(|_| a.next())
+    let actual: Vec<(u32, bool)> = (0..16)
+        .map(|_| (a.next(), a.done()))
         .collect();
 
     assert_eq!(expected, actual);
@@ -38,12 +40,13 @@ fn offset_increment_count() {
     let a = expr_to_var("Sequence(0, 4, 4)").unwrap();
     let mut a = a.borrow_mut();
 
-    let expected: Vec<u32> = (0..4)
+    let expected: Vec<(u32, bool)> = (0..4)
+        .zip(vec![false, false, false, true].into_iter())
         .cycle().take(16)
-        .map(|i| i * 4)
+        .map(|(i, done)| (i * 4, done))
         .collect();
-    let actual: Vec<u32> = (0..16)
-        .map(|_| a.next())
+    let actual: Vec<(u32, bool)> = (0..16)
+        .map(|_| (a.next(), a.done()))
         .collect();
 
     assert_eq!(expected, actual);
