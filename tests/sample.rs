@@ -2,21 +2,23 @@ extern crate rvs;
 
 use std::collections::HashSet;
 
+mod util;
+use util::*;
+
 #[test]
 fn basic() {
-    let model = rvs::parse(
-        Default::default(),
-        "a = Sample(1, 2, 4, 8);"
-        ).unwrap();
-
-    let a = model.get_variable_by_name("a").unwrap();
+    let a = expr_to_var("Sample(1, 2, 4, 8)").unwrap();
+    let mut a = a.borrow_mut();
 
     let expected: HashSet<u32> =
         [1, 2, 4, 8].iter().cloned().collect();
-    let mut actual: HashSet<u32> = HashSet::new();
+    let actual: HashSet<u32> = (0..16)
+        .map(|_| a.next())
+        .collect();
 
-    for _ in 0..16 {
-        actual.insert(a.borrow_mut().next());
+    assert_eq!(expected, actual);
+}
+
     }
 
     assert_eq!(expected, actual);

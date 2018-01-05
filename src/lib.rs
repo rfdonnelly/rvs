@@ -11,7 +11,7 @@ mod types;
 pub use rvs_parser::SearchPath;
 pub use parser::Parser;
 pub use transform::{Seed, Transform};
-pub use model::Model;
+pub use model::{Model, Variable};
 
 pub use error::{
     Error,

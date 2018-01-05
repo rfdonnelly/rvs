@@ -4,12 +4,13 @@ extern crate rvs;
 fn next() {
     let model = rvs::parse(
         Default::default(),
-    "a = 1; b = a;"
+        "a = 1; b = a;"
         ).unwrap();
 
     let b = model.get_variable_by_name("b").unwrap();
+    let mut b = b.borrow_mut();
 
-    assert_eq!(b.borrow_mut().next(), 1);
+    assert_eq!(b.next(), 1);
 }
 
 /// Verifies that the underlying variable's state is advanced
@@ -17,7 +18,7 @@ fn next() {
 fn next_pattern() {
     let model = rvs::parse(
         Default::default(),
-    "a = Pattern(0, 1, 2, 3); b = a;"
+        "a = Pattern(0, 1, 2, 3); b = a;"
         ).unwrap();
 
     let a = model.get_variable_by_name("a").unwrap();
@@ -33,37 +34,40 @@ fn next_pattern() {
 fn copy() {
     let model = rvs::parse(
         Default::default(),
-    "a = 1; b = a.copy;"
+        "a = 1; b = a.copy;"
         ).unwrap();
 
     let b = model.get_variable_by_name("b").unwrap();
+    let mut b = b.borrow_mut();
 
-    assert_eq!(b.borrow_mut().next(), 1);
+    assert_eq!(b.next(), 1);
 }
 
 #[test]
 fn copy_pattern() {
     let model = rvs::parse(
         Default::default(),
-    "a = Pattern(0, 1, 2, 3); b = a.copy;"
+        "a = Pattern(0, 1, 2, 3); b = a.copy;"
         ).unwrap();
 
     let a = model.get_variable_by_name("a").unwrap();
+    let mut a = a.borrow_mut();
     let b = model.get_variable_by_name("b").unwrap();
+    let mut b = b.borrow_mut();
 
-    assert_eq!(b.borrow_mut().next(), 0);
-    assert_eq!(a.borrow_mut().next(), 0);
-    assert_eq!(b.borrow_mut().next(), 1);
-    assert_eq!(a.borrow_mut().next(), 1);
-    assert_eq!(b.borrow_mut().next(), 2);
-    assert_eq!(a.borrow_mut().next(), 2);
+    assert_eq!(b.next(), 0);
+    assert_eq!(a.next(), 0);
+    assert_eq!(b.next(), 1);
+    assert_eq!(a.next(), 1);
+    assert_eq!(b.next(), 2);
+    assert_eq!(a.next(), 2);
 }
 
 #[test]
 fn prev() {
     let model = rvs::parse(
         Default::default(),
-    "a = Pattern(0, 1, 2, 3); b = a.prev;"
+        "a = Pattern(0, 1, 2, 3); b = a.prev;"
         ).unwrap();
 
     let a = model.get_variable_by_name("a").unwrap();
