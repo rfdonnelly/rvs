@@ -9,8 +9,8 @@ use model::{Expr, ExprData};
 pub struct Binary {
     data: ExprData,
     operation: ast::BinaryOpcode,
-    l: Box<Expr>,
-    r: Box<Expr>,
+    operands: (Box<Expr>, Box<Expr>),
+    done: (bool, bool),
 }
 
 #[derive(Clone)]
@@ -28,17 +28,19 @@ impl Binary {
                 done: false,
             },
             operation: operation,
-            l: l,
-            r: r,
+            operands: (l, r),
+            done: (false, false),
         }
     }
 }
 
 impl Expr for Binary {
     fn next(&mut self, rng: &mut Rng) -> u32 {
-        let (l, r) = (self.l.next(rng), self.r.next(rng));
+        let (l, r) = (self.operands.0.next(rng), self.operands.1.next(rng));
 
-        self.data.done = self.l.done() || self.r.done();
+        self.done.0 |= self.operands.0.done();
+        self.done.1 |= self.operands.1.done();
+        self.data.done = self.done.0 && self.done.1;
 
         self.data.prev = match self.operation {
             ast::BinaryOpcode::Or => l | r,
@@ -64,11 +66,11 @@ impl Expr for Binary {
 impl fmt::Display for Binary {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         f.write_char('(')?;
-        self.l.fmt(f)?;
+        self.operands.0.fmt(f)?;
         f.write_char(' ')?;
         self.operation.fmt(f)?;
         f.write_char(' ')?;
-        self.r.fmt(f)?;
+        self.operands.1.fmt(f)?;
         f.write_char(')')
     }
 }

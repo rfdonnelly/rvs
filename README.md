@@ -125,14 +125,17 @@ be dual licensed as above, without any additional terms or conditions.
             `Sequence(<count>)` OR
             `Sequence(<offset>, <count>)` OR
             `Sequence(<offset>, <increment>, <count>)`
-    * Arithmetic operators
-      * [x] +, -
-      * [x] *, /
-      * [x] %
-    * Logic operators
-      * [x] &, |, ^
-      * [x] <<, >>
-      * [x] ~
+    * Operators
+      * Arithmetic operators
+        * [x] +, -
+        * [x] *, /
+        * [x] %
+      * Bitwise operators
+        * [x] &, |, ^
+        * [x] <<, >>
+        * [x] ~
+      * [x] Doneness for operators.  Done when both operands have indicated
+            done at least once.
   * [x] Whitespace
   * [x] Comments
   * [x] Require/Include/Import/Etc
