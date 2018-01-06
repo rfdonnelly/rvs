@@ -233,7 +233,7 @@ impl Transform {
                     arg.next(rng)
                 }).collect();
 
-                Ok(Box::new(Sequence::new(args)))
+                Ok(Box::new(Sequence::new(args)?))
             }
             ast::Function::Range => {
                 let l = self.transform_expr(model, rng, &args[0])?.next(rng);

@@ -14,7 +14,14 @@ pub struct Sequence {
 }
 
 impl Sequence {
-    pub fn new(args: Vec<u32>) -> Sequence {
+    /// # Errors
+    ///
+    /// * If count is 0
+    ///
+    /// # Panics
+    ///
+    /// * If `args.len()` == 0 OR > 3
+    pub fn new(args: Vec<u32>) -> TransformResult<Sequence> {
         let (offset, increment, count) = match args.len() {
             1 => (0, 1, args[0]),
             2 => (args[0], 1, args[1]),
@@ -22,14 +29,13 @@ impl Sequence {
             _ => panic!("Expected 1 to 3 arguments.  Got {}", args.len()),
         };
 
-        // FIXME: Change to error
         if count == 0 {
-            panic!("Count must be greater than 0.");
+            return Err(TransformError::new("Sequence count must be greater than 0.".into()));
         }
 
         let last = offset + increment * (count - 1);
 
-        Sequence {
+        Ok(Sequence {
             data: ExprData {
                 prev: 0,
                 done: false,
@@ -39,7 +45,7 @@ impl Sequence {
             increment,
             count,
             last,
-        }
+        })
     }
 }
 
