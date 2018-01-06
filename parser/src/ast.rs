@@ -16,6 +16,7 @@ pub enum BinaryOpcode {
 
 #[derive(Debug, Clone)]
 pub enum UnaryOpcode {
+    Inv,
     Neg,
 }
 
@@ -94,7 +95,8 @@ impl fmt::Display for BinaryOpcode {
 impl fmt::Display for UnaryOpcode {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let operator = match *self {
-            UnaryOpcode::Neg => "~",
+            UnaryOpcode::Inv => "~",
+            UnaryOpcode::Neg => "-",
         };
 
         write!(f, "{}", operator)

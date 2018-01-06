@@ -113,7 +113,8 @@ expr -> Box<Node>
     = binary_expr
 
 unary_expr -> Box<Node>
-    = "~" _ a:atom { Box::new(Node::UnaryOperation(UnaryOpcode::Neg, a)) }
+    = "~" _ a:atom { Box::new(Node::UnaryOperation(UnaryOpcode::Inv, a)) }
+    / "-" _ a:atom { Box::new(Node::UnaryOperation(UnaryOpcode::Neg, a)) }
 
 op_or  = _ "|" _
 op_xor = _ "^" _

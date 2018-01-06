@@ -95,7 +95,8 @@ impl Expr for Unary {
         self.data.done = self.operand.done();
 
         self.data.prev = match self.operation {
-            ast::UnaryOpcode::Neg => !operand,
+            ast::UnaryOpcode::Inv => !operand,
+            ast::UnaryOpcode::Neg => !operand + 1,
         };
 
         self.data.prev
