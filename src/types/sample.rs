@@ -11,6 +11,7 @@ use model::{Expr, ExprData};
 pub struct Sample {
     data: ExprData,
     children: Vec<Box<Expr>>,
+    current_child: Option<usize>,
     range: Range<RangeInt<usize>>,
 }
 
@@ -23,15 +24,24 @@ impl Sample {
             },
             range: Range::new(0, children.len()),
             children,
+            current_child: None,
         }
     }
 }
 
 impl Expr for Sample {
     fn next(&mut self, rng: &mut Rng) -> u32 {
-        let idx = self.range.sample(rng);
+        let index = match self.current_child {
+            Some(index) => index,
+            None => self.range.sample(rng),
+        };
 
-        self.data.prev = self.children[idx].next(rng);
+        self.data.prev = self.children[index].next(rng);
+        self.data.done = self.children[index].done();
+        self.current_child = match self.data.done {
+            true => None,
+            false => Some(index),
+        };
 
         self.data.prev
     }
@@ -56,7 +66,7 @@ pub struct Unique {
     data: ExprData,
     children: Vec<Box<Expr>>,
     visit_order: Vec<usize>,
-    index: usize,
+    current_child: usize,
 }
 
 impl Unique {
@@ -71,21 +81,23 @@ impl Unique {
             },
             children,
             visit_order,
-            index: 0,
+            current_child: 0,
         }
     }
 }
 
 impl Expr for Unique {
     fn next(&mut self, rng: &mut Rng) -> u32 {
-        let index = self.visit_order[self.index];
+        let index = self.visit_order[self.current_child];
         self.data.prev = self.children[index].next(rng);
 
-        self.index += 1;
-        if self.index == self.children.len() {
-            self.index = 0;
-            self.data.done = true;
-            self.visit_order[..].shuffle(rng);
+        if self.children[index].done() {
+            self.current_child += 1;
+            if self.current_child == self.children.len() {
+                self.current_child = 0;
+                self.data.done = true;
+                self.visit_order[..].shuffle(rng);
+            }
         } else {
             self.data.done = false;
         }

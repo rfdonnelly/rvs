@@ -1,37 +1,52 @@
 extern crate rvs;
 
+mod util;
+use util::*;
+
 use std::collections::HashSet;
 
 #[test]
-fn reverse() {
-    let model = rvs::parse(
-        Default::default(),
-        "a = [1, 0];"
-        ).unwrap();
-
-    let a = model.get_variable_by_name("a").unwrap();
+fn reverse_limits() {
+    let a = expr_to_var("[1, 0]").unwrap();
+    let mut a = a.borrow_mut();
 
     let expected: HashSet<u32> =
         [0, 1].iter().cloned().collect();
-    let mut actual: HashSet<u32> = HashSet::new();
-
-    for _ in 0..10 {
-        actual.insert(a.borrow_mut().next());
-    }
+    let actual: HashSet<u32> = (0..10)
+        .map(|_| a.next())
+        .collect();
 
     assert_eq!(expected, actual);
 }
 
 #[test]
-fn same() {
-    let model = rvs::parse(
-        Default::default(),
-        "a = [1, 1];"
-        ).unwrap();
+fn equal_limits() {
+    let a = expr_to_var("[1, 1]").unwrap();
+    let mut a = a.borrow_mut();
 
-    let a = model.get_variable_by_name("a").unwrap();
+    let expected: Vec<u32> = (0..10)
+        .map(|_| 1)
+        .collect();
+    let actual: Vec<u32> = (0..10)
+        .map(|_| a.next())
+        .collect();
 
-    for _ in 0..10 {
-        assert_eq!(a.borrow_mut().next(), 1);
-    }
+    assert_eq!(expected, actual);
+}
+
+#[test]
+fn done_after_each_next() {
+    let a = expr_to_var("[0, 8]").unwrap();
+    let mut a = a.borrow_mut();
+
+    assert_eq!(a.done(), false);
+
+    let expected: Vec<bool> = (0..20)
+        .map(|_| true)
+        .collect();
+    let actual: Vec<bool> = (0..20)
+        .map(|_| { a.next(); a.done() })
+        .collect();
+
+    assert_eq!(expected, actual);
 }

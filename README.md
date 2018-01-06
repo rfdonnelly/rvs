@@ -109,26 +109,33 @@ be dual licensed as above, without any additional terms or conditions.
             inclusive.  Syntax: `[<lower>, <upper>]`
       * [x] Sample - Randomly selects then returns a sub-expression.  Syntax:
             `Sample(<expr>, ...)`
+            * [x] Select new sub-expression only when current sub-expression is done
       * [x] Unique - Randomly selects then returns a sub-expression.
             Will not return same sub-expression until all sub-expressions have
             been returned.  Syntax: `Unique(<expr>, ...)`
+            * [x] Select new sub-expression only when current sub-expression is done
       * [x] WeightedSample - Randomly selects then returns a sub-expression
             according to weight.  Syntax: `{<weight>: <expr>, ...}`
+            * [x] Select new sub-expression only when current sub-expression is done
     * Misc Types
       * [x] Pattern - Returns sub-expressions in order.  Syntax:
             `Pattern(<expr>, ...)`
+            * [x] Select new sub-expression only when current sub-expression is done
       * [x] Loop/Sequence - Returns a sequnce of numbers.  Syntax:
             `Sequence(<count>)` OR
             `Sequence(<offset>, <count>)` OR
             `Sequence(<offset>, <increment>, <count>)`
-    * Arithmetic operators
-      * [x] +, -
-      * [x] *, /
-      * [x] %
-    * Logic operators
-      * [x] &, |, ^
-      * [x] <<, >>
-      * [x] ~
+    * Operators
+      * Arithmetic operators
+        * [x] +, -
+        * [x] *, /
+        * [x] %
+      * Bitwise operators
+        * [x] &, |, ^
+        * [x] <<, >>
+        * [x] ~
+      * [x] Doneness for operators.  Done when both operands have indicated
+            done at least once.
   * [x] Whitespace
   * [x] Comments
   * [x] Require/Include/Import/Etc

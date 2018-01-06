@@ -10,10 +10,11 @@ fn function_arguments() {
     let a = model.get_variable_by_name("a").unwrap();
     let mut a = a.borrow_mut();
 
-    let expected: Vec<u32> = (0..10).collect();
-    let actual: Vec<u32> = (0..10).map(|_| {
-        a.next()
-    }).collect();
+    let expected: Vec<u32> = (0..10)
+        .collect();
+    let actual: Vec<u32> = (0..10)
+        .map(|_| a.next())
+        .collect();
 
     assert_eq!(expected, actual);
 }

@@ -1,57 +1,53 @@
 extern crate rvs;
 
+mod util;
+use util::*;
+
 #[test]
 fn count() {
-    let model = rvs::parse(
-        Default::default(),
-        "a = Sequence(10);"
-        ).unwrap();
-
-    let a = model.get_variable_by_name("a").unwrap();
+    let a = expr_to_var("Sequence(4)").unwrap();
     let mut a = a.borrow_mut();
 
-    let expected: Vec<u32> = (0..10).collect();
-    let actual: Vec<u32> = (0..10).map(|_| {
-        a.next()
-    }).collect();
+    let expected: Vec<(u32, bool)> = (0..4)
+        .zip(vec![false, false, false, true].into_iter())
+        .cycle().take(16)
+        .collect();
+    let actual: Vec<(u32, bool)> = (0..16)
+        .map(|_| (a.next(), a.done()))
+        .collect();
 
     assert_eq!(expected, actual);
 }
 
 #[test]
 fn offset_count() {
-    let model = rvs::parse(
-        Default::default(),
-        "a = Sequence(10, 10);"
-        ).unwrap();
-
-    let a = model.get_variable_by_name("a").unwrap();
+    let a = expr_to_var("Sequence(10, 4)").unwrap();
     let mut a = a.borrow_mut();
 
-    let expected: Vec<u32> = (10..20).collect();
-    let actual: Vec<u32> = (0..10).map(|_| {
-        a.next()
-    }).collect();
+    let expected: Vec<(u32, bool)> = (10..14)
+        .zip(vec![false, false, false, true].into_iter())
+        .cycle().take(16)
+        .collect();
+    let actual: Vec<(u32, bool)> = (0..16)
+        .map(|_| (a.next(), a.done()))
+        .collect();
 
     assert_eq!(expected, actual);
 }
 
 #[test]
 fn offset_increment_count() {
-    let model = rvs::parse(
-        Default::default(),
-        "a = Sequence(0, 4, 10);"
-        ).unwrap();
-
-    let a = model.get_variable_by_name("a").unwrap();
+    let a = expr_to_var("Sequence(0, 4, 4)").unwrap();
     let mut a = a.borrow_mut();
 
-    let expected: Vec<u32> = (0..10).map(|i| {
-        i * 4
-    }).collect();
-    let actual: Vec<u32> = (0..10).map(|_| {
-        a.next()
-    }).collect();
+    let expected: Vec<(u32, bool)> = (0..4)
+        .zip(vec![false, false, false, true].into_iter())
+        .cycle().take(16)
+        .map(|(i, done)| (i * 4, done))
+        .collect();
+    let actual: Vec<(u32, bool)> = (0..16)
+        .map(|_| (a.next(), a.done()))
+        .collect();
 
     assert_eq!(expected, actual);
 }
@@ -59,12 +55,7 @@ fn offset_increment_count() {
 #[test]
 #[should_panic]
 fn zero_count() {
-    let model = rvs::parse(
-        Default::default(),
-        "a = Sequence(0);"
-        ).unwrap();
-
-    let a = model.get_variable_by_name("a").unwrap();
+    let a = expr_to_var("Sequence(0)").unwrap();
     let mut a = a.borrow_mut();
 
     assert_eq!(a.next(), 0);

@@ -10,6 +10,7 @@ use model::{Expr, ExprData};
 pub struct WeightedSample {
     data: ExprData,
     children: Vec<(u32, Box<Expr>)>,
+    current_child: Option<usize>,
     weighted_choice: WeightedChoice<usize>,
 }
 
@@ -28,6 +29,7 @@ impl WeightedSample {
                 done: false,
             },
             children,
+            current_child: None,
             weighted_choice,
         }
     }
@@ -35,8 +37,17 @@ impl WeightedSample {
 
 impl Expr for WeightedSample {
     fn next(&mut self, rng: &mut Rng) -> u32 {
-        let index = self.weighted_choice.sample(rng);
+        let index = match self.current_child {
+            Some(index) => index,
+            None => self.weighted_choice.sample(rng),
+        };
+
         self.data.prev = self.children[index].1.next(rng);
+        self.data.done = self.children[index].1.done();
+        self.current_child = match self.data.done {
+            true => None,
+            false => Some(index),
+        };
 
         self.data.prev
     }

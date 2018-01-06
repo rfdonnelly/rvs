@@ -6,8 +6,8 @@ use model::{Expr, ExprData};
 #[derive(Clone)]
 pub struct Pattern {
     data: ExprData,
-    index: usize,
     children: Vec<Box<Expr>>,
+    current_child: usize,
 }
 
 impl Pattern {
@@ -17,16 +17,23 @@ impl Pattern {
                 prev: 0,
                 done: false,
             },
-            index: 0,
             children,
+            current_child: 0,
         }
     }
 }
 
 impl Expr for Pattern {
     fn next(&mut self, rng: &mut Rng) -> u32 {
-        self.data.prev = self.children[self.index].next(rng);
-        self.index = (self.index + 1) % self.children.len();
+        self.data.prev = self.children[self.current_child].next(rng);
+
+        if self.children[self.current_child].done() {
+            self.current_child = (self.current_child + 1) % self.children.len();
+            self.data.done = self.current_child == 0;
+        } else {
+            self.data.done = false;
+        }
+
         self.data.prev
     }
 
