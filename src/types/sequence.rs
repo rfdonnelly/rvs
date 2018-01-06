@@ -2,15 +2,18 @@ use std::fmt;
 use rand::Rng;
 
 use model::{Expr, ExprData};
+use error::{TransformResult, TransformError};
+
+use std::num::Wrapping;
 
 #[derive(Clone)]
 pub struct Sequence {
     data: ExprData,
-    next: u32,
+    next: Wrapping<u32>,
     offset: u32,
     increment: u32,
     count: u32,
-    last: u32,
+    remaining: u32,
 }
 
 impl Sequence {
@@ -33,32 +36,32 @@ impl Sequence {
             return Err(TransformError::new("Sequence count must be greater than 0.".into()));
         }
 
-        let last = offset + increment * (count - 1);
-
         Ok(Sequence {
             data: ExprData {
                 prev: 0,
                 done: false,
             },
-            next: offset,
+            next: Wrapping(offset),
             offset,
             increment,
             count,
-            last,
+            remaining: count,
         })
     }
 }
 
 impl Expr for Sequence {
     fn next(&mut self, _rng: &mut Rng) -> u32 {
-        self.data.prev = self.next;
+        self.data.prev = self.next.0;
         self.data.done = false;
 
-        self.next += self.increment;
+        self.next += Wrapping(self.increment);
+        self.remaining -= 1;
 
-        if self.next > self.last {
-            self.next = self.offset;
+        if self.remaining == 0 {
+            self.next = Wrapping(self.offset);
             self.data.done = true;
+            self.remaining = self.count;
         }
 
         self.data.prev

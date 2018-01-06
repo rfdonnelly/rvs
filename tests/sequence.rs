@@ -53,6 +53,23 @@ fn offset_increment_count() {
 }
 
 #[test]
+fn decrement() {
+    let a = expr_to_var("Sequence(3, -1, 4)").unwrap();
+    let mut a = a.borrow_mut();
+
+    let expected: Vec<(u32, bool)> = (0..4)
+        .rev()
+        .zip(vec![false, false, false, true].into_iter())
+        .cycle().take(16)
+        .collect();
+    let actual: Vec<(u32, bool)> = (0..16)
+        .map(|_| (a.next(), a.done()))
+        .collect();
+
+    assert_eq!(expected, actual);
+}
+
+#[test]
 #[should_panic]
 fn zero_count() {
     let a = expr_to_var("Sequence(0)").unwrap();
