@@ -31,3 +31,51 @@ fn yields_sum() {
 
     assert_eq!(expected, actual);
 }
+
+#[test]
+fn overflow_add() {
+    let a = expr_to_var("~0 + ~0").unwrap();
+    let mut a = a.borrow_mut();
+
+    assert_eq!(0xffff_fffe, a.next());
+}
+
+#[test]
+fn overflow_sub() {
+    let a = expr_to_var("0 - 1").unwrap();
+    let mut a = a.borrow_mut();
+
+    assert_eq!(0xffff_ffff, a.next());
+}
+
+#[test]
+fn overflow_mul() {
+    let a = expr_to_var("~0 * 2").unwrap();
+    let mut a = a.borrow_mut();
+
+    assert_eq!(0xffff_fffe, a.next());
+}
+
+#[test]
+fn overflow_shl() {
+    let a = expr_to_var("1 << 33").unwrap();
+    let mut a = a.borrow_mut();
+
+    assert_eq!(2, a.next());
+}
+
+#[test]
+fn overflow_shr() {
+    let a = expr_to_var("1 >> 33").unwrap();
+    let mut a = a.borrow_mut();
+
+    assert_eq!(0, a.next());
+}
+
+#[test]
+fn overflow_neg() {
+    let a = expr_to_var("-0").unwrap();
+    let mut a = a.borrow_mut();
+
+    assert_eq!(0, a.next());
+}

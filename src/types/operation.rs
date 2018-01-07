@@ -5,6 +5,8 @@ use rand::Rng;
 use rvs_parser::ast;
 use model::{Expr, ExprData};
 
+use std::num::Wrapping;
+
 #[derive(Clone)]
 pub struct Binary {
     data: ExprData,
@@ -36,7 +38,8 @@ impl Binary {
 
 impl Expr for Binary {
     fn next(&mut self, rng: &mut Rng) -> u32 {
-        let (l, r) = (self.operands.0.next(rng), self.operands.1.next(rng));
+        let l = self.operands.0.next(rng);
+        let r = self.operands.1.next(rng);
 
         self.done.0 |= self.operands.0.done();
         self.done.1 |= self.operands.1.done();
@@ -46,11 +49,11 @@ impl Expr for Binary {
             ast::BinaryOpcode::Or => l | r,
             ast::BinaryOpcode::Xor => l ^ r,
             ast::BinaryOpcode::And => l & r,
-            ast::BinaryOpcode::Shl => l << r,
-            ast::BinaryOpcode::Shr => l >> r,
-            ast::BinaryOpcode::Add => l + r,
-            ast::BinaryOpcode::Sub => l - r,
-            ast::BinaryOpcode::Mul => l * r,
+            ast::BinaryOpcode::Shl => (Wrapping(l) << (r as usize)).0,
+            ast::BinaryOpcode::Shr => (Wrapping(l) >> (r as usize)).0,
+            ast::BinaryOpcode::Add => (Wrapping(l) + Wrapping(r)).0,
+            ast::BinaryOpcode::Sub => (Wrapping(l) - Wrapping(r)).0,
+            ast::BinaryOpcode::Mul => (Wrapping(l) * Wrapping(r)).0,
             ast::BinaryOpcode::Div => l / r,
             ast::BinaryOpcode::Mod => l % r,
         };
@@ -96,7 +99,7 @@ impl Expr for Unary {
 
         self.data.prev = match self.operation {
             ast::UnaryOpcode::Inv => !operand,
-            ast::UnaryOpcode::Neg => !operand + 1,
+            ast::UnaryOpcode::Neg => (Wrapping(!operand) + Wrapping(1)).0,
         };
 
         self.data.prev
