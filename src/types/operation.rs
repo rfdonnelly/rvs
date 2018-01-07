@@ -1,10 +1,8 @@
-use std::fmt;
-use std::fmt::Write;
-use rand::Rng;
-
-use rvs_parser::ast;
 use model::{Expr, ExprData};
+use rvs_parser::ast;
 
+use rand::Rng;
+use std::fmt::{self, Write};
 use std::num::Wrapping;
 
 #[derive(Clone)]
