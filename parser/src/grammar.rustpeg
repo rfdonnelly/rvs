@@ -108,6 +108,8 @@ function -> Box<Node>
     / unique
     / weighted_sample
     / sequence
+    / done
+    / once
 
 expr -> Box<Node>
     = binary_expr
@@ -255,6 +257,16 @@ weighted_sample -> Box<Node>
                 a
             )
         )
+    }
+
+done -> Box<Node>
+    = "Done(" _ a:expr _ ")" {
+        Box::new(Node::Function(Function::Done, vec![a]))
+    }
+
+once -> Box<Node>
+    = "Once(" _ a:expr _ ")" {
+        Box::new(Node::Function(Function::Once, vec![a]))
     }
 
 // From: https://github.com/kevinmehall/rust-peg/blob/cc6a3cdebfafc670a9dffb0422709ff6d85d1207/src/grammar.rustpeg

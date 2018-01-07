@@ -98,9 +98,9 @@ be dual licensed as above, without any additional terms or conditions.
       * [x] Copy - Returns a copy of a variable. Syntax: `<identifier>.copy`
       * [x] Prev - Returns the last value of a variable. Syntax:
             `<identifier>.prev`
-      * [ ] Done - Forces the sub expression to indicate done on every next.
+      * [x] Done - Forces the sub expression to indicate done on every next.
             Syntax: `<expr>.done`
-      * [ ] Once - Forces the sub expression to be evaluated once. Syntax:
+      * [x] Once - Forces the sub expression to be evaluated once. Syntax:
             `<expr>.once`
       * [x] Expand - Returns all evaluations of the expression until done.
             Syntax: `Expand(<expr>)` OR `Expand(<expr>, <count-expr>)`

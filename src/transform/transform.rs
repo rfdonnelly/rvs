@@ -19,6 +19,8 @@ use types::{
     WeightedSample,
     Next,
     Prev,
+    Done,
+    Once,
 };
 use error::{
     TransformError,
@@ -309,6 +311,14 @@ impl Transform {
             ast::Function::Expand => {
                 return Err(TransformError::new(format!(
                             "Expand() must be inside Sample()")));
+            }
+            ast::Function::Done => {
+                let expr = self.transform_expr(model, rng, &*args[0])?;
+                Ok(Box::new(Done::new(expr)))
+            }
+            ast::Function::Once => {
+                let expr = self.transform_expr(model, rng, &*args[0])?;
+                Ok(Box::new(Once::new(expr)))
             }
         }
     }

@@ -29,6 +29,8 @@ pub enum Function {
     Unique,
     WeightedSample,
     Expand,
+    Done,
+    Once,
 }
 
 #[derive(Debug)]
