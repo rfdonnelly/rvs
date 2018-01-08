@@ -1,6 +1,6 @@
 [package]
 name = "rvs"
-version = "0.1.0"
+version = "0.2.0"
 authors = ["Rob Donnelly <rfdonnelly@gmail.com>"]
 description = "A library for defining and evaluating random variables using a simple DSL"
 readme = "README.md"
@@ -9,7 +9,7 @@ repository = "https://github.com/rfdonnelly/rvs"
 keywords = ["random", "c-api", "dsl"]
 
 [dependencies]
-rvs-parser = { version = "0.1", path = "parser" }
+rvs-parser = { version = "0.2", path = "parser" }
 rand = "0.4"
 linked-hash-map = "0.5"
 
