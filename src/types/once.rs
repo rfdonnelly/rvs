@@ -1,6 +1,6 @@
+use transform::CrateRng;
 use model::{Expr, ExprData};
 
-use rand::Rng;
 use std::fmt;
 
 #[derive(Clone)]
@@ -22,7 +22,7 @@ impl Once {
 }
 
 impl Expr for Once {
-    fn next(&mut self, rng: &mut Rng) -> u32 {
+    fn next(&mut self, rng: &mut CrateRng) -> u32 {
         if !self.data.done {
             self.data.prev = self.expr.next(rng);
         }

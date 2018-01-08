@@ -1,20 +1,20 @@
 use super::expr::Expr;
+use transform::CrateRng;
 
-use rand::Rng;
 use std::fmt;
 use std::rc::{Rc, Weak};
 use std::cell::RefCell;
 
 pub struct Variable {
     expr: Box<Expr>,
-    rng: Box<Rng>,
+    rng: CrateRng,
 }
 
 pub type VariableRef = Rc<RefCell<Box<Variable>>>;
 pub type VariableWeak = Weak<RefCell<Box<Variable>>>;
 
 impl Variable {
-    pub fn new(expr: Box<Expr>, rng: Box<Rng>) -> Variable {
+    pub fn new(expr: Box<Expr>, rng: CrateRng) -> Variable {
         Variable {
             expr,
             rng,

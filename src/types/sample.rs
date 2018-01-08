@@ -1,10 +1,8 @@
 use std::fmt;
 use rand::Rng;
-use rand::distributions::Range;
-use rand::distributions::range::RangeInt;
-use rand::distributions::Distribution;
-use rand::sequences::Shuffle;
+use rand::distributions::{Range, Sample as RandSample};
 
+use transform::CrateRng;
 use model::{Expr, ExprData};
 
 #[derive(Clone)]
@@ -12,7 +10,7 @@ pub struct Sample {
     data: ExprData,
     children: Vec<Box<Expr>>,
     current_child: Option<usize>,
-    range: Range<RangeInt<usize>>,
+    range: Range<usize>,
 }
 
 impl Sample {
@@ -30,7 +28,7 @@ impl Sample {
 }
 
 impl Expr for Sample {
-    fn next(&mut self, rng: &mut Rng) -> u32 {
+    fn next(&mut self, rng: &mut CrateRng) -> u32 {
         let index = match self.current_child {
             Some(index) => index,
             None => self.range.sample(rng),
@@ -70,9 +68,9 @@ pub struct Unique {
 }
 
 impl Unique {
-    pub fn new(children: Vec<Box<Expr>>, rng: &mut Rng) -> Unique {
+    pub fn new(children: Vec<Box<Expr>>, rng: &mut CrateRng) -> Unique {
         let mut visit_order: Vec<usize> = (0..children.len()).collect();
-        visit_order[..].shuffle(rng);
+        rng.shuffle(&mut visit_order);
 
         Unique {
             data: ExprData {
@@ -87,7 +85,7 @@ impl Unique {
 }
 
 impl Expr for Unique {
-    fn next(&mut self, rng: &mut Rng) -> u32 {
+    fn next(&mut self, rng: &mut CrateRng) -> u32 {
         let index = self.visit_order[self.current_child];
         self.data.prev = self.children[index].next(rng);
 
@@ -96,7 +94,7 @@ impl Expr for Unique {
             if self.current_child == self.children.len() {
                 self.current_child = 0;
                 self.data.done = true;
-                self.visit_order[..].shuffle(rng);
+                rng.shuffle(&mut self.visit_order);
             }
         } else {
             self.data.done = false;

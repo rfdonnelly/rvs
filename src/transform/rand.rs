@@ -1,12 +1,12 @@
-use rand::{
-    Rng,
-    SeedableRng,
-    Sample,
-};
-use rand::prng::XorShiftRng;
+use rand::{self, Rng, SeedableRng};
+
+/// The RNG type used by this crate.
+///
+/// Exists as a type alias to make changing RNG implementation easier.
+pub type CrateRng = rand::XorShiftRng;
 
 #[derive(Clone)]
-pub struct Seed([u8; 16]);
+pub struct Seed([u32; 4]);
 
 impl Seed {
     /// Generates a 128-bit seed from a 32-bit seed
@@ -21,7 +21,7 @@ impl Seed {
     ///
     ///    This is done by seeding an Rng with the LQS then using the Rng to generate the HQS.
     pub fn from_u32(seed: u32) -> Seed {
-        let mut rng = XorShiftRng::from_seed(Seed::from_u32_array([
+        let mut rng = CrateRng::from_seed(Seed::from_u32_array([
             seed ^ 0xa5a5_a5a5,
             seed ^ 0x5a5a_5a5a,
             seed ^ 0x5555_5555,
@@ -32,28 +32,11 @@ impl Seed {
     }
 
     pub fn from_u32_array(x: [u32; 4]) -> Seed {
-        Seed([
-             (x[0] >>  0) as u8,
-             (x[0] >>  8) as u8,
-             (x[0] >> 16) as u8,
-             (x[0] >> 24) as u8,
-             (x[1] >>  0) as u8,
-             (x[1] >>  8) as u8,
-             (x[1] >> 16) as u8,
-             (x[1] >> 24) as u8,
-             (x[2] >>  0) as u8,
-             (x[2] >>  8) as u8,
-             (x[2] >> 16) as u8,
-             (x[2] >> 24) as u8,
-             (x[3] >>  0) as u8,
-             (x[3] >>  8) as u8,
-             (x[3] >> 16) as u8,
-             (x[3] >> 24) as u8,
-        ])
+        Seed(x)
     }
 
-    pub fn to_rng(&self) -> Box<Rng> {
-        Box::new(XorShiftRng::from_seed(self.0))
+    pub fn to_rng(&self) -> CrateRng {
+        CrateRng::from_seed(self.0)
     }
 }
 

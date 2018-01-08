@@ -1,7 +1,7 @@
-use std::fmt;
-use rand::Rng;
-
+use transform::CrateRng;
 use model::{Expr, ExprData};
+
+use std::fmt;
 
 #[derive(Clone)]
 pub struct Value {
@@ -20,7 +20,7 @@ impl Value {
 }
 
 impl Expr for Value {
-    fn next(&mut self, _rng: &mut Rng) -> u32 {
+    fn next(&mut self, _rng: &mut CrateRng) -> u32 {
         self.data.done = true;
 
         self.data.prev

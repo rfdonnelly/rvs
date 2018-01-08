@@ -1,4 +1,4 @@
-use super::seed::Seed;
+use super::rand::{Seed, CrateRng};
 use super::enumeration::Enum;
 
 use model::{
@@ -29,7 +29,6 @@ use error::{
 
 use rvs_parser::ast;
 
-use rand::Rng;
 use linked_hash_map::LinkedHashMap;
 use std::rc::Rc;
 use std::cell::RefCell;
@@ -124,7 +123,7 @@ impl Transform {
     fn transform_expr(
         &self,
         model: &Model,
-        rng: &mut Rng,
+        rng: &mut CrateRng,
         node: &ast::Node
     ) -> TransformResult<Box<Expr>> {
         match *node {
@@ -208,7 +207,7 @@ impl Transform {
     fn transform_args(
         &self,
         model: &Model,
-        rng: &mut Rng,
+        rng: &mut CrateRng,
         args: &Vec<Box<ast::Node>>
     ) -> TransformResult<Vec<Box<Expr>>> {
         let mut arg_exprs: Vec<Box<Expr>> = Vec::new();
@@ -222,7 +221,7 @@ impl Transform {
     fn transform_type(
         &self,
         model: &Model,
-        rng: &mut Rng,
+        rng: &mut CrateRng,
         typ: &ast::Type,
         args: &Vec<Box<ast::Node>>
     ) -> TransformResult<Box<Expr>> {

@@ -1,7 +1,7 @@
+use transform::CrateRng;
 use model::{Expr, ExprData};
 use rvs_parser::ast;
 
-use rand::Rng;
 use std::fmt::{self, Write};
 use std::num::Wrapping;
 
@@ -35,7 +35,7 @@ impl Binary {
 }
 
 impl Expr for Binary {
-    fn next(&mut self, rng: &mut Rng) -> u32 {
+    fn next(&mut self, rng: &mut CrateRng) -> u32 {
         let l = self.operands.0.next(rng);
         let r = self.operands.1.next(rng);
 
@@ -90,7 +90,7 @@ impl Unary {
 }
 
 impl Expr for Unary {
-    fn next(&mut self, rng: &mut Rng) -> u32 {
+    fn next(&mut self, rng: &mut CrateRng) -> u32 {
         let operand = self.operand.next(rng);
 
         self.data.done = self.operand.done();
