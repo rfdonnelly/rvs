@@ -77,11 +77,11 @@ number -> Box<Node>
 
 atom -> Box<Node>
     = "(" _ v:expr _ ")" { v }
-    / unary_expr
-    / number
-    / function
-    / enum_item_inst
-    / variable_inst
+    / #quiet<unary_expr> / #expected("unary operator")
+    / #quiet<number> / #expected("number")
+    / #quiet<function> / #expected("function")
+    / #quiet<enum_item_inst> / #expected("enum item")
+    / #quiet<variable_inst> / #expected("variable")
 
 variable_inst -> Box<Node>
     = a:identifier b:variable_method_call? {
