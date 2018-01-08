@@ -1,4 +1,5 @@
-use rand::Rng;
+use transform::CrateRng;
+
 use std::fmt;
 
 #[derive(Clone)]
@@ -8,7 +9,7 @@ pub struct ExprData {
 }
 
 pub trait Expr: fmt::Display + ExprClone {
-    fn next(&mut self, rng: &mut Rng) -> u32;
+    fn next(&mut self, rng: &mut CrateRng) -> u32;
 
     fn prev(&self) -> u32 {
         self.data().prev

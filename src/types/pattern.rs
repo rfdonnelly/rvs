@@ -1,6 +1,6 @@
 use std::fmt;
-use rand::Rng;
 
+use transform::CrateRng;
 use model::{Expr, ExprData};
 
 #[derive(Clone)]
@@ -24,7 +24,7 @@ impl Pattern {
 }
 
 impl Expr for Pattern {
-    fn next(&mut self, rng: &mut Rng) -> u32 {
+    fn next(&mut self, rng: &mut CrateRng) -> u32 {
         self.data.prev = self.children[self.current_child].next(rng);
 
         if self.children[self.current_child].done() {

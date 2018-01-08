@@ -1,9 +1,9 @@
 use std::fmt;
-use rand::Rng;
 use rand::distributions::Range as RndRange;
 use rand::distributions::range::RangeInt;
 use rand::distributions::Distribution;
 
+use transform::CrateRng;
 use model::{Expr, ExprData};
 
 #[derive(Clone)]
@@ -35,7 +35,7 @@ impl Range {
 }
 
 impl Expr for Range {
-    fn next(&mut self, rng: &mut Rng) -> u32 {
+    fn next(&mut self, rng: &mut CrateRng) -> u32 {
         self.data.prev = self.range.sample(rng);
         self.data.done = true;
 

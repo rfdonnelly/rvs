@@ -1,9 +1,13 @@
 use rand::{
-    Rng,
+    self,
     SeedableRng,
     Sample,
 };
-use rand::prng::XorShiftRng;
+
+/// The RNG type used by this crate.
+///
+/// Exists as a type alias to make changing RNG implementation easier.
+pub type CrateRng = rand::prng::XorShiftRng;
 
 #[derive(Clone)]
 pub struct Seed([u8; 16]);
@@ -21,7 +25,7 @@ impl Seed {
     ///
     ///    This is done by seeding an Rng with the LQS then using the Rng to generate the HQS.
     pub fn from_u32(seed: u32) -> Seed {
-        let mut rng = XorShiftRng::from_seed(Seed::from_u32_array([
+        let mut rng = CrateRng::from_seed(Seed::from_u32_array([
             seed ^ 0xa5a5_a5a5,
             seed ^ 0x5a5a_5a5a,
             seed ^ 0x5555_5555,
@@ -52,8 +56,8 @@ impl Seed {
         ])
     }
 
-    pub fn to_rng(&self) -> Box<Rng> {
-        Box::new(XorShiftRng::from_seed(self.0))
+    pub fn to_rng(&self) -> CrateRng {
+        CrateRng::from_seed(self.0)
     }
 }
 

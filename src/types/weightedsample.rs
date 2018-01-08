@@ -1,10 +1,9 @@
-use std::fmt;
-use rand::Rng;
-use rand::sequences::Weighted;
-use rand::sequences::WeightedChoice;
-use rand::Distribution;
-
+use transform::CrateRng;
 use model::{Expr, ExprData};
+
+use rand::sequences::{Weighted, WeightedChoice};
+use rand::Distribution;
+use std::fmt;
 
 #[derive(Clone)]
 pub struct WeightedSample {
@@ -36,7 +35,7 @@ impl WeightedSample {
 }
 
 impl Expr for WeightedSample {
-    fn next(&mut self, rng: &mut Rng) -> u32 {
+    fn next(&mut self, rng: &mut CrateRng) -> u32 {
         let index = match self.current_child {
             Some(index) => index,
             None => self.weighted_choice.sample(rng),

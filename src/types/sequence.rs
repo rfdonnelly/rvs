@@ -1,10 +1,9 @@
-use std::fmt;
-use rand::Rng;
-
+use transform::CrateRng;
 use model::{Expr, ExprData};
 use error::{TransformResult, TransformError};
 
 use std::num::Wrapping;
+use std::fmt;
 
 #[derive(Clone)]
 pub struct Sequence {
@@ -51,7 +50,7 @@ impl Sequence {
 }
 
 impl Expr for Sequence {
-    fn next(&mut self, _rng: &mut Rng) -> u32 {
+    fn next(&mut self, _rng: &mut CrateRng) -> u32 {
         self.data.prev = self.next.0;
         self.data.done = false;
 

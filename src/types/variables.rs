@@ -1,6 +1,6 @@
 use std::fmt;
-use rand::Rng;
 
+use transform::CrateRng;
 use model::{Expr, ExprData, VariableWeak};
 
 #[derive(Clone)]
@@ -34,7 +34,7 @@ impl Expr for Next {
     /// # Errors
     ///
     /// If Weak pointer cannot be upgraded, next() will return previous value.
-    fn next(&mut self, _rng: &mut Rng) -> u32 {
+    fn next(&mut self, _rng: &mut CrateRng) -> u32 {
         if let Some(variable) = self.variable.upgrade() {
             self.data.prev = variable.borrow_mut().next();
             self.data.done = variable.borrow().done();
@@ -71,7 +71,7 @@ impl Expr for Prev {
     /// # Errors
     ///
     /// If Weak pointer cannot be upgraded, next() will return previous value.
-    fn next(&mut self, _rng: &mut Rng) -> u32 {
+    fn next(&mut self, _rng: &mut CrateRng) -> u32 {
         if let Some(variable) = self.variable.upgrade() {
             self.data.prev = variable.borrow().prev();
             self.data.done = variable.borrow().done();
