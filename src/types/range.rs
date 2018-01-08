@@ -1,5 +1,7 @@
 use std::fmt;
-use rand::distributions::Range as RndRange;
+use std::u32;
+use rand::{Rng, Sample};
+use rand::distributions::Range as RandRange;
 use rand::distributions::range::RangeInt;
 use rand::distributions::Distribution;
 
@@ -11,7 +13,74 @@ pub struct Range {
     data: ExprData,
     l: u32,
     r: u32,
-    range: RndRange<RangeInt<u32>>,
+    range: RandRangeInclusive,
+}
+
+#[derive(Clone)]
+pub struct RandRangeInclusive {
+    range: RandRange<RangeInt<u32>>,
+    use_range: bool,
+    offset: bool,
+}
+
+impl RandRangeInclusive {
+    fn new(low: u32, high: u32) -> RandRangeInclusive {
+        // Implement the inclusive range [x, y] using the exlusive range [x, y + 1) by handling
+        // three different cases:
+        //
+        // * The range [u32::MIN, u32::MAX]
+        //
+        //   Cannot use rand::distributions::Range.  Use RNG directly.
+        //
+        //   [x, y] => [x, y]
+        //
+        // * The range [x, u32::MAX]
+        //
+        //   Can use rand::distributions::Range but must adjust the range down artifically, then
+        //   re-adjust up after sampling.
+        //
+        //   [x, y] => [x - 1, y) + 1
+        //
+        // * All other ranges
+        //
+        //   Use rand::distributions::Range normally.
+        //
+        //   [x, y] => [x, y + 1)
+        let (x, y, use_range, offset) = match (low, high) {
+            // Sample directly from RNG w/o Range
+            (u32::MIN, u32::MAX) => (u32::MIN, u32::MAX, false, false),
+            // Sample with Range + offset
+            (x, u32::MAX) => (x - 1, u32::MAX, true, true),
+            // Sample with Range normally
+            (x, y) => (x, y + 1, true, false)
+        };
+
+        RandRangeInclusive {
+            offset: offset,
+            use_range: use_range,
+            range: RandRange::new(x, y),
+        }
+    }
+}
+
+impl Distribution<u32> for RandRangeInclusive {
+    fn sample<R: Rng+?Sized>(&self, rng: &mut R) -> u32 {
+        // Should never see this case.  Could cause a panic due to overflow.
+        assert!(!(self.use_range == false && self.offset == true));
+
+        let sample =
+            if self.use_range {
+                self.range.sample(rng)
+            } else {
+                rng.gen()
+            };
+
+        if self.offset {
+            sample + 1
+        } else {
+            sample
+        }
+    }
 }
 
 impl Range {
@@ -29,7 +98,7 @@ impl Range {
             },
             l: l,
             r: r,
-            range: RndRange::new_inclusive(limits.0, limits.1),
+            range: RandRangeInclusive::new(limits.0, limits.1)
         }
     }
 }
@@ -88,8 +157,8 @@ mod tests {
             use std::collections::HashMap;
 
             let mut variable = Range::new(
-                ::std::u32::MAX - 1,
-                ::std::u32::MAX
+                u32::MAX - 1,
+                u32::MAX
             );
 
             let mut rng = Seed::from_u32(0).to_rng();
@@ -99,11 +168,11 @@ mod tests {
                 let value = variable.next(&mut rng);
                 let entry = values.entry(value).or_insert(0);
                 *entry += 1;
-                assert!(value == ::std::u32::MAX - 1 || value == ::std::u32::MAX);
+                assert!(value == u32::MAX - 1 || value == u32::MAX);
             }
 
-            assert!(values[&(::std::u32::MAX - 1)] > 0);
-            assert!(values[&::std::u32::MAX] > 0);
+            assert!(values[&(u32::MAX - 1)] > 0);
+            assert!(values[&u32::MAX] > 0);
         }
 
         #[test]
@@ -112,8 +181,8 @@ mod tests {
             use std::collections::HashMap;
 
             let mut variable = Range::new(
-                ::std::u32::MIN,
-                ::std::u32::MAX
+                u32::MIN,
+                u32::MAX
             );
 
             let mut rng = Seed::from_u32(0).to_rng();
@@ -121,14 +190,14 @@ mod tests {
 
             for _ in 0u64..0x2_0000_0000u64 {
                 let value = variable.next(&mut rng);
-                if value == ::std::u32::MIN || value == ::std::u32::MAX {
+                if value == u32::MIN || value == u32::MAX {
                     let entry = values.entry(value).or_insert(0);
                     *entry += 1;
                 }
             }
 
-            assert!(values[&::std::u32::MIN] > 0);
-            assert!(values[&::std::u32::MAX] > 0);
+            assert!(values[&u32::MIN] > 0);
+            assert!(values[&u32::MAX] > 0);
         }
     }
 }
