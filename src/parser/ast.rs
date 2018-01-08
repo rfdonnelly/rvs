@@ -71,7 +71,7 @@ impl Ast {
         }
     }
 
-    pub fn get(&self) -> &Vec<Box<ast::Node>> {
+    pub fn get(&self) -> &[Box<ast::Node>] {
         &self.nodes
     }
 }

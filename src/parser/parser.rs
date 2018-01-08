@@ -33,7 +33,7 @@ impl Parser {
         Ok(())
     }
 
-    pub fn ast(&self) -> &Vec<Box<ast::Node>> {
+    pub fn ast(&self) -> &[Box<ast::Node>] {
         self.ast.get()
     }
 }

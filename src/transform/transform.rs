@@ -50,7 +50,7 @@ impl Transform {
     pub fn transform(
         &mut self,
         model: &mut Model,
-        nodes: &Vec<Box<ast::Node>>
+        nodes: &[Box<ast::Node>]
     ) -> TransformResult<()> {
         for node in nodes {
             match **node {
@@ -86,7 +86,7 @@ impl Transform {
     fn transform_enum(
         &mut self,
         name: &str,
-        items: &Vec<Box<ast::Node>>
+        items: &[Box<ast::Node>]
     ) -> TransformResult<()> {
         let mut enum_items_map = LinkedHashMap::new();
 
@@ -208,7 +208,7 @@ impl Transform {
         &self,
         model: &Model,
         rng: &mut CrateRng,
-        args: &Vec<Box<ast::Node>>
+        args: &[Box<ast::Node>]
     ) -> TransformResult<Vec<Box<Expr>>> {
         let mut arg_exprs: Vec<Box<Expr>> = Vec::new();
         for arg in args {
@@ -223,7 +223,7 @@ impl Transform {
         model: &Model,
         rng: &mut CrateRng,
         typ: &ast::Type,
-        args: &Vec<Box<ast::Node>>
+        args: &[Box<ast::Node>]
     ) -> TransformResult<Box<Expr>> {
         match *typ {
             ast::Type::Pattern => {
