@@ -1,9 +1,9 @@
 use std::fmt;
 use std::u32;
-use rand::{Rng, Sample};
+use rand::Rng;
 use rand::distributions::Range as RandRange;
-use rand::distributions::range::RangeInt;
-use rand::distributions::Distribution;
+use rand::distributions::Sample;
+use rand::distributions::IndependentSample;
 
 use transform::CrateRng;
 use model::{Expr, ExprData};
@@ -18,7 +18,7 @@ pub struct Range {
 
 #[derive(Clone)]
 pub struct RandRangeInclusive {
-    range: RandRange<RangeInt<u32>>,
+    range: RandRange<u32>,
     use_range: bool,
     offset: bool,
 }
@@ -63,14 +63,14 @@ impl RandRangeInclusive {
     }
 }
 
-impl Distribution<u32> for RandRangeInclusive {
-    fn sample<R: Rng+?Sized>(&self, rng: &mut R) -> u32 {
+impl IndependentSample<u32> for RandRangeInclusive {
+    fn ind_sample<R: Rng>(&self, rng: &mut R) -> u32 {
         // Should never see this case.  Could cause a panic due to overflow.
         assert!(!(self.use_range == false && self.offset == true));
 
         let sample =
             if self.use_range {
-                self.range.sample(rng)
+                self.range.ind_sample(rng)
             } else {
                 rng.gen()
             };
@@ -80,6 +80,12 @@ impl Distribution<u32> for RandRangeInclusive {
         } else {
             sample
         }
+    }
+}
+
+impl Sample<u32> for RandRangeInclusive {
+    fn sample<R: Rng>(&mut self, rng: &mut R) -> u32 {
+        self.ind_sample(rng)
     }
 }
 
@@ -148,8 +154,8 @@ mod tests {
             let num_ones = values[&1];
 
             println!("num_zeros:{} num_ones:{}", num_zeros, num_ones);
-            assert!(num_zeros > 487 && num_zeros < 513);
-            assert!(num_ones > 487 && num_ones < 513);
+            assert!(num_zeros > 450 && num_zeros < 550);
+            assert!(num_ones > 450 && num_ones < 550);
         }
 
         #[test]

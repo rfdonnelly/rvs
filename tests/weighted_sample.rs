@@ -10,15 +10,16 @@ fn distribution() {
     let a = expr_to_var("{10: 0, 90: 1}").unwrap();
     let mut a = a.borrow_mut();
 
-    let mut results: HashMap<u32, u32> = HashMap::new();
+    let mut actual: HashMap<u32, u32> = HashMap::new();
 
     for _ in 0..1000 {
-        let entry = results.entry(a.next()).or_insert(0);
+        let entry = actual.entry(a.next()).or_insert(0);
         *entry += 1;
     }
 
-    assert!(results[&0] >= 100 - 10 && results[&0] <= 100 + 10);
-    assert!(results[&1] >= 900 - 10 && results[&1] <= 900 + 10);
+    println!("expected:{{0: 100, 1: 900}} actual:{:?}", actual);
+    assert!(actual[&0] >= 100 - 20 && actual[&0] <= 100 + 20);
+    assert!(actual[&1] >= 900 - 20 && actual[&1] <= 900 + 20);
 }
 
 #[test]

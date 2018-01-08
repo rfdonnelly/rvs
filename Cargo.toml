@@ -10,7 +10,7 @@ keywords = ["random", "c-api", "dsl"]
 
 [dependencies]
 rvs-parser = { version = "0.1", path = "parser" }
-rand = { git = "https://github.com/dhardy/rand" }
+rand = "0.4"
 linked-hash-map = "0.5"
 
 [workspace]

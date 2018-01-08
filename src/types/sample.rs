@@ -1,8 +1,6 @@
 use std::fmt;
-use rand::distributions::Range;
-use rand::distributions::range::RangeInt;
-use rand::distributions::Distribution;
-use rand::sequences::Shuffle;
+use rand::Rng;
+use rand::distributions::{Range, Sample as RandSample};
 
 use transform::CrateRng;
 use model::{Expr, ExprData};
@@ -12,7 +10,7 @@ pub struct Sample {
     data: ExprData,
     children: Vec<Box<Expr>>,
     current_child: Option<usize>,
-    range: Range<RangeInt<usize>>,
+    range: Range<usize>,
 }
 
 impl Sample {
@@ -72,7 +70,7 @@ pub struct Unique {
 impl Unique {
     pub fn new(children: Vec<Box<Expr>>, rng: &mut CrateRng) -> Unique {
         let mut visit_order: Vec<usize> = (0..children.len()).collect();
-        visit_order[..].shuffle(rng);
+        rng.shuffle(&mut visit_order);
 
         Unique {
             data: ExprData {
@@ -96,7 +94,7 @@ impl Expr for Unique {
             if self.current_child == self.children.len() {
                 self.current_child = 0;
                 self.data.done = true;
-                self.visit_order[..].shuffle(rng);
+                rng.shuffle(&mut self.visit_order);
             }
         } else {
             self.data.done = false;
