@@ -3,6 +3,7 @@ name = "rvs-repl"
 version = "0.1.0"
 authors = ["Rob Donnelly <rfdonnelly@gmail.com>"]
 description = "REPL for Rvs - A library for defining and evaluating random variables using a simple DSL"
+readme = "../README.md"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/rfdonnelly/rvs"
 keywords = ["random", "c-api", "dsl"]

@@ -3,6 +3,7 @@ name = "rvs-parser"
 version = "0.1.0"
 authors = ["Rob Donnelly <rfdonnelly@gmail.com>"]
 build = "build.rs"
+readme = "../README.md"
 description = "Parser for Rvs - A library for defining and evaluating random variables using a simple DSL"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/rfdonnelly/rvs"
