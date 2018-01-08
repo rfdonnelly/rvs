@@ -160,6 +160,6 @@ be dual licensed as above, without any additional terms or conditions.
   * [x] Interactive binary - rvs-repl
   * [x] C-API - rvs-capi
 * [ ] Implement the `Iterator` trait
-* [ ] Use released version of rand
+* [x] Use released version of rand
 * [x] Use monomorphized Rng instead of a trait object.  Can make generic or a type.
 * [ ] Add source information to transform errors
