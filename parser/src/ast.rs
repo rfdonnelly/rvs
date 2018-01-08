@@ -21,7 +21,7 @@ pub enum UnaryOpcode {
 }
 
 #[derive(Debug)]
-pub enum Function {
+pub enum Type {
     Pattern,
     Sequence,
     Range,
@@ -50,7 +50,7 @@ pub enum Node {
     EnumItem(String, Option<Box<Node>>),
     EnumInst(String),
     EnumItemInst(String, String),
-    Function(Function, Vec<Box<Node>>),
+    Type(Type, Vec<Box<Node>>),
     WeightedPair(u32, Box<Node>),
     VariableInst(String, VariableMethod),
 }

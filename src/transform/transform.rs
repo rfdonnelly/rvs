@@ -128,8 +128,8 @@ impl Transform {
         node: &ast::Node
     ) -> TransformResult<Box<Expr>> {
         match *node {
-            ast::Node::Function(ref function, ref args) => {
-                self.transform_function(model, rng, function, args)
+            ast::Node::Type(ref typ, ref args) => {
+                self.transform_type(model, rng, typ, args)
             },
             ast::Node::Number(x) => {
                 Ok(Box::new(Value::new(x)))
@@ -171,7 +171,7 @@ impl Transform {
             },
             _ => {
                 Err(TransformError::new(format!(
-                    "Expected (Function|Number|UnaryOperation|BinaryOperation|EnumItemInst) but found {:?}",
+                    "Expected (Type|Number|UnaryOperation|BinaryOperation|EnumItemInst) but found {:?}",
                     *node)))
             }
         }
@@ -219,25 +219,25 @@ impl Transform {
         Ok(arg_exprs)
     }
 
-    fn transform_function(
+    fn transform_type(
         &self,
         model: &Model,
         rng: &mut Rng,
-        function: &ast::Function,
+        typ: &ast::Type,
         args: &Vec<Box<ast::Node>>
     ) -> TransformResult<Box<Expr>> {
-        match *function {
-            ast::Function::Pattern => {
+        match *typ {
+            ast::Type::Pattern => {
                 Ok(Box::new(Pattern::new(self.transform_args(model, rng, args)?)))
             }
-            ast::Function::Sequence => {
+            ast::Type::Sequence => {
                 let args = self.transform_args(model, rng, args)?.iter_mut().map(|arg| {
                     arg.next(rng)
                 }).collect();
 
                 Ok(Box::new(Sequence::new(args)?))
             }
-            ast::Function::Range => {
+            ast::Type::Range => {
                 let l = self.transform_expr(model, rng, &args[0])?.next(rng);
                 let r = self.transform_expr(model, rng, &args[1])?.next(rng);
 
@@ -251,8 +251,8 @@ impl Transform {
                     Ok(Box::new(Range::new(l, r)))
                 }
             }
-            ast::Function::Sample
-            | ast::Function::Unique => {
+            ast::Type::Sample
+            | ast::Type::Unique => {
                 let mut children: Vec<Box<Expr>> = Vec::new();
                 for arg in args.iter() {
                     match **arg {
@@ -269,7 +269,7 @@ impl Transform {
                                             )));
                             }
                         }
-                        ast::Node::Function(ast::Function::Expand, ref args) => {
+                        ast::Node::Type(ast::Type::Expand, ref args) => {
                             let mut expr = self.transform_expr(model, rng, &args[0])?;
 
                             if args.len() == 1 {
@@ -289,13 +289,13 @@ impl Transform {
                     }
                 }
 
-                if let ast::Function::Sample = *function {
+                if let ast::Type::Sample = *typ {
                     Ok(Box::new(Sample::new(children)))
                 } else {
                     Ok(Box::new(Unique::new(children, rng)))
                 }
             }
-            ast::Function::WeightedSample => {
+            ast::Type::WeightedSample => {
                 let mut pairs: Vec<(u32, Box<Expr>)> = Vec::new();
                 for arg in args {
                     if let ast::Node::WeightedPair(ref weight, ref node) = **arg {
@@ -308,15 +308,15 @@ impl Transform {
 
                 Ok(Box::new(WeightedSample::new(pairs)))
             }
-            ast::Function::Expand => {
+            ast::Type::Expand => {
                 return Err(TransformError::new(format!(
                             "Expand() must be inside Sample()")));
             }
-            ast::Function::Done => {
+            ast::Type::Done => {
                 let expr = self.transform_expr(model, rng, &*args[0])?;
                 Ok(Box::new(Done::new(expr)))
             }
-            ast::Function::Once => {
+            ast::Type::Once => {
                 let expr = self.transform_expr(model, rng, &*args[0])?;
                 Ok(Box::new(Once::new(expr)))
             }

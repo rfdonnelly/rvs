@@ -9,7 +9,7 @@ use sourcepaths::SourcePaths;
 use ast::VariableMethod;
 use ast::BinaryOpcode;
 use ast::UnaryOpcode;
-use ast::Function;
+use ast::Type;
 use ast::Node;
 use ast::Item;
 
@@ -79,7 +79,7 @@ atom -> Box<Node>
     = "(" _ v:expr _ ")" { v }
     / #quiet<unary_expr> / #expected("unary operator")
     / #quiet<number> / #expected("number")
-    / #quiet<function> / #expected("function")
+    / #quiet<typ> / #expected("type")
     / #quiet<enum_item_inst> / #expected("enum item")
     / #quiet<variable_inst> / #expected("variable")
 
@@ -101,7 +101,7 @@ variable_method -> VariableMethod
     = "prev" { VariableMethod::Prev }
     / "copy" { VariableMethod::Copy }
 
-function -> Box<Node>
+typ -> Box<Node>
     = pattern
     / range
     / sample
@@ -200,8 +200,8 @@ enum_inst -> Box<Node>
 pattern -> Box<Node>
     = "Pattern(" _ a:expr ++ ("," _) optional_trailing_comma _ ")" {
         Box::new(
-            Node::Function(
-                Function::Pattern,
+            Node::Type(
+                Type::Pattern,
                 a
             )
         )
@@ -209,19 +209,19 @@ pattern -> Box<Node>
 
 sequence -> Box<Node>
     = "Sequence(" _ a:expr **<1, 3> ("," _) optional_trailing_comma _ ")" {
-        Box::new(Node::Function(Function::Sequence, a))
+        Box::new(Node::Type(Type::Sequence, a))
     }
 
 expand -> Box<Node>
     = "Expand(" _ a:expr **<1, 2> ("," _) optional_trailing_comma _ ")"{
-        Box::new(Node::Function(Function::Expand, a))
+        Box::new(Node::Type(Type::Expand, a))
     }
 
 range -> Box<Node>
     = "[" _ a:expr **<2> ("," _) optional_trailing_comma _ "]" {
         Box::new(
-            Node::Function(
-                Function::Range,
+            Node::Type(
+                Type::Range,
                 a
             )
         )
@@ -230,8 +230,8 @@ range -> Box<Node>
 sample -> Box<Node>
     = "Sample(" _ a:(expand / expr / enum_inst) ++ ("," _) optional_trailing_comma _ ")" {
         Box::new(
-            Node::Function(
-                Function::Sample,
+            Node::Type(
+                Type::Sample,
                 a
             )
         )
@@ -239,7 +239,7 @@ sample -> Box<Node>
 
 unique -> Box<Node>
     = "Unique(" _ a:(expand / expr / enum_inst) ++ ("," _) optional_trailing_comma _ ")" {
-        Box::new(Node::Function(Function::Unique, a))
+        Box::new(Node::Type(Type::Unique, a))
     }
 
 weighted_pair -> Box<Node>
@@ -252,8 +252,8 @@ weighted_pair -> Box<Node>
 weighted_sample -> Box<Node>
     = "{" _ a:weighted_pair ++ ("," _) optional_trailing_comma _ "}" {
         Box::new(
-            Node::Function(
-                Function::WeightedSample,
+            Node::Type(
+                Type::WeightedSample,
                 a
             )
         )
@@ -261,12 +261,12 @@ weighted_sample -> Box<Node>
 
 done -> Box<Node>
     = "Done(" _ a:expr _ ")" {
-        Box::new(Node::Function(Function::Done, vec![a]))
+        Box::new(Node::Type(Type::Done, vec![a]))
     }
 
 once -> Box<Node>
     = "Once(" _ a:expr _ ")" {
-        Box::new(Node::Function(Function::Once, vec![a]))
+        Box::new(Node::Type(Type::Once, vec![a]))
     }
 
 // From: https://github.com/kevinmehall/rust-peg/blob/cc6a3cdebfafc670a9dffb0422709ff6d85d1207/src/grammar.rustpeg

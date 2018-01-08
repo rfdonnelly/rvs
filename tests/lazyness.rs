@@ -1,7 +1,7 @@
 extern crate rvs;
 
 #[test]
-fn function_arguments() {
+fn type_arguments() {
     let model = rvs::parse(
         Default::default(),
         "b=0; a=Sequence(b); b=10;"
