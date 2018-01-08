@@ -1,9 +1,10 @@
 # Rvs
 
 [![Build Status](https://travis-ci.org/rfdonnelly/rvs.svg?branch=master)](https://travis-ci.org/rfdonnelly/rvs)
+[![Crates.io](https://img.shields.io/crates/v/rvs.svg)](https://crates.io/crates/rvs)
 
-Rvs (pronounced r-v-s) is a C API library for defining and evaluating random
-variables using a simple DSL (Domain Specific Language).
+Rvs is a C API library for defining and evaluating random variables using a
+simple DSL (Domain Specific Language).
 
 ## Examples
 
