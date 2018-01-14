@@ -82,7 +82,7 @@ atom -> Box<Node>
     / #quiet<unary_expr> / #expected("unary operator")
     / #quiet<number> / #expected("number")
     / #quiet<typ> / #expected("type")
-    / #quiet<r_enum_item> / #expected("enum item")
+    / #quiet<r_enum_member> / #expected("enum member")
     / #quiet<r_variable> / #expected("variable")
 
 r_variable -> Box<Node>
@@ -164,23 +164,23 @@ optional_trailing_comma
     = (_ "," _)?
 
 enum -> Item
-    = "enum" _ id:type_name _ "{" _ enum_items:enum_item ** ("," _) optional_trailing_comma _ "}" {
+    = "enum" _ id:type_name _ "{" _ enum_members:enum_member ** ("," _) optional_trailing_comma _ "}" {
         Item::Single(
-            Box::new(Node::Enum(id.into(), enum_items))
+            Box::new(Node::Enum(id.into(), enum_members))
         )
     }
 
 enum_assignment -> Box<Node>
     = "=" _ a:number _ { a }
 
-enum_item -> Box<Node>
+enum_member -> Box<Node>
     = a:type_name _ b:enum_assignment? {
-        Box::new(Node::EnumItem(a.into(), b))
+        Box::new(Node::EnumMember(a.into(), b))
     }
 
-r_enum_item -> Box<Node>
+r_enum_member -> Box<Node>
     = a:type_name "::" b:type_name {
-        Box::new(Node::REnumItem(a.into(), b.into()))
+        Box::new(Node::REnumMember(a.into(), b.into()))
     }
 
 r_enum -> Box<Node>

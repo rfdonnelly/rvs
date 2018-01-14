@@ -88,17 +88,17 @@ impl Transform {
         name: &str,
         items: &[Box<ast::Node>]
     ) -> TransformResult<()> {
-        let mut enum_items_map = LinkedHashMap::new();
+        let mut enum_members_map = LinkedHashMap::new();
 
         let mut next_implicit_value = 0;
 
         // FIXME change to drain()?
         for item in items {
-            if let ast::Node::EnumItem(ref name, ref value) = **item {
+            if let ast::Node::EnumMember(ref name, ref value) = **item {
                 if let Some(ref value) = *value {
                     if let ast::Node::Number(value) = **value {
                         // FIXME Check for existence
-                        enum_items_map.insert(name.to_owned(), value);
+                        enum_members_map.insert(name.to_owned(), value);
                         next_implicit_value = value + 1;
                     } else {
                         return Err(TransformError::new(format!(
@@ -106,16 +106,16 @@ impl Transform {
                                     )));
                     }
                 } else {
-                    enum_items_map.insert(name.to_owned(), next_implicit_value);
+                    enum_members_map.insert(name.to_owned(), next_implicit_value);
                     next_implicit_value += 1;
                 }
             } else {
                 return Err(TransformError::new(format!(
-                            "Expected EnumItem but found {:?}", **item
+                            "Expected EnumMember but found {:?}", **item
                             )));
             }
         }
-        self.enums.insert(name.to_owned(), Enum::new(enum_items_map));
+        self.enums.insert(name.to_owned(), Enum::new(enum_members_map));
 
         Ok(())
     }
@@ -150,7 +150,7 @@ impl Transform {
                             )
                         ))
             },
-            ast::Node::REnumItem(ref a, ref b) => {
+            ast::Node::REnumMember(ref a, ref b) => {
                 if let Some(entry) = self.enums.get(a) {
                     if let Some(entry) = entry.items.get(b) {
                         Ok(Box::new(Value::new(*entry)))
@@ -170,7 +170,7 @@ impl Transform {
             },
             _ => {
                 Err(TransformError::new(format!(
-                    "Expected (Type|Number|UnaryOperation|BinaryOperation|REnumItem) but found {:?}",
+                    "Expected (Type|Number|UnaryOperation|BinaryOperation|REnumMember) but found {:?}",
                     *node)))
             }
         }
