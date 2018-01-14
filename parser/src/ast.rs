@@ -27,7 +27,7 @@ pub enum Type {
     Range,
     Sample,
     Unique,
-    WeightedSample,
+    Weighted,
     Expand,
     Done,
     Once,
@@ -47,12 +47,12 @@ pub enum Node {
     BinaryOperation(Box<Node>, BinaryOpcode, Box<Node>),
     Variable(String, Box<Node>),
     Enum(String, Vec<Box<Node>>),
-    EnumItem(String, Option<Box<Node>>),
-    EnumInst(String),
-    EnumItemInst(String, String),
+    EnumMember(String, Option<Box<Node>>),
+    REnum(String),
+    REnumMember(String, String),
     Type(Type, Vec<Box<Node>>),
     WeightedPair(u32, Box<Node>),
-    VariableInst(String, VariableMethod),
+    RVariable(String, VariableMethod),
 }
 
 /// An abstraction above Node to implement `import`

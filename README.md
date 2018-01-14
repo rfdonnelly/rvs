@@ -115,7 +115,7 @@ be dual licensed as above, without any additional terms or conditions.
             Will not return same sub-expression until all sub-expressions have
             been returned.  Syntax: `Unique(<expr>, ...)`
             * [x] Select new sub-expression only when current sub-expression is done
-      * [x] WeightedSample - Randomly selects then returns a sub-expression
+      * [x] Weighted - Randomly selects then returns a sub-expression
             according to weight.  Syntax: `{<weight>: <expr>, ...}`
             * [x] Select new sub-expression only when current sub-expression is done
     * Misc Types

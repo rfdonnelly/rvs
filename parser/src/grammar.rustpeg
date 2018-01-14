@@ -53,20 +53,22 @@ import -> Item
         }
     }
 
-identifier -> &'input str
-    = #quiet<$([a-z_] [a-zA-Z0-9_:]*)> / #expected("identifier")
+variable_name -> &'input str
+    = #quiet<$([a-z_] [a-zA-Z0-9_:]*)> / #expected("variable name")
 
-typename -> &'input str
-    = #quiet<$([A-Z] [a-zA-Z0-9]*)> / #expected("typename")
+type_name -> &'input str
+    = #quiet<$([A-Z] [a-zA-Z0-9]*)> / #expected("type name")
 
+dec_digit = [0-9]
 dec_number -> u32
-    = s:$([0-9] [0-9_]*) {
+    = s:$(dec_digit (dec_digit / "_")*) {
         let stripped = &str::replace(s, "_", "");
         u32::from_str(stripped).unwrap()
     }
 
+hex_digit = [0-9a-fA-F]
 hex_number -> u32
-    = "0" [xX] s:$([0-9a-fA-F_]+) {
+    = "0" [xX] s:$(hex_digit (hex_digit / "_")*) {
         let stripped = &str::replace(s, "_", "");
         u32::from_str_radix(stripped, 16).unwrap()
     }
@@ -80,18 +82,18 @@ atom -> Box<Node>
     / #quiet<unary_expr> / #expected("unary operator")
     / #quiet<number> / #expected("number")
     / #quiet<typ> / #expected("type")
-    / #quiet<enum_item_inst> / #expected("enum item")
-    / #quiet<variable_inst> / #expected("variable")
+    / #quiet<r_enum_member> / #expected("enum member")
+    / #quiet<r_variable> / #expected("variable")
 
-variable_inst -> Box<Node>
-    = a:identifier b:variable_method_call? {
+r_variable -> Box<Node>
+    = a:variable_name b:variable_method_call? {
         let method = if let Some(method) = b {
             method
         } else {
             VariableMethod::Next
         };
 
-        Box::new(Node::VariableInst(a.to_owned(), method))
+        Box::new(Node::RVariable(a.to_owned(), method))
     }
 
 variable_method_call -> VariableMethod
@@ -106,7 +108,7 @@ typ -> Box<Node>
     / range
     / sample
     / unique
-    / weighted_sample
+    / weighted
     / sequence
     / done
     / once
@@ -149,12 +151,9 @@ item -> Item
     / import
 
 variable -> Item
-    = lhs:identifier _ "=" _ rhs:expr _ ";" {
+    = lhs:variable_name _ "=" _ rhs:expr _ ";" {
         Item::Single(
-            Box::new(Node::Variable(
-                lhs.into(),
-                rhs
-            ))
+            Box::new(Node::Variable(lhs.into(), rhs))
         )
     }
 
@@ -165,107 +164,77 @@ optional_trailing_comma
     = (_ "," _)?
 
 enum -> Item
-    = "enum" _ id:typename _ "{" _ enum_items:enum_item ** ("," _) optional_trailing_comma _ "}" {
+    = "enum" _ id:type_name _ "{" _ enum_members:enum_member ** ("," _) optional_trailing_comma _ "}" {
         Item::Single(
-            Box::new(Node::Enum(id.into(), enum_items))
+            Box::new(Node::Enum(id.into(), enum_members))
         )
     }
 
 enum_assignment -> Box<Node>
-    = "=" _ a:number _ {
-        a
+    = "=" _ a:number _ { a }
+
+enum_member -> Box<Node>
+    = a:type_name _ b:enum_assignment? {
+        Box::new(Node::EnumMember(a.into(), b))
     }
 
-enum_item -> Box<Node>
-    = a:typename _ b:enum_assignment? {
-        Box::new(
-            Node::EnumItem(a.into(), b)
-        )
+r_enum_member -> Box<Node>
+    = a:type_name "::" b:type_name {
+        Box::new(Node::REnumMember(a.into(), b.into()))
     }
 
-enum_item_inst -> Box<Node>
-    = a:typename "::" b:typename {
-        Box::new(
-            Node::EnumItemInst(a.into(), b.into())
-        )
-    }
-
-enum_inst -> Box<Node>
-    = a:typename {
-        Box::new(
-            Node::EnumInst(a.into())
-        )
+r_enum -> Box<Node>
+    = a:type_name {
+        Box::new(Node::REnum(a.into()))
     }
 
 pattern -> Box<Node>
-    = "Pattern(" _ a:expr ++ ("," _) optional_trailing_comma _ ")" {
-        Box::new(
-            Node::Type(
-                Type::Pattern,
-                a
-            )
-        )
+    = "Pattern" _ "(" _ a:expr ++ ("," _) optional_trailing_comma _ ")" {
+        Box::new(Node::Type(Type::Pattern, a))
     }
 
 sequence -> Box<Node>
-    = "Sequence(" _ a:expr **<1, 3> ("," _) optional_trailing_comma _ ")" {
+    = "Sequence" _ "(" _ a:expr **<1, 3> ("," _) optional_trailing_comma _ ")" {
         Box::new(Node::Type(Type::Sequence, a))
     }
 
 expand -> Box<Node>
-    = "Expand(" _ a:expr **<1, 2> ("," _) optional_trailing_comma _ ")"{
+    = "Expand" _ "(" _ a:expr **<1, 2> ("," _) optional_trailing_comma _ ")"{
         Box::new(Node::Type(Type::Expand, a))
     }
 
 range -> Box<Node>
-    = "[" _ a:expr **<2> ("," _) optional_trailing_comma _ "]" {
-        Box::new(
-            Node::Type(
-                Type::Range,
-                a
-            )
-        )
+    = "[" _ a:expr **<2> ("," _) _ "]" {
+        Box::new(Node::Type(Type::Range, a))
     }
 
 sample -> Box<Node>
-    = "Sample(" _ a:(expand / expr / enum_inst) ++ ("," _) optional_trailing_comma _ ")" {
-        Box::new(
-            Node::Type(
-                Type::Sample,
-                a
-            )
-        )
+    = "Sample" _ "(" _ a:(expand / expr / r_enum) ++ ("," _) optional_trailing_comma _ ")" {
+        Box::new(Node::Type(Type::Sample, a))
     }
 
 unique -> Box<Node>
-    = "Unique(" _ a:(expand / expr / enum_inst) ++ ("," _) optional_trailing_comma _ ")" {
+    = "Unique" _ "(" _ a:(expand / expr / r_enum) ++ ("," _) optional_trailing_comma _ ")" {
         Box::new(Node::Type(Type::Unique, a))
     }
 
 weighted_pair -> Box<Node>
     = a:dec_number _ ":" _ b:expr {
-        Box::new(
-            Node::WeightedPair(a, b)
-        )
+        Box::new(Node::WeightedPair(a, b))
     }
 
-weighted_sample -> Box<Node>
+weighted -> Box<Node>
     = "{" _ a:weighted_pair ++ ("," _) optional_trailing_comma _ "}" {
-        Box::new(
-            Node::Type(
-                Type::WeightedSample,
-                a
-            )
-        )
+        Box::new(Node::Type(Type::Weighted, a))
     }
 
 done -> Box<Node>
-    = "Done(" _ a:expr _ ")" {
+    = "Done" _ "(" _ a:expr _ ")" {
         Box::new(Node::Type(Type::Done, vec![a]))
     }
 
 once -> Box<Node>
-    = "Once(" _ a:expr _ ")" {
+    = "Once" _ "(" _ a:expr _ ")" {
         Box::new(Node::Type(Type::Once, vec![a]))
     }
 

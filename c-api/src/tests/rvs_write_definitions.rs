@@ -3,6 +3,7 @@ use super::*;
 use std::path::Path;
 use std::fs::File;
 use std::io::Read;
+use std::ffi::CStr;
 
 use tempdir::TempDir;
 
@@ -24,18 +25,32 @@ fn parse_write(input: &Path, output: &Path) {
     let context = rvs_context_new(CString::new("").unwrap().as_ptr(), 0, error);
     assert!(!rvs_error_test(error));
 
+    println!("Parsing {:?}", input);
     rvs_parse(context, CString::new(input.to_string_lossy().as_bytes()).unwrap().as_ptr(), error);
+    report_error("rvs_parse", error);
     assert!(!rvs_error_test(error));
 
     let model = rvs_model_new();
     rvs_transform(context, model, error);
+    report_error("rvs_transform", error);
     assert!(!rvs_error_test(error));
 
+    println!("Writing {:?}", output);
     rvs_write_definitions(model, CString::new(output.to_string_lossy().as_bytes()).unwrap().as_ptr(), error);
+    report_error("rvs_write_definitions", error);
     assert!(!rvs_error_test(error));
 
     rvs_error_free(error);
     rvs_model_free(model);
+}
+
+fn report_error(call: &str, error: *mut Error) {
+    if rvs_error_test(error) {
+        let c_buf = rvs_error_message(error);
+        let c_str = unsafe { CStr::from_ptr(c_buf) };
+        let error_message = c_str.to_str().unwrap();
+        println!("{} error: {}", call, error_message);
+    }
 }
 
 #[test]

@@ -28,7 +28,6 @@ mod hex_number {
     fn good() {
         assert!(parse_result("a = 0xa5E4;").is_ok());
         assert!(parse_result("a = 0XA5;").is_ok());
-        assert!(parse_result("a = 0X_A5;").is_ok());
         assert!(parse_result("a = 0XA_5;").is_ok());
         assert!(parse_result("a = 0XA__5;").is_ok());
         assert!(parse_result("a = 0XA5_;").is_ok());
@@ -37,5 +36,6 @@ mod hex_number {
     #[test]
     fn bad() {
         assert!(parse_result("a = 0xg5;").is_err());
+        assert!(parse_result("a = 0X_A5;").is_err());
     }
 }
