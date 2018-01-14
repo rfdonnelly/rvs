@@ -189,17 +189,17 @@ enum_inst -> Box<Node>
     }
 
 pattern -> Box<Node>
-    = "Pattern(" _ a:expr ++ ("," _) optional_trailing_comma _ ")" {
+    = "Pattern" _ "(" _ a:expr ++ ("," _) optional_trailing_comma _ ")" {
         Box::new(Node::Type(Type::Pattern, a))
     }
 
 sequence -> Box<Node>
-    = "Sequence(" _ a:expr **<1, 3> ("," _) optional_trailing_comma _ ")" {
+    = "Sequence" _ "(" _ a:expr **<1, 3> ("," _) optional_trailing_comma _ ")" {
         Box::new(Node::Type(Type::Sequence, a))
     }
 
 expand -> Box<Node>
-    = "Expand(" _ a:expr **<1, 2> ("," _) optional_trailing_comma _ ")"{
+    = "Expand" _ "(" _ a:expr **<1, 2> ("," _) optional_trailing_comma _ ")"{
         Box::new(Node::Type(Type::Expand, a))
     }
 
@@ -209,12 +209,12 @@ range -> Box<Node>
     }
 
 sample -> Box<Node>
-    = "Sample(" _ a:(expand / expr / enum_inst) ++ ("," _) optional_trailing_comma _ ")" {
+    = "Sample" _ "(" _ a:(expand / expr / enum_inst) ++ ("," _) optional_trailing_comma _ ")" {
         Box::new(Node::Type(Type::Sample, a))
     }
 
 unique -> Box<Node>
-    = "Unique(" _ a:(expand / expr / enum_inst) ++ ("," _) optional_trailing_comma _ ")" {
+    = "Unique" _ "(" _ a:(expand / expr / enum_inst) ++ ("," _) optional_trailing_comma _ ")" {
         Box::new(Node::Type(Type::Unique, a))
     }
 
@@ -229,12 +229,12 @@ weighted -> Box<Node>
     }
 
 done -> Box<Node>
-    = "Done(" _ a:expr _ ")" {
+    = "Done" _ "(" _ a:expr _ ")" {
         Box::new(Node::Type(Type::Done, vec![a]))
     }
 
 once -> Box<Node>
-    = "Once(" _ a:expr _ ")" {
+    = "Once" _ "(" _ a:expr _ ")" {
         Box::new(Node::Type(Type::Once, vec![a]))
     }
 
