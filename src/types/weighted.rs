@@ -6,21 +6,21 @@ use rand::distributions::{Range, Sample};
 use std::fmt;
 
 #[derive(Clone)]
-pub struct WeightedSample {
+pub struct Weighted {
     data: ExprData,
     children: Vec<(u32, Box<Expr>)>,
     current_child: Option<usize>,
     weighted_indexes: WeightedIndexes,
 }
 
-impl WeightedSample {
-    pub fn new(children: Vec<(u32, Box<Expr>)>) -> WeightedSample {
+impl Weighted {
+    pub fn new(children: Vec<(u32, Box<Expr>)>) -> Weighted {
         let weights: Vec<u32> = children
             .iter()
             .map(|child| child.0.clone())
             .collect();
 
-        WeightedSample {
+        Weighted {
             data: ExprData {
                 prev: 0,
                 done: false,
@@ -32,7 +32,7 @@ impl WeightedSample {
     }
 }
 
-impl Expr for WeightedSample {
+impl Expr for Weighted {
     fn next(&mut self, rng: &mut CrateRng) -> u32 {
         let index = match self.current_child {
             Some(index) => index,
@@ -54,7 +54,7 @@ impl Expr for WeightedSample {
     }
 }
 
-impl fmt::Display for WeightedSample {
+impl fmt::Display for Weighted {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{{")?;
         for child in self.children.iter() {

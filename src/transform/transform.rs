@@ -16,7 +16,7 @@ use types::{
     Range,
     Sample,
     Unique,
-    WeightedSample,
+    Weighted,
     Next,
     Prev,
     Done,
@@ -294,7 +294,7 @@ impl Transform {
                     Ok(Box::new(Unique::new(children, rng)))
                 }
             }
-            ast::Type::WeightedSample => {
+            ast::Type::Weighted => {
                 let mut pairs: Vec<(u32, Box<Expr>)> = Vec::new();
                 for arg in args {
                     if let ast::Node::WeightedPair(ref weight, ref node) = **arg {
@@ -305,7 +305,7 @@ impl Transform {
                     }
                 }
 
-                Ok(Box::new(WeightedSample::new(pairs)))
+                Ok(Box::new(Weighted::new(pairs)))
             }
             ast::Type::Expand => {
                 return Err(TransformError::new(format!(

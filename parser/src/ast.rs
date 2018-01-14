@@ -27,7 +27,7 @@ pub enum Type {
     Range,
     Sample,
     Unique,
-    WeightedSample,
+    Weighted,
     Expand,
     Done,
     Once,

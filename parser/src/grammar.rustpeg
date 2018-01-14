@@ -106,7 +106,7 @@ typ -> Box<Node>
     / range
     / sample
     / unique
-    / weighted_sample
+    / weighted
     / sequence
     / done
     / once
@@ -249,14 +249,9 @@ weighted_pair -> Box<Node>
         )
     }
 
-weighted_sample -> Box<Node>
+weighted -> Box<Node>
     = "{" _ a:weighted_pair ++ ("," _) optional_trailing_comma _ "}" {
-        Box::new(
-            Node::Type(
-                Type::WeightedSample,
-                a
-            )
-        )
+        Box::new(Node::Type(Type::Weighted, a))
     }
 
 done -> Box<Node>
