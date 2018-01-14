@@ -52,7 +52,7 @@ pub enum Node {
     EnumItemInst(String, String),
     Type(Type, Vec<Box<Node>>),
     WeightedPair(u32, Box<Node>),
-    VariableInst(String, VariableMethod),
+    RVariable(String, VariableMethod),
 }
 
 /// An abstraction above Node to implement `import`

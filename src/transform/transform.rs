@@ -165,8 +165,8 @@ impl Transform {
                                 )))
                 }
             },
-            ast::Node::VariableInst(ref name, ref method) => {
-                self.transform_variable_inst(model, name, method)
+            ast::Node::RVariable(ref name, ref method) => {
+                self.transform_r_variable(model, name, method)
             },
             _ => {
                 Err(TransformError::new(format!(
@@ -176,7 +176,7 @@ impl Transform {
         }
     }
 
-    fn transform_variable_inst(
+    fn transform_r_variable(
         &self,
         model: &Model,
         name: &str,

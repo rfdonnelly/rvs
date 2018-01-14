@@ -83,9 +83,9 @@ atom -> Box<Node>
     / #quiet<number> / #expected("number")
     / #quiet<typ> / #expected("type")
     / #quiet<enum_item_inst> / #expected("enum item")
-    / #quiet<variable_inst> / #expected("variable")
+    / #quiet<r_variable> / #expected("variable")
 
-variable_inst -> Box<Node>
+r_variable -> Box<Node>
     = a:variable_name b:variable_method_call? {
         let method = if let Some(method) = b {
             method
@@ -93,7 +93,7 @@ variable_inst -> Box<Node>
             VariableMethod::Next
         };
 
-        Box::new(Node::VariableInst(a.to_owned(), method))
+        Box::new(Node::RVariable(a.to_owned(), method))
     }
 
 variable_method_call -> VariableMethod
