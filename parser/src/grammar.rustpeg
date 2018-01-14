@@ -204,7 +204,7 @@ expand -> Box<Node>
     }
 
 range -> Box<Node>
-    = "[" _ a:expr **<2> ("," _) optional_trailing_comma _ "]" {
+    = "[" _ a:expr **<2> ("," _) _ "]" {
         Box::new(Node::Type(Type::Range, a))
     }
 
