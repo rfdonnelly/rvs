@@ -153,10 +153,7 @@ item -> Item
 variable -> Item
     = lhs:variable_name _ "=" _ rhs:expr _ ";" {
         Item::Single(
-            Box::new(Node::Variable(
-                lhs.into(),
-                rhs
-            ))
+            Box::new(Node::Variable(lhs.into(), rhs))
         )
     }
 
@@ -174,39 +171,26 @@ enum -> Item
     }
 
 enum_assignment -> Box<Node>
-    = "=" _ a:number _ {
-        a
-    }
+    = "=" _ a:number _ { a }
 
 enum_item -> Box<Node>
     = a:type_name _ b:enum_assignment? {
-        Box::new(
-            Node::EnumItem(a.into(), b)
-        )
+        Box::new(Node::EnumItem(a.into(), b))
     }
 
 enum_item_inst -> Box<Node>
     = a:type_name "::" b:type_name {
-        Box::new(
-            Node::EnumItemInst(a.into(), b.into())
-        )
+        Box::new(Node::EnumItemInst(a.into(), b.into()))
     }
 
 enum_inst -> Box<Node>
     = a:type_name {
-        Box::new(
-            Node::EnumInst(a.into())
-        )
+        Box::new(Node::EnumInst(a.into()))
     }
 
 pattern -> Box<Node>
     = "Pattern(" _ a:expr ++ ("," _) optional_trailing_comma _ ")" {
-        Box::new(
-            Node::Type(
-                Type::Pattern,
-                a
-            )
-        )
+        Box::new(Node::Type(Type::Pattern, a))
     }
 
 sequence -> Box<Node>
@@ -221,22 +205,12 @@ expand -> Box<Node>
 
 range -> Box<Node>
     = "[" _ a:expr **<2> ("," _) optional_trailing_comma _ "]" {
-        Box::new(
-            Node::Type(
-                Type::Range,
-                a
-            )
-        )
+        Box::new(Node::Type(Type::Range, a))
     }
 
 sample -> Box<Node>
     = "Sample(" _ a:(expand / expr / enum_inst) ++ ("," _) optional_trailing_comma _ ")" {
-        Box::new(
-            Node::Type(
-                Type::Sample,
-                a
-            )
-        )
+        Box::new(Node::Type(Type::Sample, a))
     }
 
 unique -> Box<Node>
@@ -246,9 +220,7 @@ unique -> Box<Node>
 
 weighted_pair -> Box<Node>
     = a:dec_number _ ":" _ b:expr {
-        Box::new(
-            Node::WeightedPair(a, b)
-        )
+        Box::new(Node::WeightedPair(a, b))
     }
 
 weighted -> Box<Node>
