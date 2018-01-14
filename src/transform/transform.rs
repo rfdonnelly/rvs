@@ -255,7 +255,7 @@ impl Transform {
                 let mut children: Vec<Box<Expr>> = Vec::new();
                 for arg in args.iter() {
                     match **arg {
-                        ast::Node::EnumInst(ref name) => {
+                        ast::Node::REnum(ref name) => {
                             if let Some(entry) = self.enums.get(name) {
                                 for value in entry.items.values() {
                                     children.push(

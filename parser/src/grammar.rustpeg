@@ -183,9 +183,9 @@ enum_item_inst -> Box<Node>
         Box::new(Node::EnumItemInst(a.into(), b.into()))
     }
 
-enum_inst -> Box<Node>
+r_enum -> Box<Node>
     = a:type_name {
-        Box::new(Node::EnumInst(a.into()))
+        Box::new(Node::REnum(a.into()))
     }
 
 pattern -> Box<Node>
@@ -209,12 +209,12 @@ range -> Box<Node>
     }
 
 sample -> Box<Node>
-    = "Sample" _ "(" _ a:(expand / expr / enum_inst) ++ ("," _) optional_trailing_comma _ ")" {
+    = "Sample" _ "(" _ a:(expand / expr / r_enum) ++ ("," _) optional_trailing_comma _ ")" {
         Box::new(Node::Type(Type::Sample, a))
     }
 
 unique -> Box<Node>
-    = "Unique" _ "(" _ a:(expand / expr / enum_inst) ++ ("," _) optional_trailing_comma _ ")" {
+    = "Unique" _ "(" _ a:(expand / expr / r_enum) ++ ("," _) optional_trailing_comma _ ")" {
         Box::new(Node::Type(Type::Unique, a))
     }
 
