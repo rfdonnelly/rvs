@@ -68,7 +68,7 @@ dec_number -> u32
 
 hex_digit = [0-9a-fA-F]
 hex_number -> u32
-    = "0" [xX] s:$((hex_digit / "_")+) {
+    = "0" [xX] s:$(hex_digit (hex_digit / "_")*) {
         let stripped = &str::replace(s, "_", "");
         u32::from_str_radix(stripped, 16).unwrap()
     }
