@@ -53,20 +53,22 @@ import -> Item
         }
     }
 
-identifier -> &'input str
-    = #quiet<$([a-z_] [a-zA-Z0-9_:]*)> / #expected("identifier")
+variable_name -> &'input str
+    = #quiet<$([a-z_] [a-zA-Z0-9_:]*)> / #expected("variable name")
 
-typename -> &'input str
-    = #quiet<$([A-Z] [a-zA-Z0-9]*)> / #expected("typename")
+type_name -> &'input str
+    = #quiet<$([A-Z] [a-zA-Z0-9]*)> / #expected("type name")
 
+dec_digit = [0-9]
 dec_number -> u32
-    = s:$([0-9] [0-9_]*) {
+    = s:$(dec_digit (dec_digit / "_")*) {
         let stripped = &str::replace(s, "_", "");
         u32::from_str(stripped).unwrap()
     }
 
+hex_digit = [0-9a-fA-F]
 hex_number -> u32
-    = "0" [xX] s:$([0-9a-fA-F_]+) {
+    = "0" [xX] s:$((hex_digit / "_")+) {
         let stripped = &str::replace(s, "_", "");
         u32::from_str_radix(stripped, 16).unwrap()
     }
@@ -84,7 +86,7 @@ atom -> Box<Node>
     / #quiet<variable_inst> / #expected("variable")
 
 variable_inst -> Box<Node>
-    = a:identifier b:variable_method_call? {
+    = a:variable_name b:variable_method_call? {
         let method = if let Some(method) = b {
             method
         } else {
@@ -149,7 +151,7 @@ item -> Item
     / import
 
 variable -> Item
-    = lhs:identifier _ "=" _ rhs:expr _ ";" {
+    = lhs:variable_name _ "=" _ rhs:expr _ ";" {
         Item::Single(
             Box::new(Node::Variable(
                 lhs.into(),
@@ -165,7 +167,7 @@ optional_trailing_comma
     = (_ "," _)?
 
 enum -> Item
-    = "enum" _ id:typename _ "{" _ enum_items:enum_item ** ("," _) optional_trailing_comma _ "}" {
+    = "enum" _ id:type_name _ "{" _ enum_items:enum_item ** ("," _) optional_trailing_comma _ "}" {
         Item::Single(
             Box::new(Node::Enum(id.into(), enum_items))
         )
@@ -177,21 +179,21 @@ enum_assignment -> Box<Node>
     }
 
 enum_item -> Box<Node>
-    = a:typename _ b:enum_assignment? {
+    = a:type_name _ b:enum_assignment? {
         Box::new(
             Node::EnumItem(a.into(), b)
         )
     }
 
 enum_item_inst -> Box<Node>
-    = a:typename "::" b:typename {
+    = a:type_name "::" b:type_name {
         Box::new(
             Node::EnumItemInst(a.into(), b.into())
         )
     }
 
 enum_inst -> Box<Node>
-    = a:typename {
+    = a:type_name {
         Box::new(
             Node::EnumInst(a.into())
         )
