@@ -150,7 +150,7 @@ impl Transform {
                             )
                         ))
             },
-            ast::Node::EnumItemInst(ref a, ref b) => {
+            ast::Node::REnumItem(ref a, ref b) => {
                 if let Some(entry) = self.enums.get(a) {
                     if let Some(entry) = entry.items.get(b) {
                         Ok(Box::new(Value::new(*entry)))
@@ -170,7 +170,7 @@ impl Transform {
             },
             _ => {
                 Err(TransformError::new(format!(
-                    "Expected (Type|Number|UnaryOperation|BinaryOperation|EnumItemInst) but found {:?}",
+                    "Expected (Type|Number|UnaryOperation|BinaryOperation|REnumItem) but found {:?}",
                     *node)))
             }
         }

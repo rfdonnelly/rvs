@@ -82,7 +82,7 @@ atom -> Box<Node>
     / #quiet<unary_expr> / #expected("unary operator")
     / #quiet<number> / #expected("number")
     / #quiet<typ> / #expected("type")
-    / #quiet<enum_item_inst> / #expected("enum item")
+    / #quiet<r_enum_item> / #expected("enum item")
     / #quiet<r_variable> / #expected("variable")
 
 r_variable -> Box<Node>
@@ -178,9 +178,9 @@ enum_item -> Box<Node>
         Box::new(Node::EnumItem(a.into(), b))
     }
 
-enum_item_inst -> Box<Node>
+r_enum_item -> Box<Node>
     = a:type_name "::" b:type_name {
-        Box::new(Node::EnumItemInst(a.into(), b.into()))
+        Box::new(Node::REnumItem(a.into(), b.into()))
     }
 
 r_enum -> Box<Node>
