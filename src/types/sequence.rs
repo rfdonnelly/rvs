@@ -1,6 +1,6 @@
+use types::Value;
 use transform::CrateRng;
 use model::{Expr, ExprData};
-use error::{TransformResult, TransformError};
 
 use std::num::Wrapping;
 use std::fmt;
@@ -9,58 +9,78 @@ use std::fmt;
 pub struct Sequence {
     data: ExprData,
     next: Wrapping<u32>,
-    offset: u32,
-    increment: u32,
-    count: u32,
+    offset: Box<Expr>,
+    increment: Box<Expr>,
+    count: Box<Expr>,
     remaining: u32,
 }
 
 impl Sequence {
-    /// # Errors
-    ///
-    /// * If count is 0
-    ///
     /// # Panics
     ///
-    /// * If `args.len()` == 0 OR > 3
-    pub fn new(args: Vec<u32>) -> TransformResult<Sequence> {
-        let (offset, increment, count) = match args.len() {
-            1 => (0, 1, args[0]),
-            2 => (args[0], 1, args[1]),
-            3 => (args[0], args[1], args[2]),
-            _ => panic!("Expected 1 to 3 arguments.  Got {}", args.len()),
+    /// * If `args.len()` < 1 OR > 3
+    /// * If count is 0
+    pub fn new(mut args: Vec<Box<Expr>>, rng: &mut CrateRng) -> Sequence {
+        let len = args.len();
+        let mut drain = args.drain(..);
+        let (offset, increment, count): (Box<Expr>, Box<Expr>, Box<Expr>) = match len {
+            1 => (Box::new(Value::new(0)), Box::new(Value::new(1)), drain.next().unwrap()),
+            2 => (drain.next().unwrap(), Box::new(Value::new(1)), drain.next().unwrap()),
+            3 => (drain.next().unwrap(), drain.next().unwrap(), drain.next().unwrap()),
+            _ => panic!("Expected 1 to 3 arguments.  Got {}", len),
         };
 
-        if count == 0 {
-            return Err(TransformError::new("Sequence count must be greater than 0.".into()));
-        }
-
-        Ok(Sequence {
+        let mut sequence = Sequence {
             data: ExprData {
                 prev: 0,
                 done: false,
             },
-            next: Wrapping(offset),
+            next: Wrapping(0),
             offset,
             increment,
             count,
-            remaining: count,
-        })
+            remaining: 0,
+        };
+
+        sequence.init_params(rng);
+
+        sequence
+    }
+
+    fn init_params(&mut self, rng: &mut CrateRng) {
+        self.init_next(rng);
+        self.init_increment(rng);
+        self.init_remaining(rng);
+    }
+
+    fn init_increment(&mut self, rng: &mut CrateRng) {
+        self.increment.next(rng);
+    }
+
+    fn init_remaining(&mut self, rng: &mut CrateRng) {
+        self.remaining = self.count.next(rng);
+
+        if self.remaining == 0 {
+            panic!("count == 0, count must be nonzero for {}", self);
+        }
+    }
+
+    fn init_next(&mut self, rng: &mut CrateRng) {
+        self.next = Wrapping(self.offset.next(rng));
     }
 }
 
 impl Expr for Sequence {
-    fn next(&mut self, _rng: &mut CrateRng) -> u32 {
+    fn next(&mut self, rng: &mut CrateRng) -> u32 {
         self.data.prev = self.next.0;
         self.data.done = false;
 
-        self.next += Wrapping(self.increment);
+        self.next += Wrapping(self.increment.prev());
         self.remaining -= 1;
 
         if self.remaining == 0 {
-            self.next = Wrapping(self.offset);
             self.data.done = true;
-            self.remaining = self.count;
+            self.init_params(rng);
         }
 
         self.data.prev
