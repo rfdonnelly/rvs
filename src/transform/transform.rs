@@ -230,11 +230,9 @@ impl Transform {
                 Ok(Box::new(Pattern::new(self.transform_args(model, rng, args)?)))
             }
             ast::Type::Sequence => {
-                let args = self.transform_args(model, rng, args)?.iter_mut().map(|arg| {
-                    arg.next(rng)
-                }).collect();
+                let args = self.transform_args(model, rng, args)?;
 
-                Ok(Box::new(Sequence::new(args)?))
+                Ok(Box::new(Sequence::new(args, rng)))
             }
             ast::Type::Range => {
                 let l = self.transform_expr(model, rng, &args[0])?.next(rng);

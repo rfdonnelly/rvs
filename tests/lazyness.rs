@@ -4,7 +4,7 @@ extern crate rvs;
 fn type_arguments() {
     let model = rvs::parse(
         Default::default(),
-        "b=0; a=Sequence(b); b=10;"
+        "b=0; a=Sequence(b); b=9;"
         ).unwrap();
 
     let a = model.get_variable_by_name("a").unwrap();
