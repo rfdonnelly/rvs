@@ -72,12 +72,24 @@ impl Sequence {
     }
 
     fn compare(&self) -> bool {
-        self.next.0 < self.last.prev()
+        if self.next.0 == self.last.prev() {
+            self.compare
+        } else {
+            self.next.0 < self.last.prev()
+        }
     }
 
-    fn done(&self) -> bool {
+    fn is_last(&self) -> bool {
+        self.next.0 == self.last.prev()
+    }
+
+    fn past_last(&self) -> bool {
         self.compare != self.compare()
-            || self.next.0 == self.last.prev()
+    }
+
+    fn done(&mut self, rng: &mut CrateRng) {
+        self.data.done = true;
+        self.init_params(rng);
     }
 }
 
@@ -89,11 +101,14 @@ impl Expr for Sequence {
         self.data.prev = self.next.0;
         self.data.done = false;
 
-        if self.done() {
-            self.data.done = true;
-            self.init_params(rng);
+        if self.is_last() {
+            self.done(rng);
         } else {
             self.next += Wrapping(self.increment.prev());
+
+            if self.past_last() {
+                self.done(rng);
+            }
         }
 
         self.data.prev

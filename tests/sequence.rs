@@ -95,6 +95,44 @@ fn args_evaluated_every_cycle() {
 }
 
 #[test]
+fn increment_skips_last() {
+    let a = expr_to_var("Sequence(0, 3, 2)").unwrap();
+    let mut a = a.borrow_mut();
+
+    let expected: Vec<(u32, bool)> = vec![
+        (0, false),
+        (2, true),
+        ]
+        .into_iter()
+        .cycle().take(16)
+        .collect();
+    let actual: Vec<(u32, bool)> = (0..16)
+        .map(|_| (a.next(), a.done()))
+        .collect();
+
+    assert_eq!(expected, actual);
+}
+
+#[test]
+fn negative_increment_skips_last() {
+    let a = expr_to_var("Sequence(13, 10, -2)").unwrap();
+    let mut a = a.borrow_mut();
+
+    let expected: Vec<(u32, bool)> = vec![
+        (13, false),
+        (11, true),
+        ]
+        .into_iter()
+        .cycle().take(16)
+        .collect();
+    let actual: Vec<(u32, bool)> = (0..16)
+        .map(|_| (a.next(), a.done()))
+        .collect();
+
+    assert_eq!(expected, actual);
+}
+
+#[test]
 fn zero_last() {
     let a = expr_to_var("Sequence(0)").unwrap();
     let mut a = a.borrow_mut();
