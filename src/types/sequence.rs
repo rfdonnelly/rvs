@@ -9,23 +9,23 @@ use std::fmt;
 pub struct Sequence {
     data: ExprData,
     next: Wrapping<u32>,
-    offset: Box<Expr>,
+    first: Box<Expr>,
+    last: Box<Expr>,
     increment: Box<Expr>,
-    count: Box<Expr>,
-    remaining: u32,
+    compare: bool,
 }
 
 impl Sequence {
     /// # Panics
     ///
     /// * If `args.len()` < 1 OR > 3
-    /// * If count is 0
+    /// * If increment is 0
     pub fn new(mut args: Vec<Box<Expr>>, rng: &mut CrateRng) -> Sequence {
         let len = args.len();
         let mut drain = args.drain(..);
-        let (offset, increment, count): (Box<Expr>, Box<Expr>, Box<Expr>) = match len {
-            1 => (Box::new(Value::new(0)), Box::new(Value::new(1)), drain.next().unwrap()),
-            2 => (drain.next().unwrap(), Box::new(Value::new(1)), drain.next().unwrap()),
+        let (first, last, increment): (Box<Expr>, Box<Expr>, Box<Expr>) = match len {
+            1 => (Box::new(Value::new(0)), drain.next().unwrap(), Box::new(Value::new(1))),
+            2 => (drain.next().unwrap(), drain.next().unwrap(), Box::new(Value::new(1))),
             3 => (drain.next().unwrap(), drain.next().unwrap(), drain.next().unwrap()),
             _ => panic!("Expected 1 to 3 arguments.  Got {}", len),
         };
@@ -36,10 +36,10 @@ impl Sequence {
                 done: false,
             },
             next: Wrapping(0),
-            offset,
+            first,
+            last,
             increment,
-            count,
-            remaining: 0,
+            compare: false,
         };
 
         sequence.init_params(rng);
@@ -49,38 +49,51 @@ impl Sequence {
 
     fn init_params(&mut self, rng: &mut CrateRng) {
         self.init_next(rng);
+        self.init_last(rng);
         self.init_increment(rng);
-        self.init_remaining(rng);
+
+        self.compare = self.compare();
     }
 
     fn init_increment(&mut self, rng: &mut CrateRng) {
-        self.increment.next(rng);
-    }
+        let increment = self.increment.next(rng);
 
-    fn init_remaining(&mut self, rng: &mut CrateRng) {
-        self.remaining = self.count.next(rng);
-
-        if self.remaining == 0 {
-            panic!("count == 0, count must be nonzero for {}", self);
+        if increment == 0 {
+            panic!("the increment sub-expression `{}` returned 0 in the expression `{}`", self.increment, self);
         }
     }
 
+    fn init_last(&mut self, rng: &mut CrateRng) {
+        self.last.next(rng);
+    }
+
     fn init_next(&mut self, rng: &mut CrateRng) {
-        self.next = Wrapping(self.offset.next(rng));
+        self.next = Wrapping(self.first.next(rng));
+    }
+
+    fn compare(&self) -> bool {
+        self.next.0 < self.last.prev()
+    }
+
+    fn done(&self) -> bool {
+        self.compare != self.compare()
+            || self.next.0 == self.last.prev()
     }
 }
 
 impl Expr for Sequence {
+    /// # Panics
+    ///
+    /// * If increment returns 0
     fn next(&mut self, rng: &mut CrateRng) -> u32 {
         self.data.prev = self.next.0;
         self.data.done = false;
 
-        self.next += Wrapping(self.increment.prev());
-        self.remaining -= 1;
-
-        if self.remaining == 0 {
+        if self.done() {
             self.data.done = true;
             self.init_params(rng);
+        } else {
+            self.next += Wrapping(self.increment.prev());
         }
 
         self.data.prev
@@ -93,6 +106,6 @@ impl Expr for Sequence {
 
 impl fmt::Display for Sequence {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Sequence({}, {}, {})", self.offset, self.increment, self.count)
+        write!(f, "Sequence({}, {}, {})", self.first, self.last, self.increment)
     }
 }

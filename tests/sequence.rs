@@ -4,8 +4,8 @@ mod util;
 use util::*;
 
 #[test]
-fn count() {
-    let a = expr_to_var("Sequence(4)").unwrap();
+fn last() {
+    let a = expr_to_var("Sequence(3)").unwrap();
     let mut a = a.borrow_mut();
 
     let expected: Vec<(u32, bool)> = (0..4)
@@ -20,11 +20,13 @@ fn count() {
 }
 
 #[test]
-fn offset_count() {
-    let a = expr_to_var("Sequence(10, 4)").unwrap();
+fn first_last() {
+    let (first, last) = (10, 13);
+
+    let a = expr_to_var(format!("Sequence({}, {})", first, last)).unwrap();
     let mut a = a.borrow_mut();
 
-    let expected: Vec<(u32, bool)> = (10..14)
+    let expected: Vec<(u32, bool)> = (first..last+1)
         .zip(vec![false, false, false, true].into_iter())
         .cycle().take(16)
         .collect();
@@ -36,8 +38,8 @@ fn offset_count() {
 }
 
 #[test]
-fn offset_increment_count() {
-    let a = expr_to_var("Sequence(0, 4, 4)").unwrap();
+fn first_last_increment() {
+    let a = expr_to_var("Sequence(0, 12, 4)").unwrap();
     let mut a = a.borrow_mut();
 
     let expected: Vec<(u32, bool)> = (0..4)
@@ -54,10 +56,11 @@ fn offset_increment_count() {
 
 #[test]
 fn decrement() {
-    let a = expr_to_var("Sequence(3, -1, 4)").unwrap();
+    let (first, last) = (3, 0);
+    let a = expr_to_var(format!("Sequence({}, {}, -1)", first, last)).unwrap();
     let mut a = a.borrow_mut();
 
-    let expected: Vec<(u32, bool)> = (0..4)
+    let expected: Vec<(u32, bool)> = (last..first+1)
         .rev()
         .zip(vec![false, false, false, true].into_iter())
         .cycle().take(16)
@@ -71,7 +74,7 @@ fn decrement() {
 
 #[test]
 fn args_evaluated_every_cycle() {
-    let a = expr_to_var("Sequence(Pattern(2, 4), Pattern(2, 4), Pattern(2, 4))").unwrap();
+    let a = expr_to_var("Sequence(Pattern(2, 4), Pattern(4, 16), Pattern(2, 4))").unwrap();
     let mut a = a.borrow_mut();
 
     let expected: Vec<(u32, bool)> = vec![
@@ -92,10 +95,18 @@ fn args_evaluated_every_cycle() {
 }
 
 #[test]
-#[should_panic]
-fn zero_count() {
+fn zero_last() {
     let a = expr_to_var("Sequence(0)").unwrap();
     let mut a = a.borrow_mut();
 
     assert_eq!(a.next(), 0);
+}
+
+#[test]
+#[should_panic(expected = "the increment sub-expression `Pattern(0x1, 0x0, )` returned 0 in the expression `Sequence(0x0, 0x9, Pattern(0x1, 0x0, ))`")]
+fn zero_increment() {
+    let a = expr_to_var("Sequence(0, 9, Pattern(1, 0))").unwrap();
+    let mut a = a.borrow_mut();
+
+    (0..20).for_each(|_| { a.next(); });
 }
