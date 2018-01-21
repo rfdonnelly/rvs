@@ -1,5 +1,27 @@
 language: rust
+dist: trusty
+addons:
+  apt:
+    packages:
+      - libssl-dev
 cache: cargo
-
+rust:
+  - stable
+  - beta
+  - nightly
+matrix:
+  allow_failures:
+    - rust: nightly
 script:
-  - make
+  - cargo clean
+  - cargo build --all
+  - cargo test --all
+  - (cd c-api/bindings/c_cpp/cpp_example && make)
+after_success: |
+  if [[ "$TRAVIS_RUST_VERSION" == nightly ]]; then
+    cargo bench
+  fi
+  if [[ "$TRAVIS_RUST_VERSION" == stable ]]; then
+    bash <(curl https://raw.githubusercontent.com/xd009642/tarpaulin/master/travis-install.sh)
+    cargo tarpaulin --all --ciserver travis-ci --coveralls $TRAVIS_JOB_ID
+  fi
