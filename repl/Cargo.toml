@@ -17,4 +17,4 @@ path = "src/main.rs"
 
 [badges]
 travis-ci = { repository = "rfdonnelly/rvs" }
-coveralls = { repository = "rfdonnelly/rvs" }
+codecov = { repository = "rfdonnelly/rvs" }

@@ -18,4 +18,4 @@ members = ["parser", "c-api", "repl"]
 
 [badges]
 travis-ci = { repository = "rfdonnelly/rvs" }
-coveralls = { repository = "rfdonnelly/rvs" }
+codecov = { repository = "rfdonnelly/rvs" }
