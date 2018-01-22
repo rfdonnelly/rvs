@@ -88,10 +88,9 @@ mod tests {
         let mut sourcepaths = SourcePaths::new(search_path);
 
         assert_eq!(sourcepaths.find(&Path::new("readme.rvs")).unwrap(), path_file);
-        if sourcepaths.enter_import(&path_file) {
-            sourcepaths.leave_import();
-        } else {
-            assert!(false);
-        }
+        assert!(sourcepaths.enter_import(&path_file));
+        assert!(!sourcepaths.enter_import(&path_file));
+        sourcepaths.leave_import();
+        assert!(!sourcepaths.enter_import(&path_file));
     }
 }
