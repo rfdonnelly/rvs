@@ -16,8 +16,12 @@ fn found() {
     let handle = rvs_get(model, CString::new("a").unwrap().as_ptr());
     assert!(handle != 0);
 
+    assert_eq!(rvs_done(model, handle), false));
+    assert_eq!(rvs_prev(model, handle), 0));
     let value = rvs_next(model, handle);
     assert_eq!(value, 5);
+    assert_eq!(rvs_done(model, handle), true));
+    assert_eq!(rvs_prev(model, handle), 5));
 
     rvs_error_free(error);
     rvs_model_free(model);
