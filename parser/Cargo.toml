@@ -14,3 +14,4 @@ peg = { version = "0.5" }
 
 [badges]
 travis-ci = { repository = "rfdonnelly/rvs" }
+coveralls = { repository = "rfdonnelly/rvs" }

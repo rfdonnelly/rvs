@@ -14,3 +14,7 @@ rvs = { version = "0.2", path = ".." }
 [[bin]]
 name = "rvs"
 path = "src/main.rs"
+
+[badges]
+travis-ci = { repository = "rfdonnelly/rvs" }
+coveralls = { repository = "rfdonnelly/rvs" }

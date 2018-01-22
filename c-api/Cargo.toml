@@ -22,3 +22,4 @@ difference = "1.0"
 
 [badges]
 travis-ci = { repository = "rfdonnelly/rvs" }
+coveralls = { repository = "rfdonnelly/rvs" }
