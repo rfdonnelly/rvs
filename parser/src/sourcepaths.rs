@@ -49,34 +49,24 @@ impl SourcePaths {
 
     /// Returns a path if file found in search path.  Returns an std::io::Error otherwise.
     pub fn find(&self, path: &Path) -> io::Result<PathBuf> {
-        // Absolute path
-        if path.is_absolute() {
-            if path.exists() {
-                Ok(path.to_path_buf())
-            } else {
+        // Relative to current source file
+        if let Some(current) = self.stack.last() {
+            let parent = current.parent().unwrap().join(path);
+            if parent.exists() {
+                return Ok(parent);
+            }
+        }
+
+        // Relative to search path
+        let result = self.searchpath.paths.iter()
+            .map(|ref p| p.join(path))
+            .find(|ref p| p.exists());
+
+        match result {
+            Some(path) => Ok(path),
+            None => {
                 Err(io::Error::new(io::ErrorKind::NotFound,
                                    "File not found"))
-            }
-        } else {
-            // Relative to current source file
-            if let Some(current) = self.stack.last() {
-                let parent = current.parent().unwrap().join(path);
-                if parent.exists() {
-                    return Ok(parent);
-                }
-            }
-
-            // Relative to search path
-            let result = self.searchpath.paths.iter()
-                .map(|ref p| p.join(path))
-                .find(|ref p| p.exists());
-
-            match result {
-                Some(path) => Ok(path),
-                None => {
-                    Err(io::Error::new(io::ErrorKind::NotFound,
-                                       "File not found"))
-                }
             }
         }
     }
