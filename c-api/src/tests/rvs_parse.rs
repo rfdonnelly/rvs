@@ -91,9 +91,7 @@ fn parse_error() {
     assert!(!rvs_error_test(error));
 
     rvs_parse(context, CString::new("a = 1;\n1 = b;").unwrap().as_ptr(), error);
-    // FIXME: Check error message
-    // println!("{}", unsafe { *error });
-    // assert_eq!(rvs_error_code(error), ErrorKind::Parse(rvs::ParseError::new()).code());
+    assert_starts_with(get_error_message(error), "error at 2:1: expected one of");
     assert!(rvs_error_test(error));
 
     rvs_error_free(error);
