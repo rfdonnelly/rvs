@@ -1,16 +1,5 @@
 use super::*;
 
-// FIXME Cannot test this due to error parameter being mutable while std::ptr::null() is
-// not.
-// #[test]
-// fn null_error_struct() {
-//     use std::ptr;
-//
-//     let context = rvs_context_new();
-//     rvs_parse(context, CString::new("a=5;").unwrap().as_ptr(), ptr::null());
-//     assert_eq!(next_by_name(context, "a"), 5);
-// }
-
 #[test]
 fn import() {
     let search_path = ::std::env::current_dir()
