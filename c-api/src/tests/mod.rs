@@ -35,6 +35,7 @@ fn next_by_name(model: *mut rvs::Model, name: &str) -> u32 {
     rvs_next(model, handle)
 }
 
+mod rvs_context_new;
 mod rvs_seed;
 mod rvs_parse;
 mod rvs_get;
