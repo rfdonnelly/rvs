@@ -10,9 +10,7 @@ pub struct SearchPath {
 
 impl SearchPath {
     pub fn new(paths: Vec<PathBuf>) -> SearchPath {
-        SearchPath {
-            paths,
-        }
+        SearchPath { paths }
     }
 
     /// Sets the search path used for `import`
@@ -41,12 +39,17 @@ impl SearchPath {
         }
 
         if error_paths.len() > 0 {
-            Err(io::Error::new(io::ErrorKind::NotFound,
-                               format!("Paths not found:\n{}",
-                                       error_paths.iter()
-                                       .map(|path| format!("   {:?}", path))
-                                       .collect::<Vec<String>>()
-                                       .join("\n"))))
+            Err(io::Error::new(
+                io::ErrorKind::NotFound,
+                format!(
+                    "Paths not found:\n{}",
+                    error_paths
+                        .iter()
+                        .map(|path| format!("   {:?}", path))
+                        .collect::<Vec<String>>()
+                        .join("\n")
+                ),
+            ))
         } else {
             Ok(SearchPath::new(paths))
         }

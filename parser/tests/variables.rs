@@ -10,9 +10,7 @@ fn good() {
 
 #[test]
 fn ast() {
-    assert_eq!(
-        parse("a=5;"),
-        "[Variable(\"a\", Number(5))]");
+    assert_eq!(parse("a=5;"), "[Variable(\"a\", Number(5))]");
 }
 
 #[test]

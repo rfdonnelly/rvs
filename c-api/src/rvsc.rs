@@ -56,10 +56,10 @@ impl From<usize> for SequenceHandle {
 /// A valid Context pointer will be returned and will need to be freed by the caller regardless of
 /// error or no error.
 #[no_mangle]
-pub extern fn rvs_context_new(
+pub extern "C" fn rvs_context_new(
     search_path: *const c_char,
     seed: u32,
-    error: *mut Error
+    error: *mut Error,
 ) -> *mut Context {
     let c_str = unsafe { CStr::from_ptr(search_path) };
     let r_str = c_str.to_str().unwrap();
@@ -68,9 +68,7 @@ pub extern fn rvs_context_new(
         Ok(search_path) => search_path,
         Err(e) => {
             if !error.is_null() {
-                unsafe {
-                    *error = Error::new(ErrorKind::Io(e))
-                }
+                unsafe { *error = Error::new(ErrorKind::Io(e)) }
             }
 
             Default::default()
@@ -112,11 +110,7 @@ pub extern fn rvs_context_new(
 ///
 /// "example.rvs; a = 5;"
 #[no_mangle]
-pub extern fn rvs_parse(
-    context: *mut Context,
-    s: *const c_char,
-    error: *mut Error
-) {
+pub extern "C" fn rvs_parse(context: *mut Context, s: *const c_char, error: *mut Error) {
     assert!(!context.is_null());
     assert!(!s.is_null());
 
@@ -128,25 +122,11 @@ pub extern fn rvs_parse(
         if !entry.is_empty() {
             let is_file = !entry.contains("=") && !entry.contains("import");
 
-            let parser_string =
-                if is_file {
-                    let path = Path::new(&entry);
+            let parser_string = if is_file {
+                let path = Path::new(&entry);
 
-                    let mut file = match File::open(&path) {
-                        Err(e) => {
-                            if !error.is_null() {
-                                unsafe {
-                                    *error = Error::new(ErrorKind::Io(e));
-                                }
-                            }
-
-                            return;
-                        }
-                        Ok(file) => file,
-                    };
-
-                    let mut contents = String::new();
-                    if let Err(e) = file.read_to_string(&mut contents) {
+                let mut file = match File::open(&path) {
+                    Err(e) => {
                         if !error.is_null() {
                             unsafe {
                                 *error = Error::new(ErrorKind::Io(e));
@@ -154,18 +134,29 @@ pub extern fn rvs_parse(
                         }
 
                         return;
-                    };
-
-                    contents
-                } else {
-                    entry.to_owned() + ";"
+                    }
+                    Ok(file) => file,
                 };
+
+                let mut contents = String::new();
+                if let Err(e) = file.read_to_string(&mut contents) {
+                    if !error.is_null() {
+                        unsafe {
+                            *error = Error::new(ErrorKind::Io(e));
+                        }
+                    }
+
+                    return;
+                };
+
+                contents
+            } else {
+                entry.to_owned() + ";"
+            };
 
             if let Err(e) = context.parse(&parser_string) {
                 if !error.is_null() {
-                    unsafe {
-                        *error = Error::new(From::from(e))
-                    }
+                    unsafe { *error = Error::new(From::from(e)) }
                 }
             }
         }
@@ -176,7 +167,7 @@ pub extern fn rvs_parse(
 ///
 /// The pointer returned is owned by the caller and is freed by a call to `rvs_model_free`.
 #[no_mangle]
-pub extern fn rvs_model_new() -> *mut rvs::Model {
+pub extern "C" fn rvs_model_new() -> *mut rvs::Model {
     Box::into_raw(Box::new(rvs::Model::new()))
 }
 
@@ -195,11 +186,7 @@ pub extern fn rvs_model_new() -> *mut rvs::Model {
 ///
 /// * Transform errors
 #[no_mangle]
-pub extern fn rvs_transform(
-    context: *mut Context,
-    model: *mut rvs::Model,
-    error: *mut Error
-) {
+pub extern "C" fn rvs_transform(context: *mut Context, model: *mut rvs::Model, error: *mut Error) {
     assert!(!context.is_null());
     assert!(!model.is_null());
 
@@ -220,20 +207,20 @@ pub extern fn rvs_transform(
 /// This is for error scenarios only.  In a non-error scenario, `rvs_transform` is used to free the
 /// Context.
 #[no_mangle]
-pub extern fn rvs_context_free(
-    context: *mut Context
-) {
+pub extern "C" fn rvs_context_free(context: *mut Context) {
     assert!(!context.is_null());
-    unsafe { Box::from_raw(context); }
+    unsafe {
+        Box::from_raw(context);
+    }
 }
 
 /// Frees a Model previously allocated by `rvs_transform`
 #[no_mangle]
-pub extern fn rvs_model_free(
-    model: *mut rvs::Model
-) {
+pub extern "C" fn rvs_model_free(model: *mut rvs::Model) {
     assert!(!model.is_null());
-    unsafe { Box::from_raw(model); }
+    unsafe {
+        Box::from_raw(model);
+    }
 }
 
 /// Returns the handle of a variable
@@ -248,10 +235,7 @@ pub extern fn rvs_model_free(
 ///
 /// * If any pointer arguments are null
 #[no_mangle]
-pub extern fn rvs_get(
-    model: *mut rvs::Model,
-    name: *const c_char
-) -> SequenceHandleRaw {
+pub extern "C" fn rvs_get(model: *mut rvs::Model, name: *const c_char) -> SequenceHandleRaw {
     assert!(!model.is_null());
     assert!(!name.is_null());
 
@@ -277,10 +261,7 @@ pub extern fn rvs_get(
 /// * If any pointer arguments are null
 /// * If handle doesn't exist
 #[no_mangle]
-pub extern fn rvs_next(
-    model: *mut rvs::Model,
-    handle: SequenceHandleRaw
-) -> u32 {
+pub extern "C" fn rvs_next(model: *mut rvs::Model, handle: SequenceHandleRaw) -> u32 {
     assert!(!model.is_null());
 
     let model = unsafe { &mut *model };
@@ -303,10 +284,7 @@ pub extern fn rvs_next(
 /// * If any pointer arguments are null
 /// * If handle doesn't exist
 #[no_mangle]
-pub extern fn rvs_prev(
-    model: *mut rvs::Model,
-    handle: SequenceHandleRaw
-) -> u32 {
+pub extern "C" fn rvs_prev(model: *mut rvs::Model, handle: SequenceHandleRaw) -> u32 {
     assert!(!model.is_null());
 
     let model = unsafe { &mut *model };
@@ -330,10 +308,7 @@ pub extern fn rvs_prev(
 /// * If any pointer arguments are null
 /// * If handle doesn't exist
 #[no_mangle]
-pub extern fn rvs_done(
-    model: *mut rvs::Model,
-    handle: SequenceHandleRaw
-) -> bool {
+pub extern "C" fn rvs_done(model: *mut rvs::Model, handle: SequenceHandleRaw) -> bool {
     assert!(!model.is_null());
 
     let model = unsafe { &mut *model };
@@ -346,10 +321,10 @@ pub extern fn rvs_done(
 }
 
 #[no_mangle]
-pub extern fn rvs_write_definitions(
+pub extern "C" fn rvs_write_definitions(
     model: *const rvs::Model,
     s: *const c_char,
-    error: *mut Error
+    error: *mut Error,
 ) {
     assert!(!model.is_null());
     assert!(!s.is_null());
@@ -369,7 +344,7 @@ pub extern fn rvs_write_definitions(
             }
 
             return;
-        },
+        }
         Ok(file) => file,
     };
 

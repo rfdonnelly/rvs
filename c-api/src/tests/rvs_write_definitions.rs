@@ -14,8 +14,12 @@ fn assert_contents_eq(actual: &Path, expected: &Path) {
     let mut actual_contents = String::new();
     let mut expected_contents = String::new();
 
-    actual_file.read_to_string(&mut actual_contents).expect(&format!("Cannot open {:?}", actual));
-    expected_file.read_to_string(&mut expected_contents).expect(&format!("Cannot open {:?}", expected));
+    actual_file
+        .read_to_string(&mut actual_contents)
+        .expect(&format!("Cannot open {:?}", actual));
+    expected_file
+        .read_to_string(&mut expected_contents)
+        .expect(&format!("Cannot open {:?}", expected));
 
     assert_diff!(&actual_contents, &expected_contents, " ", 0);
 }
@@ -26,7 +30,13 @@ fn parse_write(input: &Path, output: &Path) {
     assert!(!rvs_error_test(error));
 
     println!("Parsing {:?}", input);
-    rvs_parse(context, CString::new(input.to_string_lossy().as_bytes()).unwrap().as_ptr(), error);
+    rvs_parse(
+        context,
+        CString::new(input.to_string_lossy().as_bytes())
+            .unwrap()
+            .as_ptr(),
+        error,
+    );
     report_error("rvs_parse", error);
     assert!(!rvs_error_test(error));
 
@@ -36,7 +46,13 @@ fn parse_write(input: &Path, output: &Path) {
     assert!(!rvs_error_test(error));
 
     println!("Writing {:?}", output);
-    rvs_write_definitions(model, CString::new(output.to_string_lossy().as_bytes()).unwrap().as_ptr(), error);
+    rvs_write_definitions(
+        model,
+        CString::new(output.to_string_lossy().as_bytes())
+            .unwrap()
+            .as_ptr(),
+        error,
+    );
     report_error("rvs_write_definitions", error);
     assert!(!rvs_error_test(error));
 

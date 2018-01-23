@@ -12,12 +12,8 @@ fn yields_each_value_once_per_cycle() {
 
     let mut actual: HashMap<u32, u32> = HashMap::new();
     for i in 1..25 {
-        let expected: HashMap<u32, u32> = [
-            (1, i),
-            (2, i),
-            (4, i),
-            (8, i),
-        ].iter().cloned().collect();
+        let expected: HashMap<u32, u32> =
+            [(1, i), (2, i), (4, i), (8, i)].iter().cloned().collect();
 
         for _ in 0..4 {
             let entry = actual.entry(a.next()).or_insert(0);
@@ -53,12 +49,11 @@ fn done_after_all() {
 
     let expected: Vec<(u32, bool)> = (0..4)
         .zip(vec![false, false, false, true].into_iter())
-        .cycle().take(16)
+        .cycle()
+        .take(16)
         .map(|(_, done)| (0, done))
         .collect();
-    let actual: Vec<(u32, bool)> = (0..16)
-        .map(|_| (a.next(), a.done()))
-        .collect();
+    let actual: Vec<(u32, bool)> = (0..16).map(|_| (a.next(), a.done())).collect();
 
     assert_eq!(actual, expected);
 }

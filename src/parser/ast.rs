@@ -40,20 +40,18 @@ impl Ast {
     }
 
     fn add_node(&mut self, node: Box<ast::Node>) {
-        let is_variable =
-            if let ast::Node::Variable(_, _) = *node {
-                true
-            } else {
-                false
-            };
+        let is_variable = if let ast::Node::Variable(_, _) = *node {
+            true
+        } else {
+            false
+        };
 
         if is_variable {
-            let name =
-                if let ast::Node::Variable(ref name, _) = *node {
-                    name.to_owned()
-                } else {
-                    "".to_owned()
-                };
+            let name = if let ast::Node::Variable(ref name, _) = *node {
+                name.to_owned()
+            } else {
+                "".to_owned()
+            };
 
             let nodes = &mut self.nodes;
             match self.variable_indexes.entry(name) {

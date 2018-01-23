@@ -1,31 +1,10 @@
-use super::rand::{Seed, CrateRng};
+use super::rand::{CrateRng, Seed};
 use super::enumeration::Enum;
 
-use model::{
-    Expr,
-    Variable,
-    VariableRef,
-    Model,
-};
-use types::{
-    Value,
-    Unary,
-    Binary,
-    Pattern,
-    Sequence,
-    Range,
-    Sample,
-    Unique,
-    Weighted,
-    Next,
-    Prev,
-    Done,
-    Once,
-};
-use error::{
-    TransformError,
-    TransformResult,
-};
+use model::{Expr, Model, Variable, VariableRef};
+use types::{Binary, Done, Next, Once, Pattern, Prev, Range, Sample, Sequence, Unary, Unique,
+            Value, Weighted};
+use error::{TransformError, TransformResult};
 
 use rvs_parser::ast;
 
@@ -50,7 +29,7 @@ impl Transform {
     pub fn transform(
         &mut self,
         model: &mut Model,
-        nodes: &[Box<ast::Node>]
+        nodes: &[Box<ast::Node>],
     ) -> TransformResult<()> {
         for node in nodes {
             match **node {
@@ -63,19 +42,17 @@ impl Transform {
                 }
                 _ => {
                     return Err(TransformError::new(format!(
-                        "expected Variable or Enum but found {:?}", node)));
-                },
+                        "expected Variable or Enum but found {:?}",
+                        node
+                    )));
+                }
             }
         }
 
         Ok(())
     }
 
-    fn transform_variable(
-        &self,
-        model: &Model,
-        expr: &ast::Node
-    ) -> TransformResult<VariableRef> {
+    fn transform_variable(&self, model: &Model, expr: &ast::Node) -> TransformResult<VariableRef> {
         let mut rng = self.seed.to_rng();
         let expr = self.transform_expr(model, &mut rng, expr)?;
         let variable = Rc::new(RefCell::new(Box::new(Variable::new(expr, rng))));
@@ -83,11 +60,7 @@ impl Transform {
         Ok(variable)
     }
 
-    fn transform_enum(
-        &mut self,
-        name: &str,
-        items: &[Box<ast::Node>]
-    ) -> TransformResult<()> {
+    fn transform_enum(&mut self, name: &str, items: &[Box<ast::Node>]) -> TransformResult<()> {
         let mut enum_members_map = LinkedHashMap::new();
 
         let mut next_implicit_value = 0;
@@ -102,8 +75,9 @@ impl Transform {
                         next_implicit_value = value + 1;
                     } else {
                         return Err(TransformError::new(format!(
-                                    "Expected Number but found {:?}", **value
-                                    )));
+                            "Expected Number but found {:?}",
+                            **value
+                        )));
                     }
                 } else {
                     enum_members_map.insert(name.to_owned(), next_implicit_value);
@@ -111,11 +85,13 @@ impl Transform {
                 }
             } else {
                 return Err(TransformError::new(format!(
-                            "Expected EnumMember but found {:?}", **item
-                            )));
+                    "Expected EnumMember but found {:?}",
+                    **item
+                )));
             }
         }
-        self.enums.insert(name.to_owned(), Enum::new(enum_members_map));
+        self.enums
+            .insert(name.to_owned(), Enum::new(enum_members_map));
 
         Ok(())
     }
@@ -124,55 +100,41 @@ impl Transform {
         &self,
         model: &Model,
         rng: &mut CrateRng,
-        node: &ast::Node
+        node: &ast::Node,
     ) -> TransformResult<Box<Expr>> {
         match *node {
-            ast::Node::Type(ref typ, ref args) => {
-                self.transform_type(model, rng, typ, args)
-            },
-            ast::Node::Number(x) => {
-                Ok(Box::new(Value::new(x)))
-            },
-            ast::Node::UnaryOperation(ref op, ref a) => {
-                Ok(Box::new(
-                        Unary::new(
-                            op.clone(),
-                            self.transform_expr(model, rng, a)?
-                            )
-                        ))
-            },
-            ast::Node::BinaryOperation(ref bx, ref op, ref by) => {
-                Ok(Box::new(
-                        Binary::new(
-                            self.transform_expr(model, rng, bx)?,
-                            op.clone(),
-                            self.transform_expr(model, rng, by)?
-                            )
-                        ))
-            },
+            ast::Node::Type(ref typ, ref args) => self.transform_type(model, rng, typ, args),
+            ast::Node::Number(x) => Ok(Box::new(Value::new(x))),
+            ast::Node::UnaryOperation(ref op, ref a) => Ok(Box::new(Unary::new(
+                op.clone(),
+                self.transform_expr(model, rng, a)?,
+            ))),
+            ast::Node::BinaryOperation(ref bx, ref op, ref by) => Ok(Box::new(Binary::new(
+                self.transform_expr(model, rng, bx)?,
+                op.clone(),
+                self.transform_expr(model, rng, by)?,
+            ))),
             ast::Node::REnumMember(ref a, ref b) => {
                 if let Some(entry) = self.enums.get(a) {
                     if let Some(entry) = entry.items.get(b) {
                         Ok(Box::new(Value::new(*entry)))
                     } else {
                         Err(TransformError::new(format!(
-                                    "Could not find enum value '{}' in enum '{}'", b, a
-                                    )))
+                            "Could not find enum value '{}' in enum '{}'",
+                            b, a
+                        )))
                     }
                 } else {
-                    Err(TransformError::new(format!(
-                                "Could not find enum '{}'", a
-                                )))
+                    Err(TransformError::new(format!("Could not find enum '{}'", a)))
                 }
-            },
+            }
             ast::Node::RVariable(ref name, ref method) => {
                 self.transform_r_variable(model, name, method)
-            },
-            _ => {
-                Err(TransformError::new(format!(
-                    "Expected (Type|Number|UnaryOperation|BinaryOperation|REnumMember) but found {:?}",
-                    *node)))
             }
+            _ => Err(TransformError::new(format!(
+                "Expected (Type|Number|UnaryOperation|BinaryOperation|REnumMember) but found {:?}",
+                *node
+            ))),
         }
     }
 
@@ -180,27 +142,18 @@ impl Transform {
         &self,
         model: &Model,
         name: &str,
-        method: &ast::VariableMethod
+        method: &ast::VariableMethod,
     ) -> TransformResult<Box<Expr>> {
         match model.get_variable_by_name(name) {
-            Some(variable) => {
-                match *method {
-                    ast::VariableMethod::Next => {
-                        Ok(Box::new(Next::new(name, Rc::downgrade(variable))))
-                    },
-                    ast::VariableMethod::Prev => {
-                        Ok(Box::new(Prev::new(name, Rc::downgrade(variable))))
-                    },
-                    ast::VariableMethod::Copy => {
-                        Ok(variable.borrow().clone_expr())
-                    },
-                }
+            Some(variable) => match *method {
+                ast::VariableMethod::Next => Ok(Box::new(Next::new(name, Rc::downgrade(variable)))),
+                ast::VariableMethod::Prev => Ok(Box::new(Prev::new(name, Rc::downgrade(variable)))),
+                ast::VariableMethod::Copy => Ok(variable.borrow().clone_expr()),
             },
-            None => {
-                Err(TransformError::new(format!(
-                            "Could not find variable '{}'", name
-                            )))
-            },
+            None => Err(TransformError::new(format!(
+                "Could not find variable '{}'",
+                name
+            ))),
         }
     }
 
@@ -208,7 +161,7 @@ impl Transform {
         &self,
         model: &Model,
         rng: &mut CrateRng,
-        args: &[Box<ast::Node>]
+        args: &[Box<ast::Node>],
     ) -> TransformResult<Vec<Box<Expr>>> {
         let mut arg_exprs: Vec<Box<Expr>> = Vec::new();
         for arg in args {
@@ -223,12 +176,14 @@ impl Transform {
         model: &Model,
         rng: &mut CrateRng,
         typ: &ast::Type,
-        args: &[Box<ast::Node>]
+        args: &[Box<ast::Node>],
     ) -> TransformResult<Box<Expr>> {
         match *typ {
-            ast::Type::Pattern => {
-                Ok(Box::new(Pattern::new(self.transform_args(model, rng, args)?)))
-            }
+            ast::Type::Pattern => Ok(Box::new(Pattern::new(self.transform_args(
+                model,
+                rng,
+                args,
+            )?))),
             ast::Type::Sequence => {
                 let args = self.transform_args(model, rng, args)?;
 
@@ -248,22 +203,20 @@ impl Transform {
                     Ok(Box::new(Range::new(l, r)))
                 }
             }
-            ast::Type::Sample
-            | ast::Type::Unique => {
+            ast::Type::Sample | ast::Type::Unique => {
                 let mut children: Vec<Box<Expr>> = Vec::new();
                 for arg in args.iter() {
                     match **arg {
                         ast::Node::REnum(ref name) => {
                             if let Some(entry) = self.enums.get(name) {
                                 for value in entry.items.values() {
-                                    children.push(
-                                        Box::new(Value::new(*value))
-                                        );
+                                    children.push(Box::new(Value::new(*value)));
                                 }
                             } else {
                                 return Err(TransformError::new(format!(
-                                            "Could not find enum '{}'", name
-                                            )));
+                                    "Could not find enum '{}'",
+                                    name
+                                )));
                             }
                         }
                         ast::Node::Type(ast::Type::Expand, ref args) => {
@@ -299,7 +252,9 @@ impl Transform {
                         pairs.push((*weight, self.transform_expr(model, rng, node)?));
                     } else {
                         return Err(TransformError::new(format!(
-                                    "Expected WeightedPair but found {:?}", **arg)));
+                            "Expected WeightedPair but found {:?}",
+                            **arg
+                        )));
                     }
                 }
 
@@ -307,7 +262,8 @@ impl Transform {
             }
             ast::Type::Expand => {
                 return Err(TransformError::new(format!(
-                            "Expand() must be inside Sample()")));
+                    "Expand() must be inside Sample()"
+                )));
             }
             ast::Type::Done => {
                 let expr = self.transform_expr(model, rng, &*args[0])?;

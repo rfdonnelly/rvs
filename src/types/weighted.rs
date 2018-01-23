@@ -15,10 +15,7 @@ pub struct Weighted {
 
 impl Weighted {
     pub fn new(children: Vec<(u32, Box<Expr>)>) -> Weighted {
-        let weights: Vec<u32> = children
-            .iter()
-            .map(|child| child.0.clone())
-            .collect();
+        let weights: Vec<u32> = children.iter().map(|child| child.0.clone()).collect();
 
         Weighted {
             data: ExprData {

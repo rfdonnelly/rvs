@@ -58,16 +58,15 @@ impl SourcePaths {
         }
 
         // Relative to search path
-        let result = self.searchpath.paths.iter()
+        let result = self.searchpath
+            .paths
+            .iter()
             .map(|ref p| p.join(path))
             .find(|ref p| p.exists());
 
         match result {
             Some(path) => Ok(path),
-            None => {
-                Err(io::Error::new(io::ErrorKind::NotFound,
-                                   "File not found"))
-            }
+            None => Err(io::Error::new(io::ErrorKind::NotFound, "File not found")),
         }
     }
 }
@@ -87,7 +86,10 @@ mod tests {
         let search_path = SearchPath::new(vec![path_dir]);
         let mut sourcepaths = SourcePaths::new(search_path);
 
-        assert_eq!(sourcepaths.find(&Path::new("readme.rvs")).unwrap(), path_file);
+        assert_eq!(
+            sourcepaths.find(&Path::new("readme.rvs")).unwrap(),
+            path_file
+        );
         assert!(sourcepaths.enter_import(&path_file));
         assert!(!sourcepaths.enter_import(&path_file));
         sourcepaths.leave_import();

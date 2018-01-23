@@ -52,7 +52,7 @@ impl RandRangeInclusive {
             // Sample with Range + offset
             (x, u32::MAX) => (x - 1, u32::MAX, true, true),
             // Sample with Range normally
-            (x, y) => (x, y + 1, true, false)
+            (x, y) => (x, y + 1, true, false),
         };
 
         RandRangeInclusive {
@@ -68,12 +68,11 @@ impl IndependentSample<u32> for RandRangeInclusive {
         // Should never see this case.  Could cause a panic due to overflow.
         assert!(!(self.use_range == false && self.offset == true));
 
-        let sample =
-            if self.use_range {
-                self.range.ind_sample(rng)
-            } else {
-                rng.gen()
-            };
+        let sample = if self.use_range {
+            self.range.ind_sample(rng)
+        } else {
+            rng.gen()
+        };
 
         if self.offset {
             sample + 1
@@ -91,11 +90,7 @@ impl Sample<u32> for RandRangeInclusive {
 
 impl Range {
     pub fn new(l: u32, r: u32) -> Range {
-        let limits = if r > l {
-            (l, r)
-        } else {
-            (r, l)
-        };
+        let limits = if r > l { (l, r) } else { (r, l) };
 
         Range {
             data: ExprData {
@@ -104,7 +99,7 @@ impl Range {
             },
             l: l,
             r: r,
-            range: RandRangeInclusive::new(limits.0, limits.1)
+            range: RandRangeInclusive::new(limits.0, limits.1),
         }
     }
 }
@@ -162,10 +157,7 @@ mod tests {
         fn max_max() {
             use std::collections::HashMap;
 
-            let mut variable = Range::new(
-                u32::MAX - 1,
-                u32::MAX
-            );
+            let mut variable = Range::new(u32::MAX - 1, u32::MAX);
 
             let mut rng = Seed::from_u32(0).to_rng();
             let mut values = HashMap::new();
@@ -186,10 +178,7 @@ mod tests {
         fn full_range() {
             use std::collections::HashMap;
 
-            let mut variable = Range::new(
-                u32::MIN,
-                u32::MAX
-            );
+            let mut variable = Range::new(u32::MIN, u32::MAX);
 
             let mut rng = Seed::from_u32(0).to_rng();
             let mut values = HashMap::new();

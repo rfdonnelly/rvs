@@ -10,12 +10,11 @@ fn yields_a_repeating_pattern() {
 
     let expected: Vec<(u32, bool)> = (0..4)
         .zip(vec![false, false, false, true].into_iter())
-        .cycle().take(16)
+        .cycle()
+        .take(16)
         .collect();
 
-    let actual: Vec<(u32, bool)> = (0..16)
-        .map(|_| (a.next(), a.done()))
-        .collect();
+    let actual: Vec<(u32, bool)> = (0..16).map(|_| (a.next(), a.done())).collect();
 
     assert_eq!(actual, expected);
 }
@@ -29,12 +28,11 @@ fn selects_another_subexpr_when_current_subexpr_done() {
 
     let expected: Vec<(u32, bool)> = (0..4)
         .zip(vec![false, false, false, true].into_iter())
-        .cycle().take(16)
+        .cycle()
+        .take(16)
         .collect();
 
-    let actual: Vec<(u32, bool)> = (0..16)
-        .map(|_| (a.next(), a.done()))
-        .collect();
+    let actual: Vec<(u32, bool)> = (0..16).map(|_| (a.next(), a.done())).collect();
 
     assert_eq!(actual, expected);
 }

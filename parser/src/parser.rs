@@ -2,21 +2,15 @@ use ast;
 use grammar;
 use searchpath::SearchPath;
 use sourcepaths::SourcePaths;
-use error::{
-    Result,
-    Error,
-    ParseError,
-};
+use error::{Error, ParseError, Result};
 
 pub struct Parser {
-    searchpath: SearchPath
+    searchpath: SearchPath,
 }
 
 impl Parser {
     pub fn new(searchpath: SearchPath) -> Parser {
-        Parser {
-            searchpath
-        }
+        Parser { searchpath }
     }
 
     pub fn parse(&self, s: &str) -> Result<Vec<Box<ast::Node>>> {
@@ -49,24 +43,25 @@ impl Parser {
                     indent.push_str(" ");
                 }
                 let line = s.lines().nth(error.line - 1).unwrap();
-                let description = format!(
-                    "{}\n{}\n{}^",
-                    error,
-                    line,
-                    indent,
-                    );
+                let description = format!("{}\n{}\n{}^", error, line, indent,);
 
                 Err(Error::Parse(ParseError::new(description)))
             }
         }
     }
 
-    fn flatten_recursive(&self, mut items: Vec<ast::Item>, nodes: &mut Vec<Box<ast::Node>>) -> Result<()> {
+    fn flatten_recursive(
+        &self,
+        mut items: Vec<ast::Item>,
+        nodes: &mut Vec<Box<ast::Node>>,
+    ) -> Result<()> {
         for item in items.drain(..) {
             match item {
                 ast::Item::Single(node) => nodes.push(node),
                 ast::Item::Multiple(items) => self.flatten_recursive(items, nodes)?,
-                ast::Item::ImportError(path, err) => { return Err(Error::Io(err)); },
+                ast::Item::ImportError(path, err) => {
+                    return Err(Error::Io(err));
+                }
             }
         }
 

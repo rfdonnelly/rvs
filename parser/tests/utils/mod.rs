@@ -11,4 +11,3 @@ pub fn parse_result(s: &str) -> Result<(), ::rvs_parser::error::Error> {
 
     Ok(())
 }
-

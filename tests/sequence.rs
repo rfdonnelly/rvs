@@ -10,11 +10,10 @@ fn last() {
 
     let expected: Vec<(u32, bool)> = (0..4)
         .zip(vec![false, false, false, true].into_iter())
-        .cycle().take(16)
+        .cycle()
+        .take(16)
         .collect();
-    let actual: Vec<(u32, bool)> = (0..16)
-        .map(|_| (a.next(), a.done()))
-        .collect();
+    let actual: Vec<(u32, bool)> = (0..16).map(|_| (a.next(), a.done())).collect();
 
     assert_eq!(expected, actual);
 }
@@ -26,13 +25,12 @@ fn first_last() {
     let a = expr_to_var(format!("Sequence({}, {})", first, last)).unwrap();
     let mut a = a.borrow_mut();
 
-    let expected: Vec<(u32, bool)> = (first..last+1)
+    let expected: Vec<(u32, bool)> = (first..last + 1)
         .zip(vec![false, false, false, true].into_iter())
-        .cycle().take(16)
+        .cycle()
+        .take(16)
         .collect();
-    let actual: Vec<(u32, bool)> = (0..16)
-        .map(|_| (a.next(), a.done()))
-        .collect();
+    let actual: Vec<(u32, bool)> = (0..16).map(|_| (a.next(), a.done())).collect();
 
     assert_eq!(expected, actual);
 }
@@ -44,12 +42,11 @@ fn first_last_increment() {
 
     let expected: Vec<(u32, bool)> = (0..4)
         .zip(vec![false, false, false, true].into_iter())
-        .cycle().take(16)
+        .cycle()
+        .take(16)
         .map(|(i, done)| (i * 4, done))
         .collect();
-    let actual: Vec<(u32, bool)> = (0..16)
-        .map(|_| (a.next(), a.done()))
-        .collect();
+    let actual: Vec<(u32, bool)> = (0..16).map(|_| (a.next(), a.done())).collect();
 
     assert_eq!(expected, actual);
 }
@@ -60,14 +57,13 @@ fn decrement() {
     let a = expr_to_var(format!("Sequence({}, {}, -1)", first, last)).unwrap();
     let mut a = a.borrow_mut();
 
-    let expected: Vec<(u32, bool)> = (last..first+1)
+    let expected: Vec<(u32, bool)> = (last..first + 1)
         .rev()
         .zip(vec![false, false, false, true].into_iter())
-        .cycle().take(16)
+        .cycle()
+        .take(16)
         .collect();
-    let actual: Vec<(u32, bool)> = (0..16)
-        .map(|_| (a.next(), a.done()))
-        .collect();
+    let actual: Vec<(u32, bool)> = (0..16).map(|_| (a.next(), a.done())).collect();
 
     assert_eq!(expected, actual);
 }
@@ -83,13 +79,12 @@ fn args_evaluated_every_cycle() {
         (4, false),
         (8, false),
         (12, false),
-        (16, true)]
-        .into_iter()
-        .cycle().take(16)
+        (16, true),
+    ].into_iter()
+        .cycle()
+        .take(16)
         .collect();
-    let actual: Vec<(u32, bool)> = (0..16)
-        .map(|_| (a.next(), a.done()))
-        .collect();
+    let actual: Vec<(u32, bool)> = (0..16).map(|_| (a.next(), a.done())).collect();
 
     assert_eq!(expected, actual);
 }
@@ -99,16 +94,12 @@ fn increment_skips_last() {
     let a = expr_to_var("Sequence(0, 3, 2)").unwrap();
     let mut a = a.borrow_mut();
 
-    let expected: Vec<(u32, bool)> = vec![
-        (0, false),
-        (2, true),
-        ]
+    let expected: Vec<(u32, bool)> = vec![(0, false), (2, true)]
         .into_iter()
-        .cycle().take(16)
+        .cycle()
+        .take(16)
         .collect();
-    let actual: Vec<(u32, bool)> = (0..16)
-        .map(|_| (a.next(), a.done()))
-        .collect();
+    let actual: Vec<(u32, bool)> = (0..16).map(|_| (a.next(), a.done())).collect();
 
     assert_eq!(expected, actual);
 }
@@ -118,16 +109,12 @@ fn negative_increment_skips_last() {
     let a = expr_to_var("Sequence(13, 10, -2)").unwrap();
     let mut a = a.borrow_mut();
 
-    let expected: Vec<(u32, bool)> = vec![
-        (13, false),
-        (11, true),
-        ]
+    let expected: Vec<(u32, bool)> = vec![(13, false), (11, true)]
         .into_iter()
-        .cycle().take(16)
+        .cycle()
+        .take(16)
         .collect();
-    let actual: Vec<(u32, bool)> = (0..16)
-        .map(|_| (a.next(), a.done()))
-        .collect();
+    let actual: Vec<(u32, bool)> = (0..16).map(|_| (a.next(), a.done())).collect();
 
     assert_eq!(expected, actual);
 }
@@ -146,5 +133,7 @@ fn zero_increment() {
     let a = expr_to_var("Sequence(0, 9, Pattern(1, 0))").unwrap();
     let mut a = a.borrow_mut();
 
-    (0..20).for_each(|_| { a.next(); });
+    (0..20).for_each(|_| {
+        a.next();
+    });
 }

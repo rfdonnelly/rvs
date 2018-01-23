@@ -15,10 +15,7 @@ pub type VariableWeak = Weak<RefCell<Box<Variable>>>;
 
 impl Variable {
     pub fn new(expr: Box<Expr>, rng: CrateRng) -> Variable {
-        Variable {
-            expr,
-            rng,
-        }
+        Variable { expr, rng }
     }
 
     pub fn clone_expr(&self) -> Box<Expr> {

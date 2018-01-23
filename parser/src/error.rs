@@ -55,12 +55,8 @@ impl From<ParseError> for Error {
 pub type ParseResult<T> = ::std::result::Result<T, ParseError>;
 
 impl ParseError {
-    pub fn new(
-        description: String,
-    ) -> ParseError {
-        ParseError {
-            description,
-        }
+    pub fn new(description: String) -> ParseError {
+        ParseError { description }
     }
 }
 

@@ -45,12 +45,12 @@ fn done_when_sub_expr_done() {
 
     assert_eq!(a.done(), false);
 
-    let expected: Vec<bool> = vec![false, true]
-        .into_iter()
-        .cycle().take(32)
-        .collect();
+    let expected: Vec<bool> = vec![false, true].into_iter().cycle().take(32).collect();
     let actual: Vec<bool> = (0..expected.len())
-        .map(|_| { a.next(); a.done() })
+        .map(|_| {
+            a.next();
+            a.done()
+        })
         .collect();
 
     assert_eq!(expected, actual);

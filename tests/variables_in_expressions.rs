@@ -2,10 +2,7 @@ extern crate rvs;
 
 #[test]
 fn next() {
-    let model = rvs::parse(
-        Default::default(),
-        "a = 1; b = a;"
-        ).unwrap();
+    let model = rvs::parse(Default::default(), "a = 1; b = a;").unwrap();
 
     let b = model.get_variable_by_name("b").unwrap();
     let mut b = b.borrow_mut();
@@ -17,10 +14,7 @@ fn next() {
 /// of variable a.
 #[test]
 fn next_pattern() {
-    let model = rvs::parse(
-        Default::default(),
-        "a = Pattern(0, 1, 2, 3); b = a;"
-        ).unwrap();
+    let model = rvs::parse(Default::default(), "a = Pattern(0, 1, 2, 3); b = a;").unwrap();
 
     let a = model.get_variable_by_name("a").unwrap();
     let b = model.get_variable_by_name("b").unwrap();
@@ -33,20 +27,21 @@ fn next_pattern() {
 
 #[test]
 fn next_done() {
-    let model = rvs::parse(
-        Default::default(),
-        "a = Pattern(0, 1, 2, 3); b = a;"
-        ).unwrap();
+    let model = rvs::parse(Default::default(), "a = Pattern(0, 1, 2, 3); b = a;").unwrap();
 
     let b = model.get_variable_by_name("b").unwrap();
     let mut b = b.borrow_mut();
 
     let expected: Vec<bool> = vec![false, false, false, true]
         .into_iter()
-        .cycle().take(32)
+        .cycle()
+        .take(32)
         .collect();
     let actual: Vec<bool> = (0..32)
-        .map(|_| { b.next(); b.done() })
+        .map(|_| {
+            b.next();
+            b.done()
+        })
         .collect();
 
     assert_eq!(expected, actual);
@@ -54,10 +49,7 @@ fn next_done() {
 
 #[test]
 fn copy() {
-    let model = rvs::parse(
-        Default::default(),
-        "a = 1; b = a.copy;"
-        ).unwrap();
+    let model = rvs::parse(Default::default(), "a = 1; b = a.copy;").unwrap();
 
     let b = model.get_variable_by_name("b").unwrap();
     let mut b = b.borrow_mut();
@@ -67,10 +59,7 @@ fn copy() {
 
 #[test]
 fn copy_pattern() {
-    let model = rvs::parse(
-        Default::default(),
-        "a = Pattern(0, 1, 2, 3); b = a.copy;"
-        ).unwrap();
+    let model = rvs::parse(Default::default(), "a = Pattern(0, 1, 2, 3); b = a.copy;").unwrap();
 
     let a = model.get_variable_by_name("a").unwrap();
     let mut a = a.borrow_mut();
@@ -87,10 +76,7 @@ fn copy_pattern() {
 
 #[test]
 fn prev() {
-    let model = rvs::parse(
-        Default::default(),
-        "a = Pattern(0, 1, 2, 3); b = a.prev;"
-        ).unwrap();
+    let model = rvs::parse(Default::default(), "a = Pattern(0, 1, 2, 3); b = a.prev;").unwrap();
 
     let a = model.get_variable_by_name("a").unwrap();
     let b = model.get_variable_by_name("b").unwrap();

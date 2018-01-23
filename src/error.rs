@@ -65,12 +65,8 @@ impl From<TransformError> for Error {
 pub type TransformResult<T> = ::std::result::Result<T, TransformError>;
 
 impl TransformError {
-    pub fn new(
-        description: String,
-    ) -> TransformError {
-        TransformError {
-            description,
-        }
+    pub fn new(description: String) -> TransformError {
+        TransformError { description }
     }
 }
 

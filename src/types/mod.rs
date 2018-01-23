@@ -10,7 +10,7 @@ mod done;
 mod once;
 
 pub use self::value::Value;
-pub use self::operation::{Unary, Binary};
+pub use self::operation::{Binary, Unary};
 pub use self::pattern::Pattern;
 pub use self::sequence::Sequence;
 pub use self::range::Range;

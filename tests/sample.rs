@@ -10,11 +10,8 @@ fn basic() {
     let a = expr_to_var("Sample(1, 2, 4, 8)").unwrap();
     let mut a = a.borrow_mut();
 
-    let expected: HashSet<u32> =
-        [1, 2, 4, 8].iter().cloned().collect();
-    let actual: HashSet<u32> = (0..16)
-        .map(|_| a.next())
-        .collect();
+    let expected: HashSet<u32> = [1, 2, 4, 8].iter().cloned().collect();
+    let actual: HashSet<u32> = (0..16).map(|_| a.next()).collect();
 
     assert_eq!(expected, actual);
 }
@@ -42,12 +39,12 @@ fn done_when_sub_expr_done() {
 
     assert_eq!(a.done(), false);
 
-    let expected: Vec<bool> = vec![false, true]
-        .into_iter()
-        .cycle().take(32)
-        .collect();
+    let expected: Vec<bool> = vec![false, true].into_iter().cycle().take(32).collect();
     let actual: Vec<bool> = (0..expected.len())
-        .map(|_| { a.next(); a.done() })
+        .map(|_| {
+            a.next();
+            a.done()
+        })
         .collect();
 
     assert_eq!(expected, actual);

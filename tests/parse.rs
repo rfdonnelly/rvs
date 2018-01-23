@@ -2,10 +2,7 @@ extern crate rvs;
 
 #[test]
 fn basic() {
-    let model = rvs::parse(
-        Default::default(),
-        "a=[0,1];\nb=2;"
-        ).unwrap();
+    let model = rvs::parse(Default::default(), "a=[0,1];\nb=2;").unwrap();
 
     let a = model.get_variable_by_name("a").unwrap();
     let result = a.borrow_mut().next();

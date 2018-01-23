@@ -29,7 +29,10 @@ pub trait ExprClone {
     fn clone_box(&self) -> Box<Expr>;
 }
 
-impl<T> ExprClone for T where T: 'static + Expr + Clone {
+impl<T> ExprClone for T
+where
+    T: 'static + Expr + Clone,
+{
     fn clone_box(&self) -> Box<Expr> {
         Box::new(self.clone())
     }

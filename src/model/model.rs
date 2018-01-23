@@ -1,6 +1,6 @@
 use super::VariableRef;
 
-use linked_hash_map::{LinkedHashMap, Entry};
+use linked_hash_map::{Entry, LinkedHashMap};
 use std::fmt;
 
 pub struct Model {
@@ -18,11 +18,7 @@ impl Model {
         }
     }
 
-    pub fn add_variable(
-        &mut self,
-        name: &str,
-        variable: VariableRef
-    ) {
+    pub fn add_variable(&mut self, name: &str, variable: VariableRef) {
         let variables = &mut self.variables;
         let most_recent = &mut self.most_recent;
 
@@ -39,34 +35,23 @@ impl Model {
         }
     }
 
-    pub fn get_variable_index(
-        &self,
-        name: &str
-    ) -> Option<usize> {
+    pub fn get_variable_index(&self, name: &str) -> Option<usize> {
         let index = self.variable_indexes.get(name)?;
         Some(*index)
     }
 
-    pub fn get_variable_by_index(
-        &self,
-        index: usize
-    ) -> Option<&VariableRef> {
+    pub fn get_variable_by_index(&self, index: usize) -> Option<&VariableRef> {
         let variable = self.variables.get(index)?;
         Some(variable)
     }
 
-    pub fn get_variable_by_name(
-        &self,
-        name: &str
-    ) -> Option<&VariableRef> {
+    pub fn get_variable_by_name(&self, name: &str) -> Option<&VariableRef> {
         let index = self.variable_indexes.get(name)?;
         let variable = self.variables.get(*index)?;
         Some(variable)
     }
 
-    pub fn get_most_recently_added(
-        &self
-    ) -> Option<&VariableRef> {
+    pub fn get_most_recently_added(&self) -> Option<&VariableRef> {
         self.variables.get(self.most_recent)
     }
 

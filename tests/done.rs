@@ -20,7 +20,8 @@ fn done_causes_advance_to_next_subexpr() {
 
     let expected: Vec<(u32, bool)> = (0..8)
         .zip(vec![false, true].into_iter().cycle().take(8))
-        .cycle().take(32)
+        .cycle()
+        .take(32)
         .map(|(value, done)| {
             let value = match value % 2 == 0 {
                 true => value / 2,
@@ -29,9 +30,7 @@ fn done_causes_advance_to_next_subexpr() {
             (value, done)
         })
         .collect();
-    let actual: Vec<(u32, bool)> = (0..32)
-        .map(|_| (a.next(), a.done()))
-        .collect();
+    let actual: Vec<(u32, bool)> = (0..32).map(|_| (a.next(), a.done())).collect();
 
     assert_eq!(expected, actual);
 }
@@ -43,11 +42,10 @@ fn always_done() {
 
     let expected: Vec<(u32, bool)> = (0..4)
         .zip(iter::repeat(true).take(4))
-        .cycle().take(32)
+        .cycle()
+        .take(32)
         .collect();
-    let actual: Vec<(u32, bool)> = (0..32)
-        .map(|_| (a.next(), a.done()))
-        .collect();
+    let actual: Vec<(u32, bool)> = (0..32).map(|_| (a.next(), a.done())).collect();
 
     assert_eq!(expected, actual);
 }

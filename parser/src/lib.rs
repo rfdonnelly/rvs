@@ -1,4 +1,6 @@
-mod grammar { include!(concat!(env!("OUT_DIR"), "/grammar.rs")); }
+mod grammar {
+    include!(concat!(env!("OUT_DIR"), "/grammar.rs"));
+}
 mod searchpath;
 mod sourcepaths;
 mod parser;

@@ -30,7 +30,7 @@ fn eval(
     s: &str,
     parser: &mut rvs::Parser,
     transform: &mut rvs::Transform,
-    model: &mut rvs::Model
+    model: &mut rvs::Model,
 ) -> rvs::Result<()> {
     parser.parse(s)?;
     transform.transform(model, parser.ast())?;
@@ -41,12 +41,14 @@ fn eval(
     let values: Vec<String> = vec![(0, false); 15]
         .iter()
         .map(|_| (rv.next(), rv.done()))
-        .map(|(next, done)| if done {
-            format!("0x{:x} <done>", next)
-        } else {
-            format!("0x{:x}", next)
+        .map(|(next, done)| {
+            if done {
+                format!("0x{:x} <done>", next)
+            } else {
+                format!("0x{:x}", next)
+            }
         })
-    .collect();
+        .collect();
 
     let values = values.join(", ");
     println!("=> {}", values);

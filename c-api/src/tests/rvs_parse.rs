@@ -2,18 +2,18 @@ use super::*;
 
 #[test]
 fn import() {
-    let search_path = ::std::env::current_dir()
-        .unwrap()
-        .join("../examples");
-    let search_path = search_path
-        .to_str()
-        .unwrap();
+    let search_path = ::std::env::current_dir().unwrap().join("../examples");
+    let search_path = search_path.to_str().unwrap();
 
     let error = rvs_error_new();
     let context = rvs_context_new(CString::new(search_path).unwrap().as_ptr(), 0, error);
     assert!(!rvs_error_test(error));
 
-    rvs_parse(context, CString::new("import import;").unwrap().as_ptr(), error);
+    rvs_parse(
+        context,
+        CString::new("import import;").unwrap().as_ptr(),
+        error,
+    );
     assert!(!rvs_error_test(error));
 
     let model = rvs_model_new();
@@ -79,7 +79,11 @@ fn parse_error() {
     let context = rvs_context_new(CString::new("").unwrap().as_ptr(), 0, error);
     assert!(!rvs_error_test(error));
 
-    rvs_parse(context, CString::new("a = 1;\n1 = b;").unwrap().as_ptr(), error);
+    rvs_parse(
+        context,
+        CString::new("a = 1;\n1 = b;").unwrap().as_ptr(),
+        error,
+    );
     assert_starts_with(get_error_message(error), "error at 2:1: expected one of");
     assert!(rvs_error_test(error));
 
@@ -93,7 +97,13 @@ fn file() {
     let context = rvs_context_new(CString::new("").unwrap().as_ptr(), 0, error);
     assert!(!rvs_error_test(error));
 
-    rvs_parse(context, CString::new("../examples/basic.rvs;b = 3").unwrap().as_ptr(), error);
+    rvs_parse(
+        context,
+        CString::new("../examples/basic.rvs;b = 3")
+            .unwrap()
+            .as_ptr(),
+        error,
+    );
     assert!(!rvs_error_test(error));
 
     let model = rvs_model_new();
@@ -122,7 +132,11 @@ fn override_rv() {
     let context = rvs_context_new(CString::new("").unwrap().as_ptr(), 0, error);
     assert!(!rvs_error_test(error));
 
-    rvs_parse(context, CString::new("a = 0;a = 1").unwrap().as_ptr(), error);
+    rvs_parse(
+        context,
+        CString::new("a = 0;a = 1").unwrap().as_ptr(),
+        error,
+    );
     assert!(!rvs_error_test(error));
 
     rvs_parse(context, CString::new("a = 2").unwrap().as_ptr(), error);

@@ -6,8 +6,6 @@ pub struct Enum {
 
 impl Enum {
     pub fn new(items: LinkedHashMap<String, u32>) -> Enum {
-        Enum {
-            items,
-        }
+        Enum { items }
     }
 }

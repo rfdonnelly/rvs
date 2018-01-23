@@ -11,9 +11,7 @@ pub struct Parser {
 }
 
 impl Parser {
-    pub fn new(
-        search_path: &rvs_parser::SearchPath
-    ) -> Parser {
+    pub fn new(search_path: &rvs_parser::SearchPath) -> Parser {
         Parser {
             // FIXME: Remove clone
             search_path: search_path.clone(),
@@ -21,10 +19,7 @@ impl Parser {
         }
     }
 
-    pub fn parse(
-        &mut self,
-        s: &str
-    ) -> Result<()> {
+    pub fn parse(&mut self, s: &str) -> Result<()> {
         // FIXME: Remove clone
         let parser = rvs_parser::Parser::new(self.search_path.clone());
         let nodes = parser.parse(s)?;

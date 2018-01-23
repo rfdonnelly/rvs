@@ -52,18 +52,19 @@ impl From<rvs::Error> for ErrorKind {
 }
 
 #[no_mangle]
-pub extern fn rvs_error_new() -> *mut Error {
+pub extern "C" fn rvs_error_new() -> *mut Error {
     Box::into_raw(Box::new(Error::new(ErrorKind::None)))
 }
 
-
 #[no_mangle]
-pub extern fn rvs_error_free(err: *mut Error) {
-    unsafe { Box::from_raw(err); }
+pub extern "C" fn rvs_error_free(err: *mut Error) {
+    unsafe {
+        Box::from_raw(err);
+    }
 }
 
 #[no_mangle]
-pub extern fn rvs_error_message(err: *mut Error) -> *const c_char {
+pub extern "C" fn rvs_error_message(err: *mut Error) -> *const c_char {
     let err = unsafe { &mut *err };
     let cmsg = match CString::new(format!("{}", err)) {
         Ok(msg) => msg,
@@ -75,7 +76,7 @@ pub extern fn rvs_error_message(err: *mut Error) -> *const c_char {
 }
 
 #[no_mangle]
-pub extern fn rvs_error_test(err: *const Error) -> bool {
+pub extern "C" fn rvs_error_test(err: *const Error) -> bool {
     let err = unsafe { &*err };
 
     err.is_err()

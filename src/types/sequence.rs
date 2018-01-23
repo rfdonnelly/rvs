@@ -24,9 +24,21 @@ impl Sequence {
         let len = args.len();
         let mut drain = args.drain(..);
         let (first, last, increment): (Box<Expr>, Box<Expr>, Box<Expr>) = match len {
-            1 => (Box::new(Value::new(0)), drain.next().unwrap(), Box::new(Value::new(1))),
-            2 => (drain.next().unwrap(), drain.next().unwrap(), Box::new(Value::new(1))),
-            3 => (drain.next().unwrap(), drain.next().unwrap(), drain.next().unwrap()),
+            1 => (
+                Box::new(Value::new(0)),
+                drain.next().unwrap(),
+                Box::new(Value::new(1)),
+            ),
+            2 => (
+                drain.next().unwrap(),
+                drain.next().unwrap(),
+                Box::new(Value::new(1)),
+            ),
+            3 => (
+                drain.next().unwrap(),
+                drain.next().unwrap(),
+                drain.next().unwrap(),
+            ),
             _ => panic!("Expected 1 to 3 arguments.  Got {}", len),
         };
 
@@ -59,7 +71,10 @@ impl Sequence {
         let increment = self.increment.next(rng);
 
         if increment == 0 {
-            panic!("the increment sub-expression `{}` returned 0 in the expression `{}`", self.increment, self);
+            panic!(
+                "the increment sub-expression `{}` returned 0 in the expression `{}`",
+                self.increment, self
+            );
         }
     }
 
@@ -121,6 +136,10 @@ impl Expr for Sequence {
 
 impl fmt::Display for Sequence {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Sequence({}, {}, {})", self.first, self.last, self.increment)
+        write!(
+            f,
+            "Sequence({}, {}, {})",
+            self.first, self.last, self.increment
+        )
     }
 }

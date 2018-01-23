@@ -7,15 +7,13 @@ use std::collections::HashMap;
 fn readme() {
     let model = rvs::parse(
         rvs::SearchPath::new(vec![current_dir().unwrap()]),
-        "import examples::readme;"
-        ).unwrap();
+        "import examples::readme;",
+    ).unwrap();
 
     let pattern = model.get_variable_by_name("pattern").unwrap();
     let mut pattern = pattern.borrow_mut();
     let expected: Vec<u32> = vec![2, 0, 1, 0, 2, 0, 1, 0];
-    let actual: Vec<u32> = (0..expected.len())
-        .map(|_| pattern.next())
-        .collect();
+    let actual: Vec<u32> = (0..expected.len()).map(|_| pattern.next()).collect();
     assert_eq!(expected, actual);
 
     let sample = model.get_variable_by_name("sample").unwrap();
