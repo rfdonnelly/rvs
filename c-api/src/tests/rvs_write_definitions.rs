@@ -1,7 +1,7 @@
 use super::*;
 
 use std::path::Path;
-use std::fs::File;
+use std::fs::{self, File};
 use std::io::Read;
 use std::ffi::CStr;
 
@@ -26,13 +26,14 @@ fn assert_contents_eq(actual: &Path, expected: &Path) {
 
 fn parse_write(input: &Path, output: &Path) {
     let error = rvs_error_new();
-    let context = rvs_context_new(CString::new("").unwrap().as_ptr(), 0, error);
+    let search_path = input.parent().unwrap().to_str().unwrap();
+    let context = rvs_context_new(CString::new(search_path).unwrap().as_ptr(), 0, error);
     assert!(!rvs_error_test(error));
 
     println!("Parsing {:?}", input);
     rvs_parse(
         context,
-        CString::new(input.to_string_lossy().as_bytes())
+        CString::new(input.to_str().unwrap())
             .unwrap()
             .as_ptr(),
         error,
@@ -71,8 +72,8 @@ fn report_error(call: &str, error: *mut Error) {
 
 #[test]
 fn basic() {
-    let files = vec!["readme.rvs"];
     let input_path = Path::new("../examples");
+    let files = fs::read_dir(input_path).unwrap();
     let output0_path = TempDir::new("rvs-output0").unwrap();
     let output0_path = output0_path.path();
     let output1_path = TempDir::new("rvs-output1").unwrap();
@@ -80,10 +81,11 @@ fn basic() {
     let expected_path = Path::new("tests/rvs_write_definitions");
 
     for file in files {
-        let input = input_path.join(file);
-        let output0 = output0_path.join(file);
-        let output1 = output1_path.join(file);
-        let expected = expected_path.join(file);
+        let input = file.unwrap().path();
+        let file_name = input.file_name().unwrap();
+        let output0 = output0_path.join(file_name);
+        let output1 = output1_path.join(file_name);
+        let expected = expected_path.join(file_name);
 
         parse_write(&input, &output0);
         assert_contents_eq(&output0, &expected);

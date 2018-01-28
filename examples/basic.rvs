@@ -3,4 +3,3 @@ enum MyEnum {
 }
 
 a = MyEnum::MyValue;
-
