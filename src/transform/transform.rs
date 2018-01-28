@@ -123,16 +123,22 @@ impl Transform {
                 op.clone(),
                 self.transform_expr(model, rng, by)?,
             ))),
-            ast::Node::REnumMember(ref name) => {
+            ast::Node::RIdentifier(ref name, ref method) => {
                 match self.symbols.get(name) {
                     Some(symbol) => {
-                        if let Symbol::EnumMember(ref value) = *symbol {
-                            Ok(Box::new(Value::new(*value)))
-                        } else {
-                            Err(TransformError::new(format!(
-                                "Symbol '{}' is not an enum member",
-                                name
-                            )))
+                        match *symbol {
+                            Symbol::EnumMember(ref value) => {
+                                Ok(Box::new(Value::new(*value)))
+                            }
+                            Symbol::Variable(ref index) => {
+                                self.transform_r_variable(model, name, *index, method)
+                            }
+                            Symbol::Enum(_) => {
+                                Err(TransformError::new(format!(
+                                    "Expected a Variable or EnumMember identifier but found Enum identifer '{}'",
+                                    name
+                                )))
+                            }
                         }
                     }
                     None => {
@@ -143,11 +149,8 @@ impl Transform {
                     }
                 }
             }
-            ast::Node::RVariable(ref name, ref method) => {
-                self.transform_r_variable(model, name, method)
-            }
             _ => Err(TransformError::new(format!(
-                "Expected (Type|Number|UnaryOperation|BinaryOperation|REnumMember) but found {:?}",
+                "Expected (Type|Number|UnaryOperation|BinaryOperation|Identifier) but found {:?}",
                 *node
             ))),
         }
@@ -156,18 +159,19 @@ impl Transform {
     fn transform_r_variable(
         &self,
         model: &Model,
-        name: &str,
+        variable_name: &str,
+        variable_index: usize,
         method: &ast::VariableMethod,
     ) -> TransformResult<Box<Expr>> {
-        match model.get_variable_by_name(name) {
+        match model.get_variable_by_index(variable_index) {
             Some(variable) => match *method {
-                ast::VariableMethod::Next => Ok(Box::new(Next::new(name, Rc::downgrade(variable)))),
-                ast::VariableMethod::Prev => Ok(Box::new(Prev::new(name, Rc::downgrade(variable)))),
+                ast::VariableMethod::Next => Ok(Box::new(Next::new(variable_name, Rc::downgrade(variable)))),
+                ast::VariableMethod::Prev => Ok(Box::new(Prev::new(variable_name, Rc::downgrade(variable)))),
                 ast::VariableMethod::Copy => Ok(variable.borrow().clone_expr()),
             },
             None => Err(TransformError::new(format!(
                 "Could not find variable '{}'",
-                name
+                variable_name
             ))),
         }
     }
@@ -222,7 +226,7 @@ impl Transform {
                 let mut children: Vec<Box<Expr>> = Vec::new();
                 for arg in args.iter() {
                     match **arg {
-                        ast::Node::REnum(ref name) => {
+                        ast::Node::RIdentifier(ref name, _) => {
                             match self.symbols.get(name) {
                                 Some(symbol) => {
                                     if let Symbol::Enum(ref enumeration) = *symbol {
@@ -230,10 +234,7 @@ impl Transform {
                                             children.push(Box::new(Value::new(*value)));
                                         }
                                     } else {
-                                        return Err(TransformError::new(format!(
-                                            "Symbol '{}' is not an enum",
-                                            name
-                                        )));
+                                        children.push(self.transform_expr(model, rng, &arg)?);
                                     }
                                 }
                                 None => {
