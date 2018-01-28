@@ -49,7 +49,7 @@ pub enum Node {
     Enum(String, Vec<Box<Node>>),
     EnumMember(String, Option<Box<Node>>),
     REnum(String),
-    REnumMember(String, String),
+    REnumMember(String),
     Type(Type, Vec<Box<Node>>),
     WeightedPair(u32, Box<Node>),
     RVariable(String, VariableMethod),

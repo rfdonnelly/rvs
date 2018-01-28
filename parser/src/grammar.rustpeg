@@ -180,7 +180,7 @@ enum_member -> Box<Node>
 
 r_enum_member -> Box<Node>
     = a:type_name "::" b:type_name {
-        Box::new(Node::REnumMember(a.into(), b.into()))
+        Box::new(Node::REnumMember(format!("{}::{}", a, b)))
     }
 
 r_enum -> Box<Node>

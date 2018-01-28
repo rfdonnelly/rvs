@@ -18,7 +18,13 @@ impl Model {
         }
     }
 
-    pub fn add_variable(&mut self, name: &str, variable: VariableRef) {
+    /// Adds a variable to the model
+    ///
+    /// If the variable `name` already exists in the model, the pre-existing variable is replaced
+    /// by the `variable`.
+    ///
+    /// Returns the index of the variable which saves a call to `get_variable_index`.
+    pub fn add_variable(&mut self, name: &str, variable: VariableRef) -> usize {
         let variables = &mut self.variables;
         let most_recent = &mut self.most_recent;
 
@@ -26,11 +32,15 @@ impl Model {
             Entry::Occupied(entry) => {
                 *most_recent = *entry.get();
                 *variables.get_mut(*most_recent).unwrap() = variable;
+
+                *most_recent
             }
             Entry::Vacant(entry) => {
                 variables.push(variable);
                 *most_recent = variables.len() - 1;
                 entry.insert(*most_recent);
+
+                *most_recent
             }
         }
     }
