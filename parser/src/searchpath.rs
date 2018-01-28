@@ -54,8 +54,4 @@ impl SearchPath {
             Ok(SearchPath::new(paths))
         }
     }
-
-    pub fn add(&mut self, path: &Path) {
-        self.paths.push(path.to_path_buf());
-    }
 }
