@@ -60,3 +60,8 @@ add_mul = 1 + 2 * 3;
 // good = (3 * 2) / 1
 //      = 6
 mul_div = 3 * 2 / 1;
+
+mod = 5 % 4;
+
+unary_inv = ~0;
+unary_neg = 5 + -4;
