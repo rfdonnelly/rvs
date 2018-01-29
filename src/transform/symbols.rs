@@ -25,7 +25,7 @@ impl Symbols {
 
     pub fn insert_enum_member<S>(&mut self, name: S, value: u32)
     where
-        S: Into<String> + ::std::fmt::Debug,
+        S: Into<String>,
     {
         self.symbols.insert(name.into(), Symbol::EnumMember(value));
     }
