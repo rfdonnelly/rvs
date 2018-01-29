@@ -33,9 +33,7 @@ fn parse_write(input: &Path, output: &Path) {
     println!("Parsing {:?}", input);
     rvs_parse(
         context,
-        CString::new(input.to_str().unwrap())
-            .unwrap()
-            .as_ptr(),
+        CString::new(input.to_str().unwrap()).unwrap().as_ptr(),
         error,
     );
     report_error("rvs_parse", error);

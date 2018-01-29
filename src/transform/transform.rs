@@ -90,7 +90,8 @@ impl Transform {
                     }
                 } else {
                     enum_members_map.insert(member_name.to_owned(), next_implicit_value);
-                    self.symbols.insert_enum_member(full_name, next_implicit_value);
+                    self.symbols
+                        .insert_enum_member(full_name, next_implicit_value);
                     next_implicit_value += 1;
                 }
             } else {
@@ -165,8 +166,12 @@ impl Transform {
     ) -> TransformResult<Box<Expr>> {
         match model.get_variable_by_index(variable_index) {
             Some(variable) => match *method {
-                ast::VariableMethod::Next => Ok(Box::new(Next::new(variable_name, Rc::downgrade(variable)))),
-                ast::VariableMethod::Prev => Ok(Box::new(Prev::new(variable_name, Rc::downgrade(variable)))),
+                ast::VariableMethod::Next => {
+                    Ok(Box::new(Next::new(variable_name, Rc::downgrade(variable))))
+                }
+                ast::VariableMethod::Prev => {
+                    Ok(Box::new(Prev::new(variable_name, Rc::downgrade(variable))))
+                }
                 ast::VariableMethod::Copy => Ok(variable.borrow().clone_expr()),
             },
             None => Err(TransformError::new(format!(
@@ -226,25 +231,23 @@ impl Transform {
                 let mut children: Vec<Box<Expr>> = Vec::new();
                 for arg in args.iter() {
                     match **arg {
-                        ast::Node::RIdentifier(ref name, _) => {
-                            match self.symbols.get(name) {
-                                Some(symbol) => {
-                                    if let Symbol::Enum(ref enumeration) = *symbol {
-                                        for value in enumeration.items.values() {
-                                            children.push(Box::new(Value::new(*value)));
-                                        }
-                                    } else {
-                                        children.push(self.transform_expr(model, rng, &arg)?);
+                        ast::Node::RIdentifier(ref name, _) => match self.symbols.get(name) {
+                            Some(symbol) => {
+                                if let Symbol::Enum(ref enumeration) = *symbol {
+                                    for value in enumeration.items.values() {
+                                        children.push(Box::new(Value::new(*value)));
                                     }
-                                }
-                                None => {
-                                    return Err(TransformError::new(format!(
-                                        "Could not find symbol '{}'",
-                                        name
-                                    )));
+                                } else {
+                                    children.push(self.transform_expr(model, rng, &arg)?);
                                 }
                             }
-                        }
+                            None => {
+                                return Err(TransformError::new(format!(
+                                    "Could not find symbol '{}'",
+                                    name
+                                )));
+                            }
+                        },
                         ast::Node::Type(ast::Type::Expand, ref args) => {
                             let mut expr = self.transform_expr(model, rng, &args[0])?;
 
