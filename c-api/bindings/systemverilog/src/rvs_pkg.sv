@@ -27,11 +27,46 @@ package rvs_pkg;
     import "DPI-C" function string rvs_error_message(rvs_error error);
     import "DPI-C" function void rvs_error_free(rvs_error error);
 
-    class Rvs;
+    // Class: Rvs
+    //
+    // Static class for managing Rvs.
+    //
+    // Example usage:
+    //
+    //  initial begin
+    //      Rvs::initialize(
+    //          .search_path(Rvs::search_path_from_plusargs()),
+    //          .seed(Rvs::seed_from_plusargs())
+    //      );
+    //      Rvs::parse("top.rvs");
+    //      Rvs::parse_from_plusargs();
+    //      Rvs::transform();
+    //      Rvs::write_definitions("final.rvs");
+    //  end
+    //
+    //  // After transform
+    //  begin
+    //      Rv a = new("a");
+    //      $display(a.next());
+    //  end
+    //
+    //  // At end-of-test
+    //  Rvs::free();
+    virtual class Rvs;
         static local rvs_error error;
         static local rvs_context ctxt;
         static local rvs_model model;
 
+        // Function: initialize
+        //
+        // Initialize Rvs with a search path and seed.
+        //
+        // Example:
+        //
+        //  Rvs::initialize(
+        //      .search_path(Rvs::search_path_from_plusargs()),
+        //      .seed(Rvs::seed_from_plusargs())
+        //  );
         static function void initialize(string search_path, uint32_t seed);
             error = rvs_error_new();
             model = rvs_model_new();
@@ -90,7 +125,7 @@ package rvs_pkg;
 
         // Function: seed_from_plusargs
         //
-        // Sets the seed from the +seed= plusarg.  Accepts decimal and
+        // Obtains the seed from the +seed= plusarg.  Accepts decimal and
         // hexadecimal (0x prefix) values.
         static function uint32_t seed_from_plusargs(uint32_t default_seed = 0);
             uint32_t seed;
@@ -101,6 +136,19 @@ package rvs_pkg;
                 return seed;
             end else begin
                 return default_seed;
+            end
+        endfunction
+
+        // Function: search_path_from_plusargs
+        //
+        // Obtains the search path from the +rvs-search-path= plusarg.
+        static function string search_path_from_plusargs(string default_search_path = "");
+            string search_path;
+
+            if ($value$plusargs("rvs-search-path=", search_path)) begin
+                return search_path;
+            end else begin
+                return default_search_path;
             end
         endfunction
 
