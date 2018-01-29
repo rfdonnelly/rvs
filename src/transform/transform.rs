@@ -1,5 +1,6 @@
 use super::rand::{CrateRng, Seed};
 use super::enumeration::Enum;
+use super::symbols::{Symbol, Symbols};
 
 use model::{Expr, Model, Variable, VariableRef};
 use types::{Binary, Done, Next, Once, Pattern, Prev, Range, Sample, Sequence, Unary, Unique,
@@ -11,18 +12,17 @@ use rvs_parser::ast;
 use linked_hash_map::LinkedHashMap;
 use std::rc::Rc;
 use std::cell::RefCell;
-use std::collections::HashMap;
 
 pub struct Transform {
     seed: Seed,
-    enums: HashMap<String, Enum>,
+    symbols: Symbols,
 }
 
 impl Transform {
     pub fn new(seed: Seed) -> Transform {
         Transform {
             seed,
-            enums: HashMap::new(),
+            symbols: Symbols::new(),
         }
     }
 
@@ -35,7 +35,8 @@ impl Transform {
             match **node {
                 ast::Node::Variable(ref name, ref expr) => {
                     let variable = self.transform_variable(model, expr)?;
-                    model.add_variable(name, variable);
+                    let variable_index = model.add_variable(name, variable);
+                    self.symbols.insert_variable(name, variable_index);
                 }
                 ast::Node::Enum(ref name, ref items) => {
                     self.transform_enum(name, items)?;
@@ -61,17 +62,25 @@ impl Transform {
     }
 
     fn transform_enum(&mut self, name: &str, items: &[Box<ast::Node>]) -> TransformResult<()> {
-        let mut enum_members_map = LinkedHashMap::new();
+        if self.symbols.contains(name) {
+            return Err(TransformError::new(format!(
+                "Symbol '{}' already exists",
+                name
+            )));
+        }
 
+        let mut enum_members_map = LinkedHashMap::new();
         let mut next_implicit_value = 0;
 
         // FIXME change to drain()?
         for item in items {
-            if let ast::Node::EnumMember(ref name, ref value) = **item {
+            if let ast::Node::EnumMember(ref member_name, ref value) = **item {
+                let full_name = format!("{}::{}", name, member_name);
                 if let Some(ref value) = *value {
                     if let ast::Node::Number(value) = **value {
                         // FIXME Check for existence
-                        enum_members_map.insert(name.to_owned(), value);
+                        enum_members_map.insert(member_name.to_owned(), value);
+                        self.symbols.insert_enum_member(full_name, value);
                         next_implicit_value = value + 1;
                     } else {
                         return Err(TransformError::new(format!(
@@ -80,7 +89,8 @@ impl Transform {
                         )));
                     }
                 } else {
-                    enum_members_map.insert(name.to_owned(), next_implicit_value);
+                    enum_members_map.insert(member_name.to_owned(), next_implicit_value);
+                    self.symbols.insert_enum_member(full_name, next_implicit_value);
                     next_implicit_value += 1;
                 }
             } else {
@@ -90,8 +100,7 @@ impl Transform {
                 )));
             }
         }
-        self.enums
-            .insert(name.to_owned(), Enum::new(enum_members_map));
+        self.symbols.insert_enum(name, Enum::new(enum_members_map));
 
         Ok(())
     }
@@ -114,25 +123,34 @@ impl Transform {
                 op.clone(),
                 self.transform_expr(model, rng, by)?,
             ))),
-            ast::Node::REnumMember(ref a, ref b) => {
-                if let Some(entry) = self.enums.get(a) {
-                    if let Some(entry) = entry.items.get(b) {
-                        Ok(Box::new(Value::new(*entry)))
-                    } else {
+            ast::Node::RIdentifier(ref name, ref method) => {
+                match self.symbols.get(name) {
+                    Some(symbol) => {
+                        match *symbol {
+                            Symbol::EnumMember(ref value) => {
+                                Ok(Box::new(Value::new(*value)))
+                            }
+                            Symbol::Variable(ref index) => {
+                                self.transform_r_variable(model, name, *index, method)
+                            }
+                            Symbol::Enum(_) => {
+                                Err(TransformError::new(format!(
+                                    "Expected a Variable or EnumMember identifier but found Enum identifer '{}'",
+                                    name
+                                )))
+                            }
+                        }
+                    }
+                    None => {
                         Err(TransformError::new(format!(
-                            "Could not find enum value '{}' in enum '{}'",
-                            b, a
+                            "Could not find symbol '{}'",
+                            name
                         )))
                     }
-                } else {
-                    Err(TransformError::new(format!("Could not find enum '{}'", a)))
                 }
             }
-            ast::Node::RVariable(ref name, ref method) => {
-                self.transform_r_variable(model, name, method)
-            }
             _ => Err(TransformError::new(format!(
-                "Expected (Type|Number|UnaryOperation|BinaryOperation|REnumMember) but found {:?}",
+                "Expected (Type|Number|UnaryOperation|BinaryOperation|Identifier) but found {:?}",
                 *node
             ))),
         }
@@ -141,18 +159,19 @@ impl Transform {
     fn transform_r_variable(
         &self,
         model: &Model,
-        name: &str,
+        variable_name: &str,
+        variable_index: usize,
         method: &ast::VariableMethod,
     ) -> TransformResult<Box<Expr>> {
-        match model.get_variable_by_name(name) {
+        match model.get_variable_by_index(variable_index) {
             Some(variable) => match *method {
-                ast::VariableMethod::Next => Ok(Box::new(Next::new(name, Rc::downgrade(variable)))),
-                ast::VariableMethod::Prev => Ok(Box::new(Prev::new(name, Rc::downgrade(variable)))),
+                ast::VariableMethod::Next => Ok(Box::new(Next::new(variable_name, Rc::downgrade(variable)))),
+                ast::VariableMethod::Prev => Ok(Box::new(Prev::new(variable_name, Rc::downgrade(variable)))),
                 ast::VariableMethod::Copy => Ok(variable.borrow().clone_expr()),
             },
             None => Err(TransformError::new(format!(
                 "Could not find variable '{}'",
-                name
+                variable_name
             ))),
         }
     }
@@ -207,16 +226,23 @@ impl Transform {
                 let mut children: Vec<Box<Expr>> = Vec::new();
                 for arg in args.iter() {
                     match **arg {
-                        ast::Node::REnum(ref name) => {
-                            if let Some(entry) = self.enums.get(name) {
-                                for value in entry.items.values() {
-                                    children.push(Box::new(Value::new(*value)));
+                        ast::Node::RIdentifier(ref name, _) => {
+                            match self.symbols.get(name) {
+                                Some(symbol) => {
+                                    if let Symbol::Enum(ref enumeration) = *symbol {
+                                        for value in enumeration.items.values() {
+                                            children.push(Box::new(Value::new(*value)));
+                                        }
+                                    } else {
+                                        children.push(self.transform_expr(model, rng, &arg)?);
+                                    }
                                 }
-                            } else {
-                                return Err(TransformError::new(format!(
-                                    "Could not find enum '{}'",
-                                    name
-                                )));
+                                None => {
+                                    return Err(TransformError::new(format!(
+                                        "Could not find symbol '{}'",
+                                        name
+                                    )));
+                                }
                             }
                         }
                         ast::Node::Type(ast::Type::Expand, ref args) => {

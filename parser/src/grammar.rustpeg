@@ -53,8 +53,8 @@ import -> Item
         }
     }
 
-variable_name -> &'input str
-    = #quiet<$([a-z_] [a-zA-Z0-9_:]*)> / #expected("variable name")
+identifier -> &'input str
+    = #quiet<$([a-zA-Z_] [a-zA-Z0-9_:]*)> / #expected("variable name")
 
 type_name -> &'input str
     = #quiet<$([A-Z] [a-zA-Z0-9]*)> / #expected("type name")
@@ -82,18 +82,17 @@ atom -> Box<Node>
     / #quiet<unary_expr> / #expected("unary operator")
     / #quiet<number> / #expected("number")
     / #quiet<typ> / #expected("type")
-    / #quiet<r_enum_member> / #expected("enum member")
-    / #quiet<r_variable> / #expected("variable")
+    / #quiet<r_identifier> / #expected("identifier")
 
-r_variable -> Box<Node>
-    = a:variable_name b:variable_method_call? {
+r_identifier -> Box<Node>
+    = a:identifier b:variable_method_call? {
         let method = if let Some(method) = b {
             method
         } else {
             VariableMethod::Next
         };
 
-        Box::new(Node::RVariable(a.to_owned(), method))
+        Box::new(Node::RIdentifier(a.to_owned(), method))
     }
 
 variable_method_call -> VariableMethod
@@ -151,7 +150,7 @@ item -> Item
     / import
 
 variable -> Item
-    = lhs:variable_name _ "=" _ rhs:expr _ ";" {
+    = lhs:identifier _ "=" _ rhs:expr _ ";" {
         Item::Single(
             Box::new(Node::Variable(lhs.into(), rhs))
         )
@@ -178,16 +177,6 @@ enum_member -> Box<Node>
         Box::new(Node::EnumMember(a.into(), b))
     }
 
-r_enum_member -> Box<Node>
-    = a:type_name "::" b:type_name {
-        Box::new(Node::REnumMember(a.into(), b.into()))
-    }
-
-r_enum -> Box<Node>
-    = a:type_name {
-        Box::new(Node::REnum(a.into()))
-    }
-
 pattern -> Box<Node>
     = "Pattern" _ "(" _ a:expr ++ ("," _) optional_trailing_comma _ ")" {
         Box::new(Node::Type(Type::Pattern, a))
@@ -209,12 +198,12 @@ range -> Box<Node>
     }
 
 sample -> Box<Node>
-    = "Sample" _ "(" _ a:(expand / expr / r_enum) ++ ("," _) optional_trailing_comma _ ")" {
+    = "Sample" _ "(" _ a:(expand / expr) ++ ("," _) optional_trailing_comma _ ")" {
         Box::new(Node::Type(Type::Sample, a))
     }
 
 unique -> Box<Node>
-    = "Unique" _ "(" _ a:(expand / expr / r_enum) ++ ("," _) optional_trailing_comma _ ")" {
+    = "Unique" _ "(" _ a:(expand / expr) ++ ("," _) optional_trailing_comma _ ")" {
         Box::new(Node::Type(Type::Unique, a))
     }
 
