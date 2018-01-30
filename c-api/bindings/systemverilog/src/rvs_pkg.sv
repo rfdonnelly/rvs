@@ -145,7 +145,7 @@ package rvs_pkg;
         static function string search_path_from_plusargs(string default_search_path = "");
             string search_path;
 
-            if ($value$plusargs("rvs-search-path=", search_path)) begin
+            if ($value$plusargs("rvs-search-path=%s", search_path)) begin
                 return search_path;
             end else begin
                 return default_search_path;
