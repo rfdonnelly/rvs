@@ -9,41 +9,32 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Added
 
-* [sv-bindings]
-  * Added documentation (36b47a4)
-  * Added search_path_from_plusargs() (36b47a4)
-* [rvs-parser] - Added support for variables that begin with an uppercase
+* [systemverilog-bindings] Added `search_path_from_plusargs()` (36b47a4)
+* [parser] Added support for variables that begin with an uppercase
   letter (2525d67)
-* [development]
-    * Added code coverage collection (dd2b968, 47ef6fa)
-    * Applied rustfmt (8461a9c)
+* [development] Added code coverage collection (dd2b968, 47ef6fa)
+* [development] Applied rustfmt (8461a9c)
 
 ### Fixed
 
-* [rvs-c-api] - Fixed calling rvs_parse with filenames that contain the
-  string 'import' (e0f35fa)
+* [c-api] Fixed `rvs_parse()` ignoring search path (d295337)
 
 ### Changed
 
-* [rvs-parser]
-  * Grammar
-    * Removed optional leading underscore from hexadecimal literals
-      (5d0d443)
-    * Removed optional trailing comma for ranges (9b8370b)
-    * Improved grammar errors (7bcd9d6)
-  * AST
-    * Renamed WeightedSample to Weighted (cb0f710)
-    * Replace VariableInst, EnumItemInst, and EnumItem with RIdentifier
-    * (2525d67)[
-
-* [rvs]
-  * Renamed WeightedSample to Weighted (cb0f710)
-  * Changed Sequence arguments to be re-evaluated on every cycle (ef1fabb)
-  * Change Sequence syntax
-    * From: `Sequence(count)`, `Sequence(offset, count)`,
-      `Sequence(offset, increment, count)`
-    * To: `Sequence(last)`, `Sequence(first, last)`,
-      `Sequence(first, last, increment)`
+* [rvs] Changed Sequence arguments to be re-evaluated on every cycle (ef1fabb)
+* [grammar] Changed Sequence syntax
+  * From: `Sequence(count)`, `Sequence(offset, count)`, `Sequence(offset,
+    increment, count)`
+  * To: `Sequence(last)`, `Sequence(first, last)`, `Sequence(first, last,
+    increment)`
+* [c-api] Changed `rvs_parse()` filename recognition heuristics to classify
+  anything that ends with `.rvs` as a filename (d295337)
+* [grammar] Removed optional leading underscore from hexadecimal
+  literals (5d0d443)
+* [grammar] Removed optional trailing comma for ranges (9b8370b)
+* [rvs, ast] Renamed `WeightedSample` to `Weighted` (cb0f710)
+* [ast] Replaced `VariableInst`, `EnumItemInst`, and `EnumItem` with
+  `RIdentifier` (2525d67)
 
 ## [0.2.0] - 2017-06-20
 
