@@ -27,6 +27,10 @@ package rvs_pkg;
     import "DPI-C" function string rvs_error_message(rvs_error error);
     import "DPI-C" function void rvs_error_free(rvs_error error);
 
+    `define rvs_handle_error() if (rvs_error_test(error)) begin \
+        $fatal(1, {"rvs: ", rvs_error_message(error)}); \
+    end
+
     // Class: Rvs
     //
     // Static class for managing Rvs.
@@ -71,7 +75,7 @@ package rvs_pkg;
             error = rvs_error_new();
             model = rvs_model_new();
             ctxt = rvs_context_new(search_path, seed, error);
-            handle_error();
+            `rvs_handle_error
         endfunction
 
         static function void free();
@@ -84,24 +88,18 @@ package rvs_pkg;
             error = null;
         endfunction
 
-        static local function void handle_error();
-            if (rvs_error_test(error)) begin
-                $fatal(1, rvs_error_message(error));
-            end
-        endfunction
-
         static function void parse(string s);
             if (!ctxt) begin
                 $fatal(1, "parse called before initialize() or after transform()");
             end
 
             rvs_parse(ctxt, s, error);
-            handle_error();
+            `rvs_handle_error
         endfunction
 
         static function void transform();
             rvs_transform(ctxt, model, error);
-            handle_error();
+            `rvs_handle_error
             ctxt = null;
         endfunction
 
@@ -165,7 +163,7 @@ package rvs_pkg;
 
         static function write_definitions(string filename);
             rvs_write_definitions(model, filename, error);
-            handle_error();
+            `rvs_handle_error
         endfunction
     endclass
 
