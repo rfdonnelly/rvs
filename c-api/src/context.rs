@@ -1,8 +1,13 @@
 use rvs;
 
+use std::io;
+use std::path::Path;
+use std::path::PathBuf;
+
 pub struct Context {
     parser: rvs::Parser,
     seed: rvs::Seed,
+    search_path: rvs::SearchPath,
 }
 
 impl Context {
@@ -10,6 +15,7 @@ impl Context {
         Context {
             parser: rvs::Parser::new(&search_path),
             seed,
+            search_path,
         }
     }
 
@@ -23,5 +29,9 @@ impl Context {
         transform.transform(model, self.parser.ast())?;
 
         Ok(())
+    }
+
+    pub fn find_file(&self, path: &Path) -> io::Result<PathBuf> {
+        self.search_path.find(path)
     }
 }

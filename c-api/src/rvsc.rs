@@ -120,10 +120,23 @@ pub extern "C" fn rvs_parse(context: *mut Context, s: *const c_char, error: *mut
 
     for entry in r_str.split(';') {
         if !entry.is_empty() {
-            let is_file = !entry.contains("=") && !entry.contains("import ");
+            let is_file = entry.ends_with(".rvs");
 
             let parser_string = if is_file {
                 let path = Path::new(&entry);
+
+                let path = match context.find_file(path) {
+                    Ok(path) => path,
+                    Err(e) => {
+                        if !error.is_null() {
+                            unsafe {
+                                *error = Error::new(ErrorKind::Io(e));
+                            }
+                        }
+
+                        return;
+                    }
+                };
 
                 let mut file = match File::open(&path) {
                     Err(e) => {

@@ -5,7 +5,7 @@ use std::path::PathBuf;
 #[derive(Debug, Clone, Default)]
 pub struct SearchPath {
     /// Search path for `import`
-    pub paths: Vec<PathBuf>,
+    paths: Vec<PathBuf>,
 }
 
 impl SearchPath {
@@ -52,6 +52,32 @@ impl SearchPath {
             ))
         } else {
             Ok(SearchPath::new(paths))
+        }
+    }
+
+    pub fn find(&self, path: &Path) -> io::Result<PathBuf> {
+        if path.is_absolute() {
+            if path.exists() {
+                Ok(path.to_path_buf())
+            } else {
+                Err(io::Error::new(
+                    io::ErrorKind::NotFound,
+                    format!("Path '{:?}' does not exist", path),
+                ))
+            }
+        } else {
+            let result = self.paths
+                .iter()
+                .map(|ref p| p.join(path))
+                .find(|ref p| p.exists());
+
+            match result {
+                Some(path) => Ok(path),
+                None => Err(io::Error::new(
+                    io::ErrorKind::NotFound,
+                    format!("Path '{:?}' not found in: {:?}", path, self.paths),
+                )),
+            }
         }
     }
 }

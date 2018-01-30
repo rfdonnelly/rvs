@@ -58,16 +58,7 @@ impl SourcePaths {
         }
 
         // Relative to search path
-        let result = self.searchpath
-            .paths
-            .iter()
-            .map(|ref p| p.join(path))
-            .find(|ref p| p.exists());
-
-        match result {
-            Some(path) => Ok(path),
-            None => Err(io::Error::new(io::ErrorKind::NotFound, "File not found")),
-        }
+        self.searchpath.find(path)
     }
 }
 

@@ -93,8 +93,11 @@ fn parse_error() {
 
 #[test]
 fn file() {
+    let search_path = ::std::env::current_dir().unwrap();
+    let search_path = search_path.to_str().unwrap();
+
     let error = rvs_error_new();
-    let context = rvs_context_new(CString::new("").unwrap().as_ptr(), 0, error);
+    let context = rvs_context_new(CString::new(search_path).unwrap().as_ptr(), 0, error);
     assert!(!rvs_error_test(error));
 
     rvs_parse(
