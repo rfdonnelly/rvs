@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+No unreleased changes.
+
+## [0.3.0]
+
 ### Added
 
 * [systemverilog-bindings] Added `search_path_from_plusargs()` (36b47a4)
@@ -41,4 +45,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 First release.
 
-[Unreleased]: https://github.com/olivierlacan/keep-a-changelog/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/rfdonnelly/rvs/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/rfdonnelly/rvs/compare/v0.2.0...v0.3.0
+[0.2.0]: https://github.com/rfdonnelly/rvs/tree/v0.2.0
