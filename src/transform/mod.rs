@@ -1,7 +1,8 @@
 mod rand;
 mod enumeration;
-mod transform;
 mod symbols;
+#[allow(module_inception)]
+mod transform;
 
 pub use self::rand::Seed;
 pub use self::rand::CrateRng;

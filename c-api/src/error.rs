@@ -29,8 +29,7 @@ impl Error {
     pub fn is_err(&self) -> bool {
         match self.kind {
             ErrorKind::None => false,
-            ErrorKind::Rvs(_) => true,
-            ErrorKind::Io(_) => true,
+            ErrorKind::Rvs(_) | ErrorKind::Io(_) => true,
         }
     }
 }

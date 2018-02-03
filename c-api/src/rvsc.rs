@@ -20,7 +20,7 @@ type SequenceHandleRaw = uint32_t;
 struct SequenceHandle(SequenceHandleRaw);
 
 impl SequenceHandle {
-    pub fn to_raw(self) -> SequenceHandleRaw {
+    pub fn to_raw(&self) -> SequenceHandleRaw {
         self.0
     }
 }
@@ -44,8 +44,8 @@ impl From<usize> for SequenceHandle {
 ///
 /// # Arguments
 ///
-/// * search_path - A colon separated list of paths to search for `import`s.
-/// * seed - The initial seed for all variable PRNGs.
+/// * `search_path` - A colon separated list of paths to search for `import`s.
+/// * `seed` - The initial seed for all variable PRNGs.
 ///
 /// # Errors
 ///
@@ -64,7 +64,7 @@ pub extern "C" fn rvs_context_new(
     let c_str = unsafe { CStr::from_ptr(search_path) };
     let r_str = c_str.to_str().unwrap();
 
-    let search_path = match rvs::SearchPath::from_string(&r_str) {
+    let search_path = match rvs::SearchPath::from_string(r_str) {
         Ok(search_path) => search_path,
         Err(e) => {
             if !error.is_null() {

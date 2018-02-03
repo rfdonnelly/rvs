@@ -15,7 +15,7 @@ pub struct Weighted {
 
 impl Weighted {
     pub fn new(children: Vec<(u32, Box<Expr>)>) -> Weighted {
-        let weights: Vec<u32> = children.iter().map(|child| child.0.clone()).collect();
+        let weights: Vec<u32> = children.iter().map(|child| child.0).collect();
 
         Weighted {
             data: ExprData {
@@ -38,9 +38,10 @@ impl Expr for Weighted {
 
         self.data.prev = self.children[index].1.next(rng);
         self.data.done = self.children[index].1.done();
-        self.current_child = match self.data.done {
-            true => None,
-            false => Some(index),
+        self.current_child = if self.data.done {
+            None
+        } else {
+            Some(index)
         };
 
         self.data.prev
@@ -54,7 +55,7 @@ impl Expr for Weighted {
 impl fmt::Display for Weighted {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "{{")?;
-        for child in self.children.iter() {
+        for child in &self.children {
             write!(f, "{}: {}, ", child.0, child.1)?;
         }
         write!(f, "}}")
@@ -81,7 +82,7 @@ impl WeightedIndexes {
     fn accumulate(mut weights: Vec<u32>) -> Vec<u32> {
         let mut previous = 0;
 
-        for weight in weights.iter_mut() {
+        for weight in &mut weights {
             // FIXME: Check for overflow
             *weight += previous;
             previous = *weight;

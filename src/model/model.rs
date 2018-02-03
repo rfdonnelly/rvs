@@ -3,6 +3,7 @@ use super::VariableRef;
 use linked_hash_map::{Entry, LinkedHashMap};
 use std::fmt;
 
+#[derive(Default)]
 pub struct Model {
     variables: Vec<VariableRef>,
     variable_indexes: LinkedHashMap<String, usize>,
@@ -11,11 +12,7 @@ pub struct Model {
 
 impl Model {
     pub fn new() -> Model {
-        Model {
-            variables: Vec::new(),
-            variable_indexes: LinkedHashMap::new(),
-            most_recent: 0,
-        }
+        Default::default()
     }
 
     /// Adds a variable to the model

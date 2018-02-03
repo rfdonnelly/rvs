@@ -6,7 +6,7 @@ use std::collections::HashMap;
 #[test]
 fn readme() {
     let model = rvs::parse(
-        rvs::SearchPath::new(vec![current_dir().unwrap()]),
+        &rvs::SearchPath::new(vec![current_dir().unwrap()]),
         "import examples::readme;",
     ).unwrap();
 

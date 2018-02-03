@@ -45,7 +45,7 @@ impl Expr for Pattern {
 impl fmt::Display for Pattern {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "Pattern(")?;
-        for child in self.children.iter() {
+        for child in &self.children {
             write!(f, "{}, ", child)?;
         }
         write!(f, ")")

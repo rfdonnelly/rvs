@@ -36,9 +36,10 @@ impl Expr for Sample {
 
         self.data.prev = self.children[index].next(rng);
         self.data.done = self.children[index].done();
-        self.current_child = match self.data.done {
-            true => None,
-            false => Some(index),
+        self.current_child = if self.data.done {
+            None
+        } else {
+            Some(index)
         };
 
         self.data.prev
@@ -52,7 +53,7 @@ impl Expr for Sample {
 impl fmt::Display for Sample {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "Sample(")?;
-        for child in self.children.iter() {
+        for child in &self.children {
             write!(f, "{}, ", child)?;
         }
         write!(f, ")")
@@ -111,7 +112,7 @@ impl Expr for Unique {
 impl fmt::Display for Unique {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "Unique(")?;
-        for child in self.children.iter() {
+        for child in &self.children {
             write!(f, "{}, ", child)?;
         }
         write!(f, ")")

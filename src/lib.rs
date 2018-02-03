@@ -15,8 +15,8 @@ pub use model::{Model, Variable};
 
 pub use error::{Error, Result};
 
-pub fn parse(search_path: SearchPath, s: &str) -> Result<Model> {
-    let mut parser = Parser::new(&search_path);
+pub fn parse(search_path: &SearchPath, s: &str) -> Result<Model> {
+    let mut parser = Parser::new(search_path);
     parser.parse(s)?;
 
     let mut transform = Transform::new(Default::default());

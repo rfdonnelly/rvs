@@ -23,9 +23,10 @@ fn done_causes_advance_to_next_subexpr() {
         .cycle()
         .take(32)
         .map(|(value, done)| {
-            let value = match value % 2 == 0 {
-                true => value / 2,
-                false => value / 2 + 4,
+            let value = if value % 2 == 0 {
+                value / 2
+            } else {
+                value / 2 + 4
             };
             (value, done)
         })

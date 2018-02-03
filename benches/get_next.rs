@@ -13,7 +13,7 @@ fn basic(b: &mut Bencher) {
         source = format!("{}a{} = {};\n", source, i, i);
     }
     let search_path = Default::default();
-    let model = rvs::parse(search_path, &source).unwrap();
+    let model = rvs::parse(&search_path, &source).unwrap();
 
     b.iter(|| {
         for i in 0..iter {

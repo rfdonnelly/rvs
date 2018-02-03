@@ -24,7 +24,7 @@ pub trait Expr: fmt::Display + ExprClone {
 
 /// Used to implement clone for all implementors of Expr trait.
 ///
-/// https://stackoverflow.com/a/30353928
+/// <https://stackoverflow.com/a/30353928>
 pub trait ExprClone {
     fn clone_box(&self) -> Box<Expr>;
 }

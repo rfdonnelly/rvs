@@ -2,7 +2,7 @@ extern crate rvs;
 
 #[test]
 fn type_arguments() {
-    let model = rvs::parse(Default::default(), "b=0; a=Sequence(b); b=9;").unwrap();
+    let model = rvs::parse(&Default::default(), "b=0; a=Sequence(b); b=9;").unwrap();
 
     let a = model.get_variable_by_name("a").unwrap();
     let mut a = a.borrow_mut();

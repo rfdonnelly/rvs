@@ -66,7 +66,7 @@ impl RandRangeInclusive {
 impl IndependentSample<u32> for RandRangeInclusive {
     fn ind_sample<R: Rng>(&self, rng: &mut R) -> u32 {
         // Should never see this case.  Could cause a panic due to overflow.
-        assert!(!(self.use_range == false && self.offset == true));
+        debug_assert!(self.use_range || !self.offset);
 
         let sample = if self.use_range {
             self.range.ind_sample(rng)

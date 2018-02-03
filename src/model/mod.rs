@@ -1,5 +1,6 @@
 mod expr;
 mod variable;
+#[allow(module_inception)]
 mod model;
 
 pub use self::model::Model;
