@@ -289,11 +289,9 @@ impl Transform {
 
                 Ok(Box::new(Weighted::new(pairs)))
             }
-            ast::Type::Expand => {
-                Err(TransformError::new(
-                    "Expand() must be inside Sample()".to_owned()
-                ))
-            }
+            ast::Type::Expand => Err(TransformError::new(
+                "Expand() must be inside Sample()".to_owned(),
+            )),
             ast::Type::Done => {
                 let expr = self.transform_expr(model, rng, &*args[0])?;
                 Ok(Box::new(Done::new(expr)))

@@ -38,11 +38,7 @@ impl Expr for Weighted {
 
         self.data.prev = self.children[index].1.next(rng);
         self.data.done = self.children[index].1.done();
-        self.current_child = if self.data.done {
-            None
-        } else {
-            Some(index)
-        };
+        self.current_child = if self.data.done { None } else { Some(index) };
 
         self.data.prev
     }

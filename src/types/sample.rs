@@ -36,11 +36,7 @@ impl Expr for Sample {
 
         self.data.prev = self.children[index].next(rng);
         self.data.done = self.children[index].done();
-        self.current_child = if self.data.done {
-            None
-        } else {
-            Some(index)
-        };
+        self.current_child = if self.data.done { None } else { Some(index) };
 
         self.data.prev
     }
