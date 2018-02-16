@@ -96,3 +96,12 @@ fn prev() {
         assert_eq!(b.borrow_mut().done(), done);
     }
 }
+
+#[test]
+fn self_ref() {
+    let model = rvs::parse(&Default::default(), "a = 0; a = a + 1;").unwrap();
+    let a = model.get_variable_by_name("a").unwrap();
+    let mut a = a.borrow_mut();
+
+    assert_eq!(a.next(), 1);
+}
