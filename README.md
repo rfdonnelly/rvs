@@ -4,6 +4,7 @@
 [![Build Status](https://travis-ci.org/rfdonnelly/rvs.svg?branch=master)](https://travis-ci.org/rfdonnelly/rvs)
 [![Codecov](https://codecov.io/gh/rfdonnelly/rvs/branch/master/graph/badge.svg)](https://codecov.io/gh/rfdonnelly/rvs)
 [![LoC](https://tokei.rs/b1/github/rfdonnelly/rvs)](#).
+[![Dependency Status](https://deps.rs/repo/github/rfdonnelly/rvs/status.svg)](https://deps.rs/repo/github/rfdonnelly/rvs)
 
 Rvs is a C API library for defining and evaluating random variables using a
 simple DSL (Domain Specific Language).
