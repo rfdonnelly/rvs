@@ -22,9 +22,7 @@ after_success: |
   if [[ "$TRAVIS_RUST_VERSION" == nightly ]]; then
     cargo bench
   fi
-  # FIXME: cargo-tarpaulin does not work on rustc 1.23 stable or beta but it
-  # works on rustc 1.23 nightly.  Change to stable when rust 1.24 is released.
-  if [[ "$TRAVIS_RUST_VERSION" == nightly ]]; then
+  if [[ "$TRAVIS_RUST_VERSION" == stable ]]; then
     bash <(curl https://raw.githubusercontent.com/xd009642/tarpaulin/master/travis-install.sh)
     cargo tarpaulin --all --out Xml
     bash <(curl -s https://codecov.io/bash)
