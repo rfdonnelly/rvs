@@ -442,7 +442,41 @@ not modify the variable's state.
 
 ### Examples
 
+Variables can be used in expressions:
 
+```
+a = 5;
+b = a;
+```
+
+Advancing `b` also advances `a`:
+
+```
+a = Pattern(0, 1, 2, 3);
+b = a;
+```
+
+Calling `b.next()` yields `0`.  Calling `a.next()` then yields `1` instead of
+`0` because calling `b.next()` implicitly calls `a.next()`.
+
+Variables can be copied to prevent one variable affecting the state of another
+variable:
+
+```
+a = Pattern(0, 1, 2, 3);
+b = a.copy;
+```
+
+This is equivalent to:
+
+```
+a = Pattern(0, 1, 2, 3);
+b = Pattern(0, 1, 2, 3);
+```
+
+It is also possible to 
+
+### Grammar
 
 ```
 r_identifier = identifier variable_method_call?
@@ -450,8 +484,6 @@ r_identifier = identifier variable_method_call?
 variable_method_call = "." variable_method
 variable_method = "prev" | "copy"
 ```
-
-TODO
 
 ## Enums
 
