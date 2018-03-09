@@ -28,7 +28,7 @@ impl Model {
         match self.variable_indexes.entry(name.into()) {
             Entry::Occupied(entry) => {
                 *most_recent = *entry.get();
-                *variables.get_mut(*most_recent).unwrap() = variable;
+                variables[*most_recent] = variable;
 
                 *most_recent
             }

@@ -57,7 +57,7 @@ impl Ast {
             match self.variable_indexes.entry(name) {
                 Entry::Occupied(entry) => {
                     let index = *entry.get();
-                    *nodes.get_mut(index).unwrap() = node;
+                    nodes[index] = node;
                 }
                 Entry::Vacant(entry) => {
                     nodes.push(node);
