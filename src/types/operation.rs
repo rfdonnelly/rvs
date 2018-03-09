@@ -27,7 +27,7 @@ impl Binary {
                 prev: 0,
                 done: false,
             },
-            operation: operation,
+            operation,
             operands: (l, r),
             done: (false, false),
         }

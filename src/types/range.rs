@@ -56,8 +56,8 @@ impl RandRangeInclusive {
         };
 
         RandRangeInclusive {
-            offset: offset,
-            use_range: use_range,
+            offset,
+            use_range,
             range: RandRange::new(x, y),
         }
     }
@@ -97,8 +97,8 @@ impl Range {
                 prev: 0,
                 done: false,
             },
-            l: l,
-            r: r,
+            l,
+            r,
             range: RandRangeInclusive::new(limits.0, limits.1),
         }
     }
