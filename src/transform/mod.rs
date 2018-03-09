@@ -1,7 +1,7 @@
 mod rand;
 mod enumeration;
 mod symbols;
-#[allow(module_inception)]
+#[cfg_attr(feature = "cargo-clippy", allow(module_inception))]
 mod transform;
 
 pub use self::rand::Seed;

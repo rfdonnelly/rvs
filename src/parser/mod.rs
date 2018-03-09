@@ -1,5 +1,5 @@
 mod ast;
-#[allow(module_inception)]
+#[cfg_attr(feature = "cargo-clippy", allow(module_inception))]
 mod parser;
 
 pub use self::parser::Parser;

@@ -1,6 +1,6 @@
 mod expr;
 mod variable;
-#[allow(module_inception)]
+#[cfg_attr(feature = "cargo-clippy", allow(module_inception))]
 mod model;
 
 pub use self::model::Model;
