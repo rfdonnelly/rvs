@@ -22,6 +22,7 @@ impl Variable {
         self.expr.clone()
     }
 
+    #[cfg_attr(feature = "cargo-clippy", allow(should_implement_trait))]
     pub fn next(&mut self) -> u32 {
         self.expr.next(&mut self.rng)
     }
