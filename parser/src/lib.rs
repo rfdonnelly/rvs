@@ -1,4 +1,5 @@
 mod grammar {
+    #![cfg_attr(feature = "cargo-clippy", allow(clippy))]
     include!(concat!(env!("OUT_DIR"), "/grammar.rs"));
 }
 mod searchpath;
