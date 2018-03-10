@@ -61,7 +61,7 @@ fn read_statement() -> Result<String, io::Error> {
     let stdin = io::stdin();
 
     // FIXME: Read until ';' OR blank line (for enums)
-    stdin.lock().read_until(';' as u8, &mut bytes)?;
+    stdin.lock().read_until(b';', &mut bytes)?;
 
     Ok(String::from_utf8(bytes).unwrap())
 }
