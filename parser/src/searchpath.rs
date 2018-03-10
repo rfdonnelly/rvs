@@ -38,7 +38,7 @@ impl SearchPath {
             }
         }
 
-        if error_paths.len() > 0 {
+        if !error_paths.is_empty() {
             Err(io::Error::new(
                 io::ErrorKind::NotFound,
                 format!(
