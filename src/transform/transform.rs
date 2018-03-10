@@ -189,7 +189,7 @@ impl Transform {
     ) -> TransformResult<Vec<Box<Expr>>> {
         let mut arg_exprs: Vec<Box<Expr>> = Vec::new();
         for arg in args {
-            arg_exprs.push(self.transform_expr(model, rng, &arg)?);
+            arg_exprs.push(self.transform_expr(model, rng, arg)?);
         }
 
         Ok(arg_exprs)
@@ -238,7 +238,7 @@ impl Transform {
                                         children.push(Box::new(Value::new(*value)));
                                     }
                                 } else {
-                                    children.push(self.transform_expr(model, rng, &arg)?);
+                                    children.push(self.transform_expr(model, rng, arg)?);
                                 }
                             }
                             None => {
@@ -263,7 +263,7 @@ impl Transform {
                             }
                         }
                         _ => {
-                            children.push(self.transform_expr(model, rng, &arg)?);
+                            children.push(self.transform_expr(model, rng, arg)?);
                         }
                     }
                 }
