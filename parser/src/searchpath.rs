@@ -68,8 +68,8 @@ impl SearchPath {
         } else {
             let result = self.paths
                 .iter()
-                .map(|ref p| p.join(path))
-                .find(|ref p| p.exists());
+                .map(|p| p.join(path))
+                .find(|p| p.exists());
 
             match result {
                 Some(path) => Ok(path),
