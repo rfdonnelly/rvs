@@ -2,6 +2,8 @@
 //!
 //! Provides a C API for parsing and evaluating random variables.
 
+#![cfg_attr(feature = "cargo-clippy", allow(not_unsafe_ptr_arg_deref))]
+
 use std::panic::catch_unwind;
 use libc::uint32_t;
 use libc::c_char;

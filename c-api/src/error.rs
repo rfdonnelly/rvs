@@ -1,3 +1,5 @@
+#![cfg_attr(feature = "cargo-clippy", allow(not_unsafe_ptr_arg_deref))]
+
 use std::fmt;
 use std::io;
 use std::ffi::CString;
