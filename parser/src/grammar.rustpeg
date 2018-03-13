@@ -12,6 +12,7 @@ use ast::UnaryOpcode;
 use ast::Type;
 use ast::Node;
 use ast::Item;
+use ast::Replacement;
 
 #![arguments(_import_paths: &mut SourcePaths)]
 
@@ -105,8 +106,6 @@ variable_method -> VariableMethod
 typ -> Box<Node>
     = pattern
     / range
-    / sample
-    / unique
     / weighted
     / sequence
     / done
@@ -197,24 +196,25 @@ range -> Box<Node>
         Box::new(Node::Type(Type::Range, a))
     }
 
-sample -> Box<Node>
-    = "Sample" _ "(" _ a:(expand / expr) ++ ("," _) optional_trailing_comma _ ")" {
-        Box::new(Node::Type(Type::Sample, a))
+weighted_sample -> Box<Node>
+    = a:weight? b:expr {
+        let weight = match a {
+            Some(weight) => weight,
+            None => 1,
+        };
+        Box::new(Node::WeightedSample(weight, b))
     }
 
-unique -> Box<Node>
-    = "Unique" _ "(" _ a:(expand / expr) ++ ("," _) optional_trailing_comma _ ")" {
-        Box::new(Node::Type(Type::Unique, a))
-    }
-
-weighted_pair -> Box<Node>
-    = a:dec_number _ ":" _ b:expr {
-        Box::new(Node::WeightedPair(a, b))
-    }
+weight -> u32
+    = a:dec_number _ ":" _ { a }
 
 weighted -> Box<Node>
-    = "{" _ a:weighted_pair ++ ("," _) optional_trailing_comma _ "}" {
-        Box::new(Node::Type(Type::Weighted, a))
+    = replacement:"r"?"{" _ entries:(weighted_sample / expand) ++ ("," _) optional_trailing_comma _ "}" {
+        let replacement = match replacement {
+            Some(_) => Replacement::With,
+            None => Replacement::Without,
+        };
+        Box::new(Node::Weighted(replacement, entries))
     }
 
 done -> Box<Node>
