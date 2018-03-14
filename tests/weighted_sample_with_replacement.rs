@@ -7,7 +7,7 @@ use std::collections::HashMap;
 
 #[test]
 fn distribution() {
-    let a = expr_to_var("{10: 0, 90: 1}").unwrap();
+    let a = expr_to_var("r{10: 0, 90: 1}").unwrap();
     let mut a = a.borrow_mut();
 
     let mut actual: HashMap<u32, u32> = HashMap::new();
@@ -24,7 +24,7 @@ fn distribution() {
 
 #[test]
 fn selects_another_subexpr_when_current_subexpr_done() {
-    let a = expr_to_var("{1: Pattern(0, 1), 1: Pattern(2, 3)}").unwrap();
+    let a = expr_to_var("r{1: Pattern(0, 1), 1: Pattern(2, 3)}").unwrap();
     let mut a = a.borrow_mut();
 
     for _ in 0..100 {
@@ -40,7 +40,7 @@ fn selects_another_subexpr_when_current_subexpr_done() {
 
 #[test]
 fn done_when_sub_expr_done() {
-    let a = expr_to_var("{1: Pattern(0, 1), 1: Pattern(2, 3)}").unwrap();
+    let a = expr_to_var("r{1: Pattern(0, 1), 1: Pattern(2, 3)}").unwrap();
     let mut a = a.borrow_mut();
 
     assert_eq!(a.done(), false);
