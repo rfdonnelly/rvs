@@ -33,15 +33,25 @@ fn selects_another_subexpr_when_current_subexpr_done() {
         let value = a.next();
 
         match value {
-            0 => assert_eq!(a.next(), 1),
-            2 => assert_eq!(a.next(), 3),
-            value => assert!(value == 0 || value == 2),
+            0 => {
+                assert_eq!(a.next(), 1);
+                assert_eq!(a.next(), 2);
+                assert_eq!(a.next(), 3);
+            }
+            2 => {
+                assert_eq!(a.next(), 3);
+                assert_eq!(a.next(), 0);
+                assert_eq!(a.next(), 1);
+            }
+            _ => {
+                panic!("unreachable");
+            }
         }
     }
 }
 
 #[test]
-fn done_after_all() {
+fn done_when_all_done() {
     let a = expr_to_var("{Pattern(0, 0), Pattern(0, 0)}").unwrap();
     let mut a = a.borrow_mut();
 
