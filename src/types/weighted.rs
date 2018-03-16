@@ -10,39 +10,44 @@ pub struct WeightedWithReplacement {
     data: ExprData,
     weights: Vec<u32>,
     children: Vec<Box<Expr>>,
-    current_child: Option<usize>,
-    weighted_indexes: WeightedIndexes,
+    pool: Vec<usize>,
+    current_pool_entry: Option<usize>,
+    range: Range<usize>,
 }
 
 impl WeightedWithReplacement {
     pub fn new(weights: Vec<u32>, children: Vec<Box<Expr>>) -> WeightedWithReplacement {
+        let mut pool: Vec<usize> = Vec::new();
+        for (i, weight) in weights.iter().enumerate() {
+            for _ in 0..*weight {
+                pool.push(i);
+            }
+        }
+
         WeightedWithReplacement {
             data: ExprData {
                 prev: 0,
                 done: false,
             },
-            children,
-            current_child: None,
-            // FIXME: Remove clone using pool method.
-            //
-            // Create a pool of indexes.  Each child gets a number of entries in the pool where the
-            // number of entries is equal to the weight.
-            weighted_indexes: WeightedIndexes::new(weights.clone()),
             weights,
+            children,
+            current_pool_entry: None,
+            range: Range::new(0, pool.len()),
+            pool,
         }
     }
 }
 
 impl Expr for WeightedWithReplacement {
     fn next(&mut self, rng: &mut CrateRng) -> u32 {
-        let index = match self.current_child {
+        let index = match self.current_pool_entry {
             Some(index) => index,
-            None => self.weighted_indexes.sample(rng),
+            None => self.range.sample(rng),
         };
 
-        self.data.prev = self.children[index].next(rng);
-        self.data.done = self.children[index].done();
-        self.current_child = if self.data.done { None } else { Some(index) };
+        self.data.prev = self.children[self.pool[index]].next(rng);
+        self.data.done = self.children[self.pool[index]].done();
+        self.current_pool_entry = if self.data.done { None } else { Some(index) };
 
         self.data.prev
     }
@@ -134,51 +139,5 @@ impl fmt::Display for WeightedWithoutReplacement {
             write!(f, "{}: {}, ", self.weights[i], child)?;
         }
         write!(f, "}}")
-    }
-}
-
-#[derive(Clone)]
-struct WeightedIndexes {
-    weights: Vec<u32>,
-    range: Range<u32>,
-}
-
-impl WeightedIndexes {
-    pub fn new(weights: Vec<u32>) -> WeightedIndexes {
-        let weights = WeightedIndexes::accumulate(weights);
-        let total_weight = *weights.last().unwrap();
-
-        WeightedIndexes {
-            weights,
-            range: Range::new(0, total_weight),
-        }
-    }
-
-    fn accumulate(mut weights: Vec<u32>) -> Vec<u32> {
-        let mut previous = 0;
-
-        for weight in &mut weights {
-            // FIXME: Check for overflow
-            *weight += previous;
-            previous = *weight;
-        }
-
-        weights
-    }
-
-    fn select(&self, value: u32) -> usize {
-        // FIXME: Ensure value is between 0 and self.weights.len() - 1
-        for (i, weight) in self.weights.iter().enumerate() {
-            if value < *weight {
-                return i;
-            }
-        }
-
-        panic!("unreachable");
-    }
-
-    pub fn sample<R: Rng>(&mut self, rng: &mut R) -> usize {
-        let value = self.range.sample(rng);
-        self.select(value)
     }
 }
