@@ -43,7 +43,11 @@ impl Expr for WeightedWithReplacement {
 
         self.data.prev = self.children[child_index].next(rng);
         self.data.done = self.children[child_index].done();
-        self.pool_index = if self.data.done { None } else { Some(pool_index) };
+        self.pool_index = if self.data.done {
+            None
+        } else {
+            Some(pool_index)
+        };
 
         self.data.prev
     }
