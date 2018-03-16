@@ -8,6 +8,15 @@ pub struct ExprData {
     pub done: bool,
 }
 
+impl Default for ExprData {
+    fn default() -> ExprData {
+        ExprData {
+            prev: 0,
+            done: false,
+        }
+    }
+}
+
 pub trait Expr: fmt::Display + ExprClone {
     fn next(&mut self, rng: &mut CrateRng) -> u32;
 

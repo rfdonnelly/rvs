@@ -20,10 +20,7 @@ impl WeightedWithReplacement {
         let pool = populate_pool(&weights);
 
         WeightedWithReplacement {
-            data: ExprData {
-                prev: 0,
-                done: false,
-            },
+            data: Default::default(),
             weights,
             children,
             range: Range::new(0, pool.len()),
@@ -86,10 +83,7 @@ impl WeightedWithoutReplacement {
         rng.shuffle(&mut pool);
 
         WeightedWithoutReplacement {
-            data: ExprData {
-                prev: 0,
-                done: false,
-            },
+            data: Default::default(),
             weights,
             children,
             pool,

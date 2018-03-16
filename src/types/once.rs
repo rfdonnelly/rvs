@@ -12,10 +12,7 @@ pub struct Once {
 impl Once {
     pub fn new(expr: Box<Expr>) -> Once {
         Once {
-            data: ExprData {
-                prev: 0,
-                done: false,
-            },
+            data: Default::default(),
             expr,
         }
     }

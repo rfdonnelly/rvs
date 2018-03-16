@@ -13,10 +13,7 @@ pub struct Pattern {
 impl Pattern {
     pub fn new(children: Vec<Box<Expr>>) -> Pattern {
         Pattern {
-            data: ExprData {
-                prev: 0,
-                done: false,
-            },
+            data: Default::default(),
             children,
             current_child: 0,
         }

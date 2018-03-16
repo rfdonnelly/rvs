@@ -22,10 +22,7 @@ impl Next {
         Next {
             variable,
             variable_name: variable_name.into(),
-            data: ExprData {
-                prev: 0,
-                done: false,
-            },
+            data: Default::default(),
         }
     }
 }
@@ -59,10 +56,7 @@ impl Prev {
         Prev {
             variable,
             variable_name: variable_name.into(),
-            data: ExprData {
-                prev: 0,
-                done: false,
-            },
+            data: Default::default(),
         }
     }
 }

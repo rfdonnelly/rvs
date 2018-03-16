@@ -43,10 +43,7 @@ impl Sequence {
         };
 
         let mut sequence = Sequence {
-            data: ExprData {
-                prev: 0,
-                done: false,
-            },
+            data: Default::default(),
             next: Wrapping(0),
             first,
             last,

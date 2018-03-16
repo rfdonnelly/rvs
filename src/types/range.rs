@@ -93,10 +93,7 @@ impl Range {
         let limits = if r > l { (l, r) } else { (r, l) };
 
         Range {
-            data: ExprData {
-                prev: 0,
-                done: false,
-            },
+            data: Default::default(),
             l,
             r,
             range: RandRangeInclusive::new(limits.0, limits.1),

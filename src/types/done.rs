@@ -12,10 +12,7 @@ pub struct Done {
 impl Done {
     pub fn new(expr: Box<Expr>) -> Done {
         Done {
-            data: ExprData {
-                prev: 0,
-                done: false,
-            },
+            data: Default::default(),
             expr,
         }
     }

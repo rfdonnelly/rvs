@@ -23,10 +23,7 @@ pub struct Unary {
 impl Binary {
     pub fn new(l: Box<Expr>, operation: ast::BinaryOpcode, r: Box<Expr>) -> Binary {
         Binary {
-            data: ExprData {
-                prev: 0,
-                done: false,
-            },
+            data: Default::default(),
             operation,
             operands: (l, r),
             done: (false, false),
@@ -79,10 +76,7 @@ impl fmt::Display for Binary {
 impl Unary {
     pub fn new(operation: ast::UnaryOpcode, operand: Box<Expr>) -> Unary {
         Unary {
-            data: ExprData {
-                prev: 0,
-                done: false,
-            },
+            data: Default::default(),
             operation,
             operand,
         }
