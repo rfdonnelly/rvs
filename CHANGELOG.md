@@ -7,7 +7,17 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
-No unreleased changes.
+## [0.4.0]
+
+### Added
+
+* Added weighted sample without replacement. (0d06139)
+
+### Changed
+
+* Replaced `Sample` (sample with replacement), `Unique` (sample without
+  replacement), and `{}` (weighted sample with replacement) with a unified
+  sample syntax. (0d06139)
 
 ## [0.3.0]
 
@@ -45,6 +55,7 @@ No unreleased changes.
 
 First release.
 
-[Unreleased]: https://github.com/rfdonnelly/rvs/compare/v0.3.0...HEAD
+[Unreleased]: https://github.com/rfdonnelly/rvs/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/rfdonnelly/rvs/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/rfdonnelly/rvs/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/rfdonnelly/rvs/tree/v0.2.0

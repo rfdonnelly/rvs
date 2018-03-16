@@ -1,6 +1,6 @@
 [package]
 name = "rvs-c-api"
-version = "0.3.0"
+version = "0.4.0"
 authors = ["Rob Donnelly <rfdonnelly@gmail.com>"]
 description = "C-API for Rvs - A library for defining and evaluating random variables using a simple DSL"
 readme = "../README.md"
@@ -14,7 +14,7 @@ crate-type = ["cdylib"]
 
 [dependencies]
 libc = "0.2"
-rvs = { version = "0.3", path = ".." }
+rvs = { version = "0.4", path = ".." }
 
 [dev-dependencies]
 tempdir = "0.3"
