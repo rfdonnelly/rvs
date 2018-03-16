@@ -6,39 +6,48 @@ use rand::distributions::{Range, Sample};
 use std::fmt;
 
 #[derive(Clone)]
-pub struct Weighted {
+pub struct WeightedWithReplacement {
     data: ExprData,
-    children: Vec<(u32, Box<Expr>)>,
-    current_child: Option<usize>,
-    weighted_indexes: WeightedIndexes,
+    weights: Vec<u32>,
+    children: Vec<Box<Expr>>,
+    range: Range<usize>,
+    pool: Vec<usize>,
+    pool_index: Option<usize>,
 }
 
-impl Weighted {
-    pub fn new(children: Vec<(u32, Box<Expr>)>) -> Weighted {
-        let weights: Vec<u32> = children.iter().map(|child| child.0).collect();
+impl WeightedWithReplacement {
+    pub fn new(weights: Vec<u32>, children: Vec<Box<Expr>>) -> WeightedWithReplacement {
+        let pool = populate_pool(&weights);
 
-        Weighted {
+        WeightedWithReplacement {
             data: ExprData {
                 prev: 0,
                 done: false,
             },
+            weights,
             children,
-            current_child: None,
-            weighted_indexes: WeightedIndexes::new(weights),
+            range: Range::new(0, pool.len()),
+            pool,
+            pool_index: None,
         }
     }
 }
 
-impl Expr for Weighted {
+impl Expr for WeightedWithReplacement {
     fn next(&mut self, rng: &mut CrateRng) -> u32 {
-        let index = match self.current_child {
-            Some(index) => index,
-            None => self.weighted_indexes.sample(rng),
+        let pool_index = match self.pool_index {
+            Some(pool_index) => pool_index,
+            None => self.range.sample(rng),
         };
+        let child_index = self.pool[pool_index];
 
-        self.data.prev = self.children[index].1.next(rng);
-        self.data.done = self.children[index].1.done();
-        self.current_child = if self.data.done { None } else { Some(index) };
+        self.data.prev = self.children[child_index].next(rng);
+        self.data.done = self.children[child_index].done();
+        self.pool_index = if self.data.done {
+            None
+        } else {
+            Some(pool_index)
+        };
 
         self.data.prev
     }
@@ -48,58 +57,101 @@ impl Expr for Weighted {
     }
 }
 
-impl fmt::Display for Weighted {
+impl fmt::Display for WeightedWithReplacement {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{{")?;
-        for child in &self.children {
-            write!(f, "{}: {}, ", child.0, child.1)?;
+        write!(f, "r{{")?;
+        for (i, child) in self.children.iter().enumerate() {
+            write!(f, "{}: {}, ", self.weights[i], child)?;
         }
         write!(f, "}}")
     }
 }
 
 #[derive(Clone)]
-struct WeightedIndexes {
+pub struct WeightedWithoutReplacement {
+    data: ExprData,
     weights: Vec<u32>,
-    range: Range<u32>,
+    children: Vec<Box<Expr>>,
+    pool: Vec<usize>,
+    pool_index: usize,
 }
 
-impl WeightedIndexes {
-    pub fn new(weights: Vec<u32>) -> WeightedIndexes {
-        let weights = WeightedIndexes::accumulate(weights);
-        let total_weight = *weights.last().unwrap();
+impl WeightedWithoutReplacement {
+    pub fn new(
+        weights: Vec<u32>,
+        children: Vec<Box<Expr>>,
+        rng: &mut CrateRng,
+    ) -> WeightedWithoutReplacement {
+        let mut pool = populate_pool(&weights);
+        rng.shuffle(&mut pool);
 
-        WeightedIndexes {
+        WeightedWithoutReplacement {
+            data: ExprData {
+                prev: 0,
+                done: false,
+            },
             weights,
-            range: Range::new(0, total_weight),
+            children,
+            pool,
+            pool_index: 0,
         }
     }
+}
 
-    fn accumulate(mut weights: Vec<u32>) -> Vec<u32> {
-        let mut previous = 0;
+impl Expr for WeightedWithoutReplacement {
+    fn next(&mut self, rng: &mut CrateRng) -> u32 {
+        let child_index = self.pool[self.pool_index];
+        self.data.prev = self.children[child_index].next(rng);
 
-        for weight in &mut weights {
-            // FIXME: Check for overflow
-            *weight += previous;
-            previous = *weight;
-        }
-
-        weights
-    }
-
-    fn select(&self, value: u32) -> usize {
-        // FIXME: Ensure value is between 0 and self.weights.len() - 1
-        for (i, weight) in self.weights.iter().enumerate() {
-            if value < *weight {
-                return i;
+        if self.children[child_index].done() {
+            self.pool_index += 1;
+            if self.pool_index == self.pool.len() {
+                self.pool_index = 0;
+                self.data.done = true;
+                rng.shuffle(&mut self.pool);
             }
+        } else {
+            self.data.done = false;
         }
 
-        panic!("unreachable");
+        self.data.prev
     }
 
-    pub fn sample<R: Rng>(&mut self, rng: &mut R) -> usize {
-        let value = self.range.sample(rng);
-        self.select(value)
+    fn data(&self) -> &ExprData {
+        &self.data
+    }
+}
+
+impl fmt::Display for WeightedWithoutReplacement {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{{")?;
+        for (i, child) in self.children.iter().enumerate() {
+            write!(f, "{}: {}, ", self.weights[i], child)?;
+        }
+        write!(f, "}}")
+    }
+}
+
+/// Converts weights into a pool of indexes
+///
+/// The index of each weight is added to the pool <weight> times.
+fn populate_pool(weights: &[u32]) -> Vec<usize> {
+    let mut pool: Vec<usize> = Vec::new();
+    for (i, weight) in weights.iter().enumerate() {
+        for _ in 0..*weight {
+            pool.push(i);
+        }
+    }
+
+    pool
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_populate_pool() {
+        assert_eq!(populate_pool(&[3, 1, 2]), [0, 0, 0, 1, 2, 2]);
     }
 }

@@ -28,7 +28,11 @@ pattern = Pattern(
 );
 
 // A variable that yields random values in the set {0, 1, 2}
-sample = Sample(Command);
+sample = r{
+    Command::Read,
+    Command::Write,
+    Command::Erase,
+};
 
 // A variable that yields random values in the range [0, 7] inclusive
 range = [0, 7];
@@ -111,16 +115,15 @@ be dual licensed as above, without any additional terms or conditions.
     * Random Types
       * [x] Range - Returns a random value in the range [<lower>, <upper>]
             inclusive.  Syntax: `[<lower>, <upper>]`
-      * [x] Sample - Randomly selects then returns a sub-expression.  Syntax:
-            `Sample(<expr>, ...)`
-            * [x] Select new sub-expression only when current sub-expression is done
-      * [x] Unique - Randomly selects then returns a sub-expression.
-            Will not return same sub-expression until all sub-expressions have
-            been returned.  Syntax: `Unique(<expr>, ...)`
-            * [x] Select new sub-expression only when current sub-expression is done
-      * [x] Weighted - Randomly selects then returns a sub-expression
-            according to weight.  Syntax: `{<weight>: <expr>, ...}`
-            * [x] Select new sub-expression only when current sub-expression is done
+      * [x] Weighted/non-weighted sampling with/without replacement
+        * [x] Weighted sampling with replacement. Syntax: `r{<weight>: <expr>, ...}`
+          * [x] Select new sub-expression only when current sub-expression is done
+        * [x] Non-weighted sampling with replacement. Syntax: `r{<expr>, ...}`
+          * [x] Select new sub-expression only when current sub-expression is done
+        * [x] Weighted sampling without replacement. Syntax: `{<weight>: <expr>, ...}`
+          * [x] Select new sub-expression only when current sub-expression is done
+        * [x] Non-weighted sampling without replacement. Syntax: `{<expr>, ...}`
+          * [x] Select new sub-expression only when current sub-expression is done
     * Misc Types
       * [x] Pattern - Returns sub-expressions in order.  Syntax:
             `Pattern(<expr>, ...)`

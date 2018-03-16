@@ -7,7 +7,7 @@ use util::*;
 
 #[test]
 fn basic() {
-    let a = expr_to_var("Sample(1, 2, 4, 8)").unwrap();
+    let a = expr_to_var("r{1, 2, 4, 8}").unwrap();
     let mut a = a.borrow_mut();
 
     let expected: HashSet<u32> = [1, 2, 4, 8].iter().cloned().collect();
@@ -18,7 +18,7 @@ fn basic() {
 
 #[test]
 fn selects_another_subexpr_when_current_subexpr_done() {
-    let a = expr_to_var("Sample(Pattern(0, 1), Pattern(2, 3))").unwrap();
+    let a = expr_to_var("r{Pattern(0, 1), Pattern(2, 3)}").unwrap();
     let mut a = a.borrow_mut();
 
     for _ in 0..100 {
@@ -34,7 +34,7 @@ fn selects_another_subexpr_when_current_subexpr_done() {
 
 #[test]
 fn done_when_sub_expr_done() {
-    let a = expr_to_var("Sample(Pattern(0, 1), Pattern(2, 3))").unwrap();
+    let a = expr_to_var("r{Pattern(0, 1), Pattern(2, 3)}").unwrap();
     let mut a = a.borrow_mut();
 
     assert_eq!(a.done(), false);

@@ -9,6 +9,7 @@ where
     S: AsRef<str>,
 {
     let s = format!("variable = {};", expr.as_ref());
+    println!("Parsing {}", expr.as_ref());
     let model = rvs::parse(&Default::default(), &s)?;
     match model.get_variable_by_name("variable") {
         Some(variable) => Ok(Rc::clone(variable)),

@@ -25,12 +25,15 @@ pub enum Type {
     Pattern,
     Sequence,
     Range,
-    Sample,
-    Unique,
-    Weighted,
     Expand,
     Done,
     Once,
+}
+
+#[derive(Debug)]
+pub enum Replacement {
+    With,
+    Without,
 }
 
 #[derive(Debug)]
@@ -49,7 +52,8 @@ pub enum Node {
     Enum(String, Vec<Box<Node>>),
     EnumMember(String, Option<Box<Node>>),
     Type(Type, Vec<Box<Node>>),
-    WeightedPair(u32, Box<Node>),
+    Weighted(Replacement, Vec<Box<Node>>),
+    WeightedSample(u32, Box<Node>),
     RIdentifier(String, VariableMethod),
 }
 

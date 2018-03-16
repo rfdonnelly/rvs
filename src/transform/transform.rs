@@ -3,8 +3,8 @@ use super::enumeration::Enum;
 use super::symbols::{Symbol, Symbols};
 
 use model::{Expr, Model, Variable, VariableRef};
-use types::{Binary, Done, Next, Once, Pattern, Prev, Range, Sample, Sequence, Unary, Unique,
-            Value, Weighted};
+use types::{Binary, Done, Next, Once, Pattern, Prev, Range, Sequence, Unary, Value,
+            WeightedWithReplacement, WeightedWithoutReplacement};
 use error::{TransformError, TransformResult};
 
 use rvs_parser::ast;
@@ -114,6 +114,8 @@ impl Transform {
     ) -> TransformResult<Box<Expr>> {
         match *node {
             ast::Node::Type(ref typ, ref args) => self.transform_type(model, rng, typ, args),
+            ast::Node::Weighted(ref replacement, ref args) =>
+                self.transform_weighted(model, rng, replacement, args),
             ast::Node::Number(x) => Ok(Box::new(Value::new(x))),
             ast::Node::UnaryOperation(ref op, ref a) => Ok(Box::new(Unary::new(
                 op.clone(),
@@ -195,6 +197,56 @@ impl Transform {
         Ok(arg_exprs)
     }
 
+    fn transform_weighted(
+        &self,
+        model: &Model,
+        rng: &mut CrateRng,
+        replacement: &ast::Replacement,
+        args: &[Box<ast::Node>],
+    ) -> TransformResult<Box<Expr>> {
+        let mut weights: Vec<u32> = Vec::new();
+        let mut children: Vec<Box<Expr>> = Vec::new();
+        for arg in args {
+            match **arg {
+                ast::Node::Type(ast::Type::Expand, ref args) => {
+                    let mut expr = self.transform_expr(model, rng, &args[0])?;
+
+                    if args.len() == 1 {
+                        while !expr.done() {
+                            weights.push(1);
+                            children.push(Box::new(Value::new(expr.next(rng))));
+                        }
+                    } else {
+                        let mut count = self.transform_expr(model, rng, &args[1])?;
+                        for _ in 0..count.next(rng) {
+                            weights.push(1);
+                            children.push(Box::new(Value::new(expr.next(rng))));
+                        }
+                    }
+                }
+                ast::Node::WeightedSample(ref weight, ref node) => {
+                    weights.push(*weight);
+                    children.push(self.transform_expr(model, rng, node)?);
+                }
+                _ => {
+                    return Err(TransformError::new(format!(
+                        "Expected WeightedSample but found {:?}",
+                        **arg
+                    )));
+                }
+            }
+        }
+
+        match *replacement {
+            ast::Replacement::With => Ok(Box::new(WeightedWithReplacement::new(weights, children))),
+            ast::Replacement::Without => Ok(Box::new(WeightedWithoutReplacement::new(
+                weights,
+                children,
+                rng,
+            ))),
+        }
+    }
+
     fn transform_type(
         &self,
         model: &Model,
@@ -227,71 +279,7 @@ impl Transform {
                     Ok(Box::new(Range::new(l, r)))
                 }
             }
-            ast::Type::Sample | ast::Type::Unique => {
-                let mut children: Vec<Box<Expr>> = Vec::new();
-                for arg in args.iter() {
-                    match **arg {
-                        ast::Node::RIdentifier(ref name, _) => match self.symbols.get(name) {
-                            Some(symbol) => {
-                                if let Symbol::Enum(ref enumeration) = *symbol {
-                                    for value in enumeration.items.values() {
-                                        children.push(Box::new(Value::new(*value)));
-                                    }
-                                } else {
-                                    children.push(self.transform_expr(model, rng, arg)?);
-                                }
-                            }
-                            None => {
-                                return Err(TransformError::new(format!(
-                                    "Could not find symbol '{}'",
-                                    name
-                                )));
-                            }
-                        },
-                        ast::Node::Type(ast::Type::Expand, ref args) => {
-                            let mut expr = self.transform_expr(model, rng, &args[0])?;
-
-                            if args.len() == 1 {
-                                while !expr.done() {
-                                    children.push(Box::new(Value::new(expr.next(rng))));
-                                }
-                            } else {
-                                let mut count = self.transform_expr(model, rng, &args[1])?;
-                                for _ in 0..count.next(rng) {
-                                    children.push(Box::new(Value::new(expr.next(rng))));
-                                }
-                            }
-                        }
-                        _ => {
-                            children.push(self.transform_expr(model, rng, arg)?);
-                        }
-                    }
-                }
-
-                if let ast::Type::Sample = *typ {
-                    Ok(Box::new(Sample::new(children)))
-                } else {
-                    Ok(Box::new(Unique::new(children, rng)))
-                }
-            }
-            ast::Type::Weighted => {
-                let mut pairs: Vec<(u32, Box<Expr>)> = Vec::new();
-                for arg in args {
-                    if let ast::Node::WeightedPair(ref weight, ref node) = **arg {
-                        pairs.push((*weight, self.transform_expr(model, rng, node)?));
-                    } else {
-                        return Err(TransformError::new(format!(
-                            "Expected WeightedPair but found {:?}",
-                            **arg
-                        )));
-                    }
-                }
-
-                Ok(Box::new(Weighted::new(pairs)))
-            }
-            ast::Type::Expand => Err(TransformError::new(
-                "Expand() must be inside Sample()".to_owned(),
-            )),
+            ast::Type::Expand => Err(TransformError::new("Expand() must be inside {}".to_owned())),
             ast::Type::Done => {
                 let expr = self.transform_expr(model, rng, &*args[0])?;
                 Ok(Box::new(Done::new(expr)))
