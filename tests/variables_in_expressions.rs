@@ -81,11 +81,18 @@ fn prev() {
     let a = model.get_variable_by_name("a").unwrap();
     let b = model.get_variable_by_name("b").unwrap();
 
+    let expected: Vec<u32> = vec![0, 1, 2, 3, 0, 1, 2, 3];
+
     assert_eq!(b.borrow_mut().next(), 0);
-    assert_eq!(a.borrow_mut().next(), 0);
-    assert_eq!(b.borrow_mut().next(), 0);
-    assert_eq!(a.borrow_mut().next(), 1);
-    assert_eq!(b.borrow_mut().next(), 1);
-    assert_eq!(a.borrow_mut().next(), 2);
-    assert_eq!(b.borrow_mut().next(), 2);
+    assert_eq!(b.borrow_mut().prev(), 0);
+    for (i, value) in expected.iter().enumerate() {
+        let done = i % 4 == 3;
+        let value = *value;
+        assert_eq!(a.borrow_mut().next(), value);
+        assert_eq!(a.borrow_mut().prev(), value);
+        assert_eq!(a.borrow_mut().done(), done);
+        assert_eq!(b.borrow_mut().next(), value);
+        assert_eq!(b.borrow_mut().prev(), value);
+        assert_eq!(b.borrow_mut().done(), done);
+    }
 }
