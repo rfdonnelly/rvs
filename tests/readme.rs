@@ -16,11 +16,11 @@ fn readme() {
     let actual: Vec<u32> = (0..expected.len()).map(|_| pattern.next()).collect();
     assert_eq!(expected, actual);
 
-    let sample = model.get_variable_by_name("sample").unwrap();
-    let mut sample = sample.borrow_mut();
+    let sample_with_replacement = model.get_variable_by_name("sample_with_replacement").unwrap();
+    let mut sample_with_replacement = sample_with_replacement.borrow_mut();
     let mut results: HashMap<u32, u32> = HashMap::new();
     for _ in 0..90 {
-        let entry = results.entry(sample.next()).or_insert(0);
+        let entry = results.entry(sample_with_replacement.next()).or_insert(0);
         *entry += 1;;
     }
     assert_eq!(results.len(), 3);
@@ -28,14 +28,14 @@ fn readme() {
         assert!(results[&i] >= 30 - 5 && results[&i] <= 30 + 5);
     }
 
-    let weighted = model.get_variable_by_name("weighted").unwrap();
-    let mut weighted = weighted.borrow_mut();
+    let weighted_sample_with_replacement = model.get_variable_by_name("weighted_sample_with_replacement").unwrap();
+    let mut weighted_sample_with_replacement = weighted_sample_with_replacement.borrow_mut();
     let mut results: HashMap<u32, u32> = HashMap::new();
     for _ in 0..1000 {
-        let entry = results.entry(weighted.next()).or_insert(0);
+        let entry = results.entry(weighted_sample_with_replacement.next()).or_insert(0);
         *entry += 1;;
     }
-    println!("weighted: {:?}", results);
+    println!("weighted_sample_with_replacement: {:?}", results);
     assert_eq!(results.len(), 3);
     assert!(results[&0] >= 400 - 50 && results[&0] <= 400 + 50);
     assert!(results[&1] >= 500 - 50 && results[&1] <= 500 + 50);

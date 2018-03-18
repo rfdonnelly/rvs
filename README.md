@@ -27,19 +27,38 @@ pattern = Pattern(
     Command::Read,
 );
 
-// A variable that yields random values in the set {0, 1, 2}
-sample = r{
+// A variable that yields random values in the range [0, 7] inclusive
+range = [0, 7];
+
+// A variable that yields random values in the set {0, 1, 2}.  Yielded values
+// are added back to the set.
+sample_with_replacement = r{
     Command::Read,
     Command::Write,
     Command::Erase,
 };
 
-// A variable that yields random values in the range [0, 7] inclusive
-range = [0, 7];
+// A variable that yields random values in the set {0, 1, 2}.  Yielded values
+// are removed from the set.  After all values have been yielded, the set is
+// repopulated.
+sample_without_replacement = {
+    Command::Read,
+    Command::Write,
+    Command::Erase,
+};
 
 // A variable that yields weighted random values `0` 40% of the time, `1` 50%
 // of the time, and `2` 10% of the time.
-weighted = {
+weighted_sample_with_replacement = r{
+    40: Command::Read,
+    50: Command::Write,
+    10: Command::Erase,
+};
+
+// A variable that randomly yields values from a pool of 40 `0`s, 50 `1`s, and
+// 10 `2`s.  Yielded values are removed from the pool.  The pool is
+// re-populated after all values have been yielded.
+weighted_sample_without_replacement = {
     40: Command::Read,
     50: Command::Write,
     10: Command::Erase,
