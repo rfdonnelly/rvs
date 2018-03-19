@@ -1,0 +1,37 @@
+a = 3;
+b = 0xc;
+
+// Binary Operations
+or = a | b;
+xor = a ^ b;
+and = a & b;
+shl = a << b;
+shr = a >> b;
+add = a + b;
+sub = a - b;
+mul = a * b;
+div = a / b;
+mod = a % b;
+
+// Unary Operations
+inv = ~a;
+neg = -a;
+
+pattern = Pattern(0, 1, 2, 3);
+
+sequence = Sequence(3);
+
+range = [a, b];
+
+// Sampling
+sample_with_replacement = r{a, b};
+sample_without_replacement = {a, b};
+weighted_sample_with_replacement = r{1: a, 2: b};
+weighted_sample_without_replacement = {1: a, 2: b};
+
+// Variables
+prev = a.prev;
+copy = a.copy;
+
+done = Done(a);
+once = Once(a);
