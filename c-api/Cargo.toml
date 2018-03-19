@@ -1,6 +1,6 @@
 [package]
 name = "rvs-c-api"
-version = "0.4.0"
+version = "0.4.1"
 authors = ["Rob Donnelly <rfdonnelly@gmail.com>"]
 description = "C-API for Rvs - A library for defining and evaluating random variables using a simple DSL"
 readme = "../README.md"

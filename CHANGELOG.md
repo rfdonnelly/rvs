@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+## [0.4.1]
+
+### Fixed
+
+* Fixed doneness for sampling without replacement. (6a5bfd6)
+
 ## [0.4.0]
 
 ### Added
@@ -55,7 +61,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 First release.
 
-[Unreleased]: https://github.com/rfdonnelly/rvs/compare/v0.4.0...HEAD
+[Unreleased]: https://github.com/rfdonnelly/rvs/compare/v0.4.1...HEAD
+[0.4.1]: https://github.com/rfdonnelly/rvs/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/rfdonnelly/rvs/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/rfdonnelly/rvs/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/rfdonnelly/rvs/tree/v0.2.0
