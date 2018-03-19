@@ -11,7 +11,7 @@ fn error() {
     let context = rvs_context_new(CString::new(search_path).unwrap().as_ptr(), 0, error);
 
     #[cfg(windows)]
-    let expected = "Paths not found:\n   \"c:\\does\\not\\exists\\a\"\n   \"c:\\does\\not\\exists\\b\"";
+    let expected = "Paths not found:\n   \"c:\\\\does\\\\not\\\\exists\\\\a\"\n   \"c:\\\\does\\\\not\\\\exists\\\\b\"";
     #[cfg(not(windows))]
     let expected = "Paths not found:\n   \"/does/not/exists/a\"\n   \"/does/not/exists/b\"";
 
