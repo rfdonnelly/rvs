@@ -50,9 +50,8 @@ fn selects_another_subexpr_when_current_subexpr_done() {
     }
 }
 
-#[test]
-fn done_when_all_done() {
-    let a = expr_to_var("{Pattern(0, 0), Pattern(0, 0)}").unwrap();
+fn test_done(expr: &str) {
+    let a = expr_to_var(expr).unwrap();
     let mut a = a.borrow_mut();
 
     assert_eq!(a.done(), false);
@@ -66,4 +65,14 @@ fn done_when_all_done() {
     let actual: Vec<(u32, bool)> = (0..16).map(|_| (a.next(), a.done())).collect();
 
     assert_eq!(actual, expected);
+}
+
+#[test]
+fn done_when_all_done() {
+    test_done("{Pattern(0, 0), Pattern(0, 0)}");
+}
+
+#[test]
+fn done_when_all_done2() {
+    test_done("{0, 0, 0, 0}");
 }

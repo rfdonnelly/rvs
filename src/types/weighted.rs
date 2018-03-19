@@ -97,6 +97,7 @@ impl Expr for WeightedWithoutReplacement {
         let child_index = self.pool[self.pool_index];
         self.data.prev = self.children[child_index].next(rng);
 
+        self.data.done = false;
         if self.children[child_index].done() {
             self.pool_index += 1;
             if self.pool_index == self.pool.len() {
@@ -104,8 +105,6 @@ impl Expr for WeightedWithoutReplacement {
                 self.data.done = true;
                 rng.shuffle(&mut self.pool);
             }
-        } else {
-            self.data.done = false;
         }
 
         self.data.prev
