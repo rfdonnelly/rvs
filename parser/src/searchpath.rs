@@ -26,7 +26,13 @@ impl SearchPath {
         let mut paths: Vec<PathBuf> = Vec::new();
         let mut error_paths: Vec<PathBuf> = Vec::new();
 
-        for path in s.split(':') {
+        #[cfg(windows)]
+        let separator = ';';
+
+        #[cfg(not(windows))]
+        let separator = ':';
+
+        for path in s.split(separator) {
             if !path.is_empty() {
                 let path = Path::new(path);
 
