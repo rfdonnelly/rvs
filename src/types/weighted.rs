@@ -2,8 +2,8 @@ use transform::CrateRng;
 use model::{Expr, ExprData};
 
 use rand::Rng;
-use rand::distributions::{Range, Sample};
-use rand::distributions::range::RangeInt;
+use rand::distributions::Distribution;
+use rand::distributions::range::{Range, RangeInt};
 use std::fmt;
 
 #[derive(Clone)]

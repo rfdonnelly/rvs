@@ -1,7 +1,7 @@
 use std::fmt;
 use std::u32;
 use rand::distributions;
-use rand::distributions::{Sample, IndependentSample};
+use rand::distributions::Distribution;
 use rand::distributions::range::RangeInt;
 
 use transform::CrateRng;
