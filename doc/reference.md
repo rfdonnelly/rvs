@@ -233,43 +233,96 @@ pattern = "Pattern" "(" pattern_args optional_comma ")"
 pattern_args = expr ("," expr)*
 ```
 
-### Weighted
+### Sampling
 
-The Weighted type yields sub-expressions in a weighted random fashion waiting
-for the current sub-expression to indicate done before selecting the next
-sub-expression.  The probability that a given sub-expression will be selected
-is the weight of the sub-expression divided by the combined weight of all
-sub-expressions.
+Sampling yields sub-expressions at random.
 
-Syntax: `{weight_0: expr_0, ..., weight_n: expr_n}`
+On the first iteration, a sub-expression is selected at random.  The selected
+sub-expression is yielded until it indicates done.  After the selected
+sub-expression indicates done, another sub-expression will be selected at
+random on the next iteration.
+
+#### Weights
+
+Weights affect the probability of a given sub-expression being selected.  The
+weight is the number of entries in the selection pool that a given
+sub-expression receives.
+
+### Replacement
+
+Sampling can be performed with or without replacement.
+
+For sampling with replacement, entries remain in the selection pool; the
+selection pool size remains constant.  For sampling without replacement,
+entries are removed from the selection pool; the selection pool shrinks until
+all entries have been exhausted.  The pool is restored after all entries have
+been exhausted.
+
+### Syntax
+
+##### With Replacement
+
+* With weights: `{weight_0: expr_0, ..., weight_n: expr_n}`
+* Without weights: `{expr_0, ..., expr_n}`
+
+##### Without Replacement
+
+* With weights: `r{weight_0: expr_0, ..., weight_n: expr_n}`
+* Without weights: `r{expr_0, ..., expr_n}`
 
 #### Doneness
 
-The Weighted type indicates done when the current sub-expression indicates done.
+##### With Replacement
+
+Indicates done when the current sub-expression indicates done.
+
+##### Without Replacement
+
+Indicates done when all entries have been consumed.  After done, all entries
+are replaced.
 
 #### Examples
 
-A weighted expression that yields `0` 25% of the time and yields `1` 75% of the
-time.
+##### With Replacement
 
-* Expression: `{1: 0, 3: 1}`
+Sampling values.
+
+* Expression: `r{0, 1}`
+* Equivalent expression: `[0, 1]`
+* Possible results
+  * `0 <done>, 0 <done>, ...`
+  * `0 <done>, 1 <done>, ...`
+  * `1 <done>, 0 <done>, ...`
+  * `1 <done>, 1 <done>, ...`
+
+Sampling multi-value sub-expressions.
+
+* Expression: `r{Pattern(0, 1), Pattern(2, 3)}`
+* Possible results:
+  * `0, 1 <done>, 0, 1 <done>, ...`
+  * `0, 1 <done>, 2, 3 <done>, ...`
+  * `2, 3 <done>, 0, 1 <done>, ...`
+  * `2, 3 <done>, 2, 3 <done>, ...`
+
+Weighted sampling that yields `0` 1/4th of the time and yields `1` 3/4ths
+of the time.
+
+* Expression: `r{1: 0, 3: 1}`
 * Possible result: `1 <done>, 0 <done>, 1 <done>, 1 <done>, ...`
 
-A weighted expression with a sub-expression that yields multiple values before
-indicating done.
+Weighted sampling multi-valued sub-expressions.
 
-* Expression: `{2: Pattern(4, 5, 6), 1: 0}`
+* Expression: `r{2: Pattern(4, 5, 6), 1: 0}`
 * Possible result: `4, 5, 6 <done>, 0 <done>, 4, 5, 6 <done>, 4, ...`
 
-A weighted expression with equal weights.
+Mixing weighted and non-weighted syntax.
 
-* Expression: `{50: 0, 50: 1}`
-* Equivalent expression: `Sample(0, 1)`
+* Expression: `r{10, 2: 20}`
+* Equivalent expression: `r{1: 10, 2: 20}`
 
-A weighted expression with a single sub-expression.
+##### Without Replacement
 
-* Expression: `{100: 1}`
-* Equivalent expression: `1`
+
 
 #### Grammar
 
