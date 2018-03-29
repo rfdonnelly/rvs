@@ -10,7 +10,7 @@ keywords = ["random", "c-api", "dsl"]
 
 [dependencies]
 rvs-parser = { version = "0.4", path = "parser" }
-rand = "0.4"
+rand = "0.5.0-pre.0"
 linked-hash-map = "0.5"
 
 [workspace]

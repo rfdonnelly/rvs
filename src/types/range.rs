@@ -2,8 +2,8 @@ use std::fmt;
 use std::u32;
 use rand::Rng;
 use rand::distributions::Range as RandRange;
-use rand::distributions::Sample;
-use rand::distributions::IndependentSample;
+use rand::distributions::{Sample, IndependentSample};
+use rand::distributions::range::RangeInt;
 
 use transform::CrateRng;
 use model::{Expr, ExprData};
@@ -18,7 +18,7 @@ pub struct Range {
 
 #[derive(Clone)]
 pub struct RandRangeInclusive {
-    range: RandRange<u32>,
+    range: RandRange<RangeInt<u32>>,
     use_range: bool,
     offset: bool,
 }

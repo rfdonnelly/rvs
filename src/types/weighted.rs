@@ -3,6 +3,7 @@ use model::{Expr, ExprData};
 
 use rand::Rng;
 use rand::distributions::{Range, Sample};
+use rand::distributions::range::RangeInt;
 use std::fmt;
 
 #[derive(Clone)]
@@ -10,7 +11,7 @@ pub struct WeightedWithReplacement {
     data: ExprData,
     weights: Vec<u32>,
     children: Vec<Box<Expr>>,
-    range: Range<usize>,
+    range: Range<RangeInt<usize>>,
     pool: Vec<usize>,
     pool_index: Option<usize>,
 }
