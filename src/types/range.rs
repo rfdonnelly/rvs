@@ -1,8 +1,7 @@
 use std::fmt;
 use std::u32;
-use rand::distributions;
 use rand::distributions::Distribution;
-use rand::distributions::range::RangeInt;
+use rand::distributions::uniform::Uniform;
 
 use transform::CrateRng;
 use model::{Expr, ExprData};
@@ -12,7 +11,7 @@ pub struct Range {
     data: ExprData,
     l: u32,
     r: u32,
-    range: distributions::Range<RangeInt<u32>>,
+    range: Uniform<u32>,
 }
 
 impl Range {
@@ -23,7 +22,7 @@ impl Range {
             data: Default::default(),
             l,
             r,
-            range: distributions::Range::new_inclusive(limits.0, limits.1),
+            range: Uniform::new_inclusive(limits.0, limits.1),
         }
     }
 }
