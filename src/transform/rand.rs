@@ -6,7 +6,7 @@ use rand::{self, Rng, SeedableRng};
 pub type CrateRng = rand::XorShiftRng;
 
 #[derive(Clone)]
-pub struct Seed([u32; 4]);
+pub struct Seed([u8; 16]);
 
 impl Seed {
     /// Generates a 128-bit seed from a 32-bit seed
@@ -34,7 +34,24 @@ impl Seed {
     }
 
     pub fn from_u32_array(x: [u32; 4]) -> Seed {
-        Seed(x)
+        Seed([
+             (x[0] >>  0) as u8,
+             (x[0] >>  8) as u8,
+             (x[0] >> 16) as u8,
+             (x[0] >> 24) as u8,
+             (x[1] >>  0) as u8,
+             (x[1] >>  8) as u8,
+             (x[1] >> 16) as u8,
+             (x[1] >> 24) as u8,
+             (x[2] >>  0) as u8,
+             (x[2] >>  8) as u8,
+             (x[2] >> 16) as u8,
+             (x[2] >> 24) as u8,
+             (x[3] >>  0) as u8,
+             (x[3] >>  8) as u8,
+             (x[3] >> 16) as u8,
+             (x[3] >> 24) as u8,
+        ])
     }
 
     pub fn to_rng(&self) -> CrateRng {

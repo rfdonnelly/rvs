@@ -2,7 +2,8 @@ use transform::CrateRng;
 use model::{Expr, ExprData};
 
 use rand::Rng;
-use rand::distributions::{Range, Sample};
+use rand::distributions::Distribution;
+use rand::distributions::uniform::Uniform;
 use std::fmt;
 
 #[derive(Clone)]
@@ -10,7 +11,7 @@ pub struct WeightedWithReplacement {
     data: ExprData,
     weights: Vec<u32>,
     children: Vec<Box<Expr>>,
-    range: Range<usize>,
+    range: Uniform<usize>,
     pool: Vec<usize>,
     pool_index: Option<usize>,
 }
@@ -23,7 +24,7 @@ impl WeightedWithReplacement {
             data: Default::default(),
             weights,
             children,
-            range: Range::new(0, pool.len()),
+            range: Uniform::new(0, pool.len()),
             pool,
             pool_index: None,
         }
