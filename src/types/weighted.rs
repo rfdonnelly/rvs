@@ -1,9 +1,9 @@
 use transform::CrateRng;
 use model::{Expr, ExprData};
 
-use rand::Rng;
 use rand::distributions::Distribution;
 use rand::distributions::uniform::Uniform;
+use rand::seq::SliceRandom;
 use std::fmt;
 
 #[derive(Clone)]
@@ -81,7 +81,7 @@ impl WeightedWithoutReplacement {
         rng: &mut CrateRng,
     ) -> WeightedWithoutReplacement {
         let mut pool = populate_pool(&weights);
-        rng.shuffle(&mut pool);
+        pool.shuffle(rng);
 
         WeightedWithoutReplacement {
             data: Default::default(),
@@ -104,7 +104,7 @@ impl Expr for WeightedWithoutReplacement {
             if self.pool_index == self.pool.len() {
                 self.pool_index = 0;
                 self.data.done = true;
-                rng.shuffle(&mut self.pool);
+                self.pool.shuffle(rng);
             }
         }
 
