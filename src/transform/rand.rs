@@ -3,7 +3,7 @@ use rand::{Rng, SeedableRng};
 /// The RNG type used by this crate.
 ///
 /// Exists as a type alias to make changing RNG implementation easier.
-pub type CrateRng = rand_xorshift::XorShiftRng;
+pub type CrateRng = rand_pcg::Pcg32;
 
 #[derive(Clone)]
 pub struct Seed([u8; 16]);
