@@ -161,7 +161,7 @@ package rvs_pkg;
             end
         endfunction
 
-        static function write_definitions(string filename);
+        static function void write_definitions(string filename);
             rvs_write_definitions(model, filename, error);
             `rvs_handle_error
         endfunction
