@@ -23,26 +23,24 @@ impl SearchPath {
     /// string contains a mix of paths that do and do not exist, none of the paths will be added to
     /// the internal search path.
     pub fn from_string(s: &str) -> io::Result<SearchPath> {
-        let mut paths: Vec<PathBuf> = Vec::new();
-        let mut error_paths: Vec<PathBuf> = Vec::new();
-
         #[cfg(windows)]
         let separator = ';';
 
         #[cfg(not(windows))]
         let separator = ':';
 
-        for path in s.split(separator) {
-            if !path.is_empty() {
-                let path = Path::new(path);
+        let paths: Vec<PathBuf> = s
+            .split(separator)
+            .into_iter()
+            .filter(|s| !s.is_empty())
+            .map(|s| Path::new(s).to_path_buf())
+            .collect();
 
-                if path.exists() {
-                    paths.push(path.to_path_buf());
-                } else {
-                    error_paths.push(path.to_path_buf());
-                }
-            }
-        }
+        let error_paths: Vec<PathBuf> = paths
+            .iter()
+            .filter(|path| !path.exists())
+            .map(|path| path.clone())
+            .collect();
 
         if !error_paths.is_empty() {
             Err(io::Error::new(
