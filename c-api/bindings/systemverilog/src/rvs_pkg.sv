@@ -117,6 +117,17 @@ package rvs_pkg;
             return handle;
         endfunction
 
+        // Function: next
+        //
+        // Convenience function for getting a single value form a random
+        // variable.  Obtains the handle to the variable then returns the next
+        // value of the variable.  If multiple values are desired consider
+        // using the Rv type which caches the variable handle and is thus more
+        // performant.
+        static function uint32_t next(string name);
+            return rvs_next(model, Rvs::get(name));
+        endfunction
+
         static function rvs_model get_model();
             return model;
         endfunction
