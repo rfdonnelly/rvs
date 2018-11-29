@@ -19,9 +19,9 @@ impl SearchPath {
     ///
     /// # Errors
     ///
-    /// Error will be returned for parsed paths that do not exist.  If the search path string contains
-    /// a mix of paths that do and do not exist, the paths that do exist will be added to the internal
-    /// search path.
+    /// An error will be returned if any of the parsed paths do not exist.  If the search path
+    /// string contains a mix of paths that do and do not exist, none of the paths will be added to
+    /// the internal search path.
     pub fn from_string(s: &str) -> io::Result<SearchPath> {
         let mut paths: Vec<PathBuf> = Vec::new();
         let mut error_paths: Vec<PathBuf> = Vec::new();

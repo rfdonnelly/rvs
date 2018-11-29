@@ -51,9 +51,9 @@ impl From<usize> for SequenceHandle {
 ///
 /// # Errors
 ///
-/// Error will be reported for search paths that do not exist.  If the search path string contains
-/// a mix of paths that do and do not exist, the paths that do exist will be added to the internal
-/// search path.
+/// An error will be reported if any of the parsed paths do not exist.  If the search path string
+/// contains a mix of paths that do and do not exist, none of the paths will be added to the
+/// interal search path.
 ///
 /// A valid Context pointer will be returned and will need to be freed by the caller regardless of
 /// error or no error.
