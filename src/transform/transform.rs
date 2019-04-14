@@ -2,10 +2,10 @@ use super::rand::{CrateRng, Seed};
 use super::enumeration::Enum;
 use super::symbols::{Symbol, Symbols};
 
-use model::{Expr, Model, Variable, VariableRef};
-use types::{Binary, Done, Next, Once, Pattern, Prev, Range, Sequence, Unary, Value,
+use crate::model::{Expr, Model, Variable, VariableRef};
+use crate::types::{Binary, Done, Next, Once, Pattern, Prev, Range, Sequence, Unary, Value,
             WeightedWithReplacement, WeightedWithoutReplacement};
-use error::{TransformError, TransformResult};
+use crate::error::{TransformError, TransformResult};
 
 use rvs_parser::ast;
 

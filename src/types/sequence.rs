@@ -1,6 +1,6 @@
-use types::Value;
-use transform::CrateRng;
-use model::{Expr, ExprData};
+use crate::types::Value;
+use crate::transform::CrateRng;
+use crate::model::{Expr, ExprData};
 
 use std::num::Wrapping;
 use std::fmt;

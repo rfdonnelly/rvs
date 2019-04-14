@@ -3,7 +3,7 @@ extern crate rvs;
 use std::collections::HashSet;
 
 mod util;
-use util::*;
+use crate::util::*;
 
 #[test]
 fn basic() {

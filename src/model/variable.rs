@@ -1,5 +1,5 @@
 use super::expr::Expr;
-use transform::CrateRng;
+use crate::transform::CrateRng;
 
 use std::fmt;
 use std::rc::{Rc, Weak};

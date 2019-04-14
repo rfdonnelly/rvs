@@ -3,7 +3,7 @@ extern crate rvs;
 use std::collections::HashMap;
 
 mod util;
-use util::*;
+use crate::util::*;
 
 #[test]
 fn yields_each_value_once_per_cycle() {

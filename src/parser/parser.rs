@@ -1,6 +1,6 @@
 use super::ast::Ast;
 
-use error::Result;
+use crate::error::Result;
 
 use rvs_parser;
 use rvs_parser::ast;

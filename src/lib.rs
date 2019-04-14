@@ -10,11 +10,11 @@ mod model;
 mod types;
 
 pub use rvs_parser::SearchPath;
-pub use parser::Parser;
-pub use transform::{Seed, Transform};
-pub use model::{Model, Variable};
+pub use crate::parser::Parser;
+pub use crate::transform::{Seed, Transform};
+pub use crate::model::{Model, Variable};
 
-pub use error::{Error, Result};
+pub use crate::error::{Error, Result};
 
 pub fn parse(search_path: &SearchPath, s: &str) -> Result<Model> {
     let mut parser = Parser::new(search_path);

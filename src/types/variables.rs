@@ -1,7 +1,7 @@
 use std::fmt;
 
-use transform::CrateRng;
-use model::{Expr, ExprData, VariableWeak};
+use crate::transform::CrateRng;
+use crate::model::{Expr, ExprData, VariableWeak};
 
 #[derive(Clone)]
 pub struct Next {

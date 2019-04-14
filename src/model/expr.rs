@@ -1,4 +1,4 @@
-use transform::CrateRng;
+use crate::transform::CrateRng;
 
 use std::fmt;
 

@@ -1,5 +1,5 @@
-use transform::CrateRng;
-use model::{Expr, ExprData};
+use crate::transform::CrateRng;
+use crate::model::{Expr, ExprData};
 use rvs_parser::ast;
 
 use std::fmt::{self, Write};

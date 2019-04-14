@@ -1,7 +1,7 @@
 extern crate rvs;
 
 mod util;
-use util::*;
+use crate::util::*;
 
 #[test]
 fn yields_a_repeating_pattern() {

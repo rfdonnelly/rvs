@@ -1,7 +1,7 @@
 use std::fmt;
 
-use transform::CrateRng;
-use model::{Expr, ExprData};
+use crate::transform::CrateRng;
+use crate::model::{Expr, ExprData};
 
 #[derive(Clone)]
 pub struct Pattern {

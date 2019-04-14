@@ -3,8 +3,8 @@ use std::u32;
 use rand::distributions::Distribution;
 use rand::distributions::uniform::Uniform;
 
-use transform::CrateRng;
-use model::{Expr, ExprData};
+use crate::transform::CrateRng;
+use crate::model::{Expr, ExprData};
 
 #[derive(Clone)]
 pub struct Range {
@@ -50,7 +50,7 @@ impl fmt::Display for Range {
 mod tests {
     mod range {
         use super::super::*;
-        use transform::Seed;
+        use crate::transform::Seed;
 
         #[test]
         fn basic() {
