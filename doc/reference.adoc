@@ -271,13 +271,13 @@ been exhausted.
 
 ===== With Replacement
 
-* With weights: `{weight0: expr0, ..., weightN: exprN}`
-* Without weights: `{expr0, ..., exprN}`
+* With weights: `r{weight0: expr0, ..., weightN: exprN}`
+* Without weights: `r{expr0, ..., exprN}`
 
 ===== Without Replacement
 
-* With weights: `r{weight0: expr0, ..., weightN: exprN}`
-* Without weights: `r{expr0, ..., exprN}`
+* With weights: `{weight0: expr0, ..., weightN: exprN}`
+* Without weights: `{expr0, ..., exprN}`
 
 ==== Doneness
 
@@ -331,7 +331,7 @@ Mixing weighted and non-weighted syntax.
 
 ===== Without Replacement
 
-
+TODO
 
 ==== Grammar
 
@@ -547,6 +547,8 @@ b = Pattern(0, 1, 2, 3);
 ----
 
 It is also possible to 
+
+TODO
 
 === Grammar
 
