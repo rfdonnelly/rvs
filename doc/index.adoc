@@ -11,9 +11,8 @@
 :xrefstyle: short
 :title-page:
 
-= Introduction
-
 Rvs provides a lightweight method of defining random variables.
 
 include::guide.adoc[]
+
 include::reference.adoc[]

@@ -81,14 +81,21 @@ A hexidecimal value with separator:
 
 ==== Binary Operators
 
-| Precendence | Operators   |
-| ----------- | ----------- |
-| 1 (highest) | `*` `/` `%` |
-| 2           | `+` `-`     |
-| 3           | `<<` `>>`   |
-| 4           | `&`         |
-| 5           | `^`         |
-| 6 (lowest)  | <code>&=124;</code> |
+|===
+| Precendence | Operators
+
+| 1 (highest) | `*` `/` `%`
+
+| 2           | `+` `-`
+
+| 3           | `<<` `>>`
+
+| 4           | `&`
+
+| 5           | `^`
+
+| 6 (lowest)  | `\|`
+|===
 
 ==== Unary Operators
 
@@ -209,7 +216,7 @@ The Pattern type sequentially yields each sub-expression and waits for
 the current sub-expression to signal done before yielding the next
 sub-expression.
 
-Syntax: `Pattern(expr_0, ..., expr_n)`
+Syntax: `Pattern(expr0, ..., expr_n)`
 
 ==== Doneness
 
@@ -260,17 +267,17 @@ entries are removed from the selection pool; the selection pool shrinks until
 all entries have been exhausted.  The pool is restored after all entries have
 been exhausted.
 
-=== Syntax
+==== Syntax
 
 ===== With Replacement
 
-* With weights: `{weight_0: expr_0, ..., weight_n: expr_n}`
-* Without weights: `{expr_0, ..., expr_n}`
+* With weights: `{weight0: expr0, ..., weightN: exprN}`
+* Without weights: `{expr0, ..., exprN}`
 
 ===== Without Replacement
 
-* With weights: `r{weight_0: expr_0, ..., weight_n: expr_n}`
-* Without weights: `r{expr_0, ..., expr_n}`
+* With weights: `r{weight0: expr0, ..., weightN: exprN}`
+* Without weights: `r{expr0, ..., exprN}`
 
 ==== Doneness
 
@@ -341,7 +348,7 @@ The Sample type selects a sub-expression at random and continues to yield the
 selected sub-expression until the sub-expression indicates done.  This type
 implements random sampling with replacement.
 
-Syntax: `Sample(expr_0, ..., expr_n)`
+Syntax: `Sample(expr0, ..., exprN)`
 
 ==== Doneness
 
