@@ -299,19 +299,19 @@ Sampling values.
 * Expression: `r{0, 1}`
 * Equivalent expression: `[0, 1]`
 * Possible results
-  * `0 <done>, 0 <done>, ...`
-  * `0 <done>, 1 <done>, ...`
-  * `1 <done>, 0 <done>, ...`
-  * `1 <done>, 1 <done>, ...`
+** `0 <done>, 0 <done>, ...`
+** `0 <done>, 1 <done>, ...`
+** `1 <done>, 0 <done>, ...`
+** `1 <done>, 1 <done>, ...`
 
 Sampling multi-value sub-expressions.
 
 * Expression: `r{Pattern(0, 1), Pattern(2, 3)}`
 * Possible results:
-  * `0, 1 <done>, 0, 1 <done>, ...`
-  * `0, 1 <done>, 2, 3 <done>, ...`
-  * `2, 3 <done>, 0, 1 <done>, ...`
-  * `2, 3 <done>, 2, 3 <done>, ...`
+** `0, 1 <done>, 0, 1 <done>, ...`
+** `0, 1 <done>, 2, 3 <done>, ...`
+** `2, 3 <done>, 0, 1 <done>, ...`
+** `2, 3 <done>, 2, 3 <done>, ...`
 
 Weighted sampling that yields `0` 1/4th of the time and yields `1` 3/4ths
 of the time.
@@ -360,19 +360,19 @@ Sample two Values:
 
 * Expression: `Sample(0, 1)`
 * Possible results
-  * `0 <done>, 0 <done>, ...`
-  * `0 <done>, 1 <done>, ...`
-  * `1 <done>, 0 <done>, ...`
-  * `1 <done>, 1 <done>, ...`
+** `0 <done>, 0 <done>, ...`
+** `0 <done>, 1 <done>, ...`
+** `1 <done>, 0 <done>, ...`
+** `1 <done>, 1 <done>, ...`
 
 Sample a sub-expression with multiple values per cycle:
 
 * Expression: `Sample(Pattern(0, 1), Pattern(2, 3))`
 * Possible results:
-  * `0, 1 <done>, 0, 1 <done>, ...`
-  * `0, 1 <done>, 2, 3 <done>, ...`
-  * `2, 3 <done>, 0, 1 <done>, ...`
-  * `2, 3 <done>, 2, 3 <done>, ...`
+** `0, 1 <done>, 0, 1 <done>, ...`
+** `0, 1 <done>, 2, 3 <done>, ...`
+** `2, 3 <done>, 0, 1 <done>, ...`
+** `2, 3 <done>, 2, 3 <done>, ...`
 
 Sample multiple values:
 
@@ -384,8 +384,8 @@ Sample an enum:
 * Enum: `enum State { Off, On }`
 * Expression: `Sample(State)`
 * Equivalent expressions:
-  * `Sample(State::Off, State::On)`
-  * `Sample(0, 1)`
+** `Sample(State::Off, State::On)`
+** `Sample(0, 1)`
 
 ==== Grammar
 
@@ -415,10 +415,10 @@ Uniquely sample two values:
 
 * Expression: `Unique(0, 1)`
 * Possible results
-  * `0, 1 <done>, 1, 0 <done>, ...`
-  * `0, 1 <done>, 0, 1 <done>, ...`
-  * `1, 0 <done>, 1, 0 <done>, ...`
-  * `1, 0 <done>, 0, 1 <done>, ...`
+** `0, 1 <done>, 1, 0 <done>, ...`
+** `0, 1 <done>, 0, 1 <done>, ...`
+** `1, 0 <done>, 1, 0 <done>, ...`
+** `1, 0 <done>, 0, 1 <done>, ...`
 
 ==== Grammar
 
@@ -605,7 +605,8 @@ enum_member = type_name explicit_value?
 explicit_value = "=" number
 ----
 
-== Appendix: Grammar
+[appendix]
+== Grammar
 
 === Grammar Syntax
 
