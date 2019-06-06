@@ -1,12 +1,13 @@
 = Guide
 
+== Variables
+
+A variable, when evaluated, returns a sequence of values.
+A sequence can be as simple as a constant value or as complex as a combination of random and non-random sub-sequences.
+
 == Defining a Variable
 
 Variables are defined in the form of `variable = expression;`.
-
-A variable, when evaluated, returns a sequence of values.
-Several expression types are provided that yield various sequences.
-Expressions may be combined to form complex expressions that return a complex sequence of values.
 
 Let's start with a simple variable that indicates whether something is enabled or not.
 We'll start off with it disabled.
