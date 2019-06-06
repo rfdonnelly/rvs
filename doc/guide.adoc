@@ -2,7 +2,9 @@
 
 == Variables
 
+Rvs or random variables, as the name implies, centers around variables.
 A variable, when evaluated, returns a sequence of values.
+Sequences may be random, non-random, or a combination of random and non-random.
 A sequence can be as simple as a constant value or as complex as a combination of random and non-random sub-sequences.
 
 == Defining a Variable
