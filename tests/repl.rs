@@ -2,7 +2,6 @@
 ///
 /// More specifically, it verifies state can be accumulated over multiple parse and transform
 /// calls.
-extern crate rvs;
 
 #[test]
 fn basic() {

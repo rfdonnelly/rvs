@@ -1,5 +1,3 @@
-extern crate rvs;
-
 use std::collections::HashMap;
 
 mod util;

@@ -21,7 +21,7 @@ fn assert_contents_eq(actual: &Path, expected: &Path) {
         .read_to_string(&mut expected_contents)
         .expect(&format!("Cannot open {:?}", expected));
 
-    assert_diff!(&actual_contents, &expected_contents, " ", 0);
+    difference::assert_diff!(&actual_contents, &expected_contents, " ", 0);
 }
 
 fn parse_write(input: &Path, output: &Path) {

@@ -1,5 +1,3 @@
-extern crate rvs;
-
 use std::collections::HashSet;
 
 mod util;

@@ -1,7 +1,3 @@
-extern crate rand;
-extern crate rand_pcg;
-extern crate rvs_parser;
-
 mod error;
 mod parser;
 mod transform;

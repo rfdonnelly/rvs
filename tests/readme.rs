@@ -1,5 +1,3 @@
-extern crate rvs;
-
 use std::env::current_dir;
 use std::collections::HashMap;
 

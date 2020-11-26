@@ -1,5 +1,3 @@
-extern crate rvs_parser;
-
 mod utils;
 use utils::*;
 

@@ -1,9 +1,4 @@
-#![feature(test)]
-extern crate test;
-
 use test::Bencher;
-
-extern crate rvs;
 
 #[bench]
 fn basic(b: &mut Bencher) {

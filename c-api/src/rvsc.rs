@@ -12,9 +12,9 @@ use std::io::prelude::*;
 
 use rvs;
 
-use context::Context;
-use error::Error;
-use error::ErrorKind;
+use crate::context::Context;
+use crate::error::Error;
+use crate::error::ErrorKind;
 
 type SequenceHandleRaw = u32;
 struct SequenceHandle(SequenceHandleRaw);

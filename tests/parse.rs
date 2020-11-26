@@ -1,5 +1,3 @@
-extern crate rvs;
-
 #[test]
 fn basic() {
     let model = rvs::parse(&Default::default(), "a=[0,1];\nb=2;").unwrap();

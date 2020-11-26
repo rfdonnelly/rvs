@@ -1,5 +1,3 @@
-extern crate rvs_parser;
-
 use std::env::current_dir;
 
 use rvs_parser::{Parser, SearchPath};

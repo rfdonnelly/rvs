@@ -1,5 +1,3 @@
-extern crate rvs;
-
 #[test]
 fn multiple() {
     let model = rvs::parse(&Default::default(), "a=[0,1];b=[2,3];").unwrap();

@@ -1,5 +1,3 @@
-extern crate rvs;
-
 mod util;
 use crate::util::*;
 

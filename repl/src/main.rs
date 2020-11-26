@@ -1,5 +1,3 @@
-extern crate rvs;
-
 use std::io;
 use std::io::prelude::*;
 
