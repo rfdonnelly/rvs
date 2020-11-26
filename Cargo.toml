@@ -1,6 +1,6 @@
 [package]
 name = "rvs"
-version = "0.4.1"
+version = "0.5.0"
 edition = "2018"
 authors = ["Rob Donnelly <rfdonnelly@gmail.com>"]
 description = "A library for defining and evaluating random variables using a simple DSL"
@@ -10,7 +10,7 @@ repository = "https://github.com/rfdonnelly/rvs"
 keywords = ["random", "c-api", "dsl"]
 
 [dependencies]
-rvs-parser = { version = "0.4", path = "parser" }
+rvs-parser = { version = "0.5", path = "parser" }
 rand = "0.7"
 rand_pcg = "0.2"
 # Provides a HashMap that maintains insertion order (except after removals).

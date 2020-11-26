@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 
+No unreleased changes.
+
+## [0.5.0]
+
+### Added
+
+* Added support for Windows (77fd4db)
+* sv-bindings: Added `Rvs::next()` function to simplify one-time variable use (2d3cf52)
+
+### Changed
+
+* Changed the PRNG from XorShift to PCG to improve quality (1a8aec9)
+
+### Misc
+
+* Upgraded all dependencies
+* Upgraded all packages to Rust 2018 edition
+
 ## [0.4.1]
 
 ### Fixed
@@ -61,7 +79,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 First release.
 
-[Unreleased]: https://github.com/rfdonnelly/rvs/compare/v0.4.1...HEAD
+[Unreleased]: https://github.com/rfdonnelly/rvs/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/rfdonnelly/rvs/compare/v0.4.1...v0.5.0
 [0.4.1]: https://github.com/rfdonnelly/rvs/compare/v0.4.0...v0.4.1
 [0.4.0]: https://github.com/rfdonnelly/rvs/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/rfdonnelly/rvs/compare/v0.2.0...v0.3.0
