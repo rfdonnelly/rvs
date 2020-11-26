@@ -5,7 +5,7 @@ use std::fs::{self, File};
 use std::io::Read;
 use std::ffi::CStr;
 
-use tempdir::TempDir;
+use tempfile::tempdir;
 
 fn assert_contents_eq(actual: &Path, expected: &Path) {
     let mut actual_file = File::open(actual).expect(&format!("Cannot open {:?}", actual));
@@ -72,9 +72,9 @@ fn report_error(call: &str, error: *mut Error) {
 fn basic() {
     let input_path = Path::new("../examples");
     let files = fs::read_dir(input_path).unwrap();
-    let output0_path = TempDir::new("rvs-output0").unwrap();
+    let output0_path = tempdir().unwrap();
     let output0_path = output0_path.path();
-    let output1_path = TempDir::new("rvs-output1").unwrap();
+    let output1_path = tempdir().unwrap();
     let output1_path = output1_path.path();
     let expected_path = Path::new("tests/rvs_write_definitions");
 
