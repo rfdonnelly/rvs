@@ -1,4 +1,4 @@
-use searchpath::SearchPath;
+use crate::searchpath::SearchPath;
 
 use std::io;
 use std::path::Path;

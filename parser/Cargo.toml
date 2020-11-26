@@ -1,16 +1,16 @@
 [package]
 name = "rvs-parser"
+edition = "2018"
 version = "0.4.0"
 authors = ["Rob Donnelly <rfdonnelly@gmail.com>"]
-build = "build.rs"
 readme = "../README.md"
 description = "Parser for Rvs - A library for defining and evaluating random variables using a simple DSL"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/rfdonnelly/rvs"
 keywords = ["random", "c-api", "dsl"]
 
-[build-dependencies]
-peg = { version = "0.5" }
+[dependencies]
+peg = { version = "0.6" }
 
 [badges]
 travis-ci = { repository = "rfdonnelly/rvs" }

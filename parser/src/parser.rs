@@ -1,8 +1,8 @@
-use ast;
-use grammar;
-use searchpath::SearchPath;
-use sourcepaths::SourcePaths;
-use error::{Error, ParseError, Result};
+use crate::ast;
+use crate::grammar;
+use crate::searchpath::SearchPath;
+use crate::sourcepaths::SourcePaths;
+use crate::error::{Error, ParseError, Result};
 
 pub struct Parser {
     searchpath: SearchPath,
@@ -38,11 +38,11 @@ impl Parser {
                 // * Source file path
                 // * Single space above and below source line
                 // * Source line prefixed with line number and '|' separator
-                let mut indent = String::with_capacity(error.column);
-                for _ in 0..error.column - 1 {
+                let mut indent = String::with_capacity(error.location.column);
+                for _ in 0..error.location.column - 1 {
                     indent.push_str(" ");
                 }
-                let line = s.lines().nth(error.line - 1).unwrap();
+                let line = s.lines().nth(error.location.line - 1).unwrap();
                 let description = format!("{}\n{}\n{}^", error, line, indent,);
 
                 Err(Error::Parse(ParseError::new(description)))
