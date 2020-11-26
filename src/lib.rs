@@ -1,4 +1,3 @@
-extern crate linked_hash_map;
 extern crate rand;
 extern crate rand_pcg;
 extern crate rvs_parser;

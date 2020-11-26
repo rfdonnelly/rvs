@@ -1,12 +1,12 @@
-use linked_hash_map::LinkedHashMap;
+use indexmap::IndexMap;
 
 #[derive(Debug)]
 pub struct Enum {
-    pub items: LinkedHashMap<String, u32>,
+    pub items: IndexMap<String, u32>,
 }
 
 impl Enum {
-    pub fn new(items: LinkedHashMap<String, u32>) -> Enum {
+    pub fn new(items: IndexMap<String, u32>) -> Enum {
         Enum { items }
     }
 }

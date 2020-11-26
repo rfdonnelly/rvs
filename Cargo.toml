@@ -13,7 +13,10 @@ keywords = ["random", "c-api", "dsl"]
 rvs-parser = { version = "0.4", path = "parser" }
 rand = "0.7"
 rand_pcg = "0.2"
-linked-hash-map = "0.5"
+# Provides a HashMap that maintains insertion order (except after removals).
+# As long as we don't do removals, this does what we want.
+# FIXME(doc): Remind me why we need to maintain insertion order.
+indexmap = "1"
 
 [workspace]
 members = ["parser", "c-api", "repl"]

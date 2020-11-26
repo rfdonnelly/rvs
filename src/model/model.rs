@@ -1,12 +1,12 @@
 use super::VariableRef;
 
-use linked_hash_map::{Entry, LinkedHashMap};
+use indexmap::{map::Entry, IndexMap};
 use std::fmt;
 
 #[derive(Default)]
 pub struct Model {
     variables: Vec<VariableRef>,
-    variable_indexes: LinkedHashMap<String, usize>,
+    variable_indexes: IndexMap<String, usize>,
     most_recent: usize,
 }
 
@@ -83,7 +83,7 @@ impl fmt::Display for Model {
 }
 
 pub struct VariablesIter<'a> {
-    iter: ::linked_hash_map::Iter<'a, String, usize>,
+    iter: ::indexmap::map::Iter<'a, String, usize>,
     variables: &'a Vec<VariableRef>,
 }
 

@@ -9,7 +9,7 @@ use crate::error::{TransformError, TransformResult};
 
 use rvs_parser::ast;
 
-use linked_hash_map::LinkedHashMap;
+use indexmap::IndexMap;
 use std::rc::Rc;
 use std::cell::RefCell;
 
@@ -69,7 +69,7 @@ impl Transform {
             )));
         }
 
-        let mut enum_members_map = LinkedHashMap::new();
+        let mut enum_members_map = IndexMap::new();
         let mut next_implicit_value = 0;
 
         // FIXME change to drain()?
