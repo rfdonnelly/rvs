@@ -119,7 +119,7 @@ package rvs_pkg;
 
         // Function: next
         //
-        // Convenience function for getting a single value form a random
+        // Convenience function for getting a single value from a random
         // variable.  Obtains the handle to the variable then returns the next
         // value of the variable.  If multiple values are desired consider
         // using the Rv type which caches the variable handle and is thus more
