@@ -9,9 +9,9 @@ use std::fmt;
 pub struct Sequence {
     data: ExprData,
     next: Wrapping<u32>,
-    first: Box<Expr>,
-    last: Box<Expr>,
-    increment: Box<Expr>,
+    first: Box<dyn Expr>,
+    last: Box<dyn Expr>,
+    increment: Box<dyn Expr>,
     compare: bool,
 }
 
@@ -20,10 +20,10 @@ impl Sequence {
     ///
     /// * If `args.len()` < 1 OR > 3
     /// * If increment is 0
-    pub fn new(mut args: Vec<Box<Expr>>, rng: &mut CrateRng) -> Sequence {
+    pub fn new(mut args: Vec<Box<dyn Expr>>, rng: &mut CrateRng) -> Sequence {
         let len = args.len();
         let mut drain = args.drain(..);
-        let (first, last, increment): (Box<Expr>, Box<Expr>, Box<Expr>) = match len {
+        let (first, last, increment): (Box<dyn Expr>, Box<dyn Expr>, Box<dyn Expr>) = match len {
             1 => (
                 Box::new(Value::new(0)),
                 drain.next().unwrap(),

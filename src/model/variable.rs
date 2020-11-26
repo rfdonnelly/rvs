@@ -6,7 +6,7 @@ use std::rc::{Rc, Weak};
 use std::cell::RefCell;
 
 pub struct Variable {
-    expr: Box<Expr>,
+    expr: Box<dyn Expr>,
     rng: CrateRng,
 }
 
@@ -14,11 +14,11 @@ pub type VariableRef = Rc<RefCell<Box<Variable>>>;
 pub type VariableWeak = Weak<RefCell<Box<Variable>>>;
 
 impl Variable {
-    pub fn new(expr: Box<Expr>, rng: CrateRng) -> Variable {
+    pub fn new(expr: Box<dyn Expr>, rng: CrateRng) -> Variable {
         Variable { expr, rng }
     }
 
-    pub fn clone_expr(&self) -> Box<Expr> {
+    pub fn clone_expr(&self) -> Box<dyn Expr> {
         self.expr.clone()
     }
 

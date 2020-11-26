@@ -6,11 +6,11 @@ use std::fmt;
 #[derive(Clone)]
 pub struct Done {
     data: ExprData,
-    expr: Box<Expr>,
+    expr: Box<dyn Expr>,
 }
 
 impl Done {
-    pub fn new(expr: Box<Expr>) -> Done {
+    pub fn new(expr: Box<dyn Expr>) -> Done {
         Done {
             data: Default::default(),
             expr,

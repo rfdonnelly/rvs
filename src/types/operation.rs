@@ -9,7 +9,7 @@ use std::num::Wrapping;
 pub struct Binary {
     data: ExprData,
     operation: ast::BinaryOpcode,
-    operands: (Box<Expr>, Box<Expr>),
+    operands: (Box<dyn Expr>, Box<dyn Expr>),
     done: (bool, bool),
 }
 
@@ -17,11 +17,11 @@ pub struct Binary {
 pub struct Unary {
     data: ExprData,
     operation: ast::UnaryOpcode,
-    operand: Box<Expr>,
+    operand: Box<dyn Expr>,
 }
 
 impl Binary {
-    pub fn new(l: Box<Expr>, operation: ast::BinaryOpcode, r: Box<Expr>) -> Binary {
+    pub fn new(l: Box<dyn Expr>, operation: ast::BinaryOpcode, r: Box<dyn Expr>) -> Binary {
         Binary {
             data: Default::default(),
             operation,
@@ -74,7 +74,7 @@ impl fmt::Display for Binary {
 }
 
 impl Unary {
-    pub fn new(operation: ast::UnaryOpcode, operand: Box<Expr>) -> Unary {
+    pub fn new(operation: ast::UnaryOpcode, operand: Box<dyn Expr>) -> Unary {
         Unary {
             data: Default::default(),
             operation,

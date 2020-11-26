@@ -111,7 +111,7 @@ impl Transform {
         model: &Model,
         rng: &mut CrateRng,
         node: &ast::Node,
-    ) -> TransformResult<Box<Expr>> {
+    ) -> TransformResult<Box<dyn Expr>> {
         match *node {
             ast::Node::Type(ref typ, ref args) => self.transform_type(model, rng, typ, args),
             ast::Node::Weighted(ref replacement, ref args) =>
@@ -165,7 +165,7 @@ impl Transform {
         variable_name: &str,
         variable_index: usize,
         method: &ast::VariableMethod,
-    ) -> TransformResult<Box<Expr>> {
+    ) -> TransformResult<Box<dyn Expr>> {
         match model.get_variable_by_index(variable_index) {
             Some(variable) => match *method {
                 ast::VariableMethod::Next => {
@@ -188,8 +188,8 @@ impl Transform {
         model: &Model,
         rng: &mut CrateRng,
         args: &[Box<ast::Node>],
-    ) -> TransformResult<Vec<Box<Expr>>> {
-        let mut arg_exprs: Vec<Box<Expr>> = Vec::new();
+    ) -> TransformResult<Vec<Box<dyn Expr>>> {
+        let mut arg_exprs: Vec<Box<dyn Expr>> = Vec::new();
         for arg in args {
             arg_exprs.push(self.transform_expr(model, rng, arg)?);
         }
@@ -203,9 +203,9 @@ impl Transform {
         rng: &mut CrateRng,
         replacement: &ast::Replacement,
         args: &[Box<ast::Node>],
-    ) -> TransformResult<Box<Expr>> {
+    ) -> TransformResult<Box<dyn Expr>> {
         let mut weights: Vec<u32> = Vec::new();
-        let mut children: Vec<Box<Expr>> = Vec::new();
+        let mut children: Vec<Box<dyn Expr>> = Vec::new();
         for arg in args {
             match **arg {
                 ast::Node::Type(ast::Type::Expand, ref args) => {
@@ -253,7 +253,7 @@ impl Transform {
         rng: &mut CrateRng,
         typ: &ast::Type,
         args: &[Box<ast::Node>],
-    ) -> TransformResult<Box<Expr>> {
+    ) -> TransformResult<Box<dyn Expr>> {
         match *typ {
             ast::Type::Pattern => Ok(Box::new(Pattern::new(self.transform_args(
                 model,

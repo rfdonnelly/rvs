@@ -10,14 +10,14 @@ use std::fmt;
 pub struct WeightedWithReplacement {
     data: ExprData,
     weights: Vec<u32>,
-    children: Vec<Box<Expr>>,
+    children: Vec<Box<dyn Expr>>,
     range: Uniform<usize>,
     pool: Vec<usize>,
     pool_index: Option<usize>,
 }
 
 impl WeightedWithReplacement {
-    pub fn new(weights: Vec<u32>, children: Vec<Box<Expr>>) -> WeightedWithReplacement {
+    pub fn new(weights: Vec<u32>, children: Vec<Box<dyn Expr>>) -> WeightedWithReplacement {
         let pool = populate_pool(&weights);
 
         WeightedWithReplacement {
@@ -69,7 +69,7 @@ impl fmt::Display for WeightedWithReplacement {
 pub struct WeightedWithoutReplacement {
     data: ExprData,
     weights: Vec<u32>,
-    children: Vec<Box<Expr>>,
+    children: Vec<Box<dyn Expr>>,
     pool: Vec<usize>,
     pool_index: usize,
 }
@@ -77,7 +77,7 @@ pub struct WeightedWithoutReplacement {
 impl WeightedWithoutReplacement {
     pub fn new(
         weights: Vec<u32>,
-        children: Vec<Box<Expr>>,
+        children: Vec<Box<dyn Expr>>,
         rng: &mut CrateRng,
     ) -> WeightedWithoutReplacement {
         let mut pool = populate_pool(&weights);

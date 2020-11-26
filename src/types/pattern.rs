@@ -6,12 +6,12 @@ use crate::model::{Expr, ExprData};
 #[derive(Clone)]
 pub struct Pattern {
     data: ExprData,
-    children: Vec<Box<Expr>>,
+    children: Vec<Box<dyn Expr>>,
     current_child: usize,
 }
 
 impl Pattern {
-    pub fn new(children: Vec<Box<Expr>>) -> Pattern {
+    pub fn new(children: Vec<Box<dyn Expr>>) -> Pattern {
         Pattern {
             data: Default::default(),
             children,

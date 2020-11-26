@@ -28,7 +28,7 @@ impl error::Error for Error {
         }
     }
 
-    fn cause(&self) -> Option<&error::Error> {
+    fn cause(&self) -> Option<&dyn error::Error> {
         match *self {
             Error::Parse(ref err) => Some(err),
             Error::Transform(ref err) => Some(err),
@@ -75,7 +75,7 @@ impl error::Error for TransformError {
         &self.description
     }
 
-    fn cause(&self) -> Option<&error::Error> {
+    fn cause(&self) -> Option<&dyn error::Error> {
         None
     }
 }
