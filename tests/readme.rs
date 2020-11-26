@@ -21,7 +21,7 @@ fn readme() {
     let mut results: HashMap<u32, u32> = HashMap::new();
     for _ in 0..90 {
         let entry = results.entry(sample_with_replacement.next()).or_insert(0);
-        *entry += 1;;
+        *entry += 1;
     }
     assert_eq!(results.len(), 3);
     for i in 0..3 {
@@ -33,7 +33,7 @@ fn readme() {
     let mut results: HashMap<u32, u32> = HashMap::new();
     for _ in 0..1000 {
         let entry = results.entry(weighted_sample_with_replacement.next()).or_insert(0);
-        *entry += 1;;
+        *entry += 1;
     }
     println!("weighted_sample_with_replacement: {:?}", results);
     assert_eq!(results.len(), 3);
