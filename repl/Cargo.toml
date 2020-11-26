@@ -1,5 +1,6 @@
 [package]
 name = "rvs-repl"
+edition = "2018"
 version = "0.4.1"
 authors = ["Rob Donnelly <rfdonnelly@gmail.com>"]
 description = "REPL for Rvs - A library for defining and evaluating random variables using a simple DSL"
