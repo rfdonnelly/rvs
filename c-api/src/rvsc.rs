@@ -4,7 +4,6 @@
 
 #![cfg_attr(feature = "cargo-clippy", allow(not_unsafe_ptr_arg_deref))]
 
-use libc::uint32_t;
 use libc::c_char;
 use std::ffi::CStr;
 use std::path::Path;
@@ -17,7 +16,7 @@ use context::Context;
 use error::Error;
 use error::ErrorKind;
 
-type SequenceHandleRaw = uint32_t;
+type SequenceHandleRaw = u32;
 struct SequenceHandle(SequenceHandleRaw);
 
 impl SequenceHandle {
@@ -34,7 +33,7 @@ impl Into<usize> for SequenceHandle {
 
 impl From<usize> for SequenceHandle {
     fn from(index: usize) -> SequenceHandle {
-        SequenceHandle((index + 1) as uint32_t)
+        SequenceHandle((index + 1) as u32)
     }
 }
 
