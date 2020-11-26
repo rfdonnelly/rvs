@@ -16,13 +16,6 @@ pub struct ParseError {
 }
 
 impl error::Error for Error {
-    fn description(&self) -> &str {
-        match *self {
-            Error::Parse(ref err) => err.description(),
-            Error::Io(ref err) => err.description(),
-        }
-    }
-
     fn cause(&self) -> Option<&dyn error::Error> {
         match *self {
             Error::Parse(ref err) => Some(err),
